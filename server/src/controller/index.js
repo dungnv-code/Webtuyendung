@@ -5,9 +5,10 @@ const jobLevelController = require('../controller/jobLevel');
 const WorktypeController = require('../controller/worktype');
 const salaryRangeController = require('./salaryRange.js');
 const ExperienceController = require('./experience.js');
+const PostpackageController = require('./postpackage.js');
 
 module.exports = {
     userController, jobsController, skillController
     , jobLevelController, WorktypeController, salaryRangeController
-    , ExperienceController
+    , ExperienceController, PostpackageController
 };
