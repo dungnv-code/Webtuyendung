@@ -1,0 +1,61 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by testing
+coverage
+*.lcov
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# dotenv environment variables file
+.env
+.env.*
+!.env.example
+
+# Next.js / Nuxt / Remix build
+.next/
+.out/
+.nuxt/
+server/.next/
+
+# Build output
+dist/
+build/
+temp/
+tmp/
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Optional npm cache directory
+.npm/
+
+# Optional eslint cache
+.eslintcache
+
+# Optional stylelint cache
+.stylelintcache
+
+# VSCode settings
+.vscode/
+!.vscode/extensions.json
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs from PM2
+.pmx/
