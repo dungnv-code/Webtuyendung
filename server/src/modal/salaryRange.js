@@ -1,6 +1,4 @@
 const mongoose = require("mongoose");
-const slugify = require("slugify");
-
 const SalaryRangeSchema = new mongoose.Schema(
     {
         salaryRange: {

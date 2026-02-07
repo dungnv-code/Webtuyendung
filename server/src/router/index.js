@@ -7,6 +7,7 @@ const SalaryRangeRouter = require("./salaryRange")
 const ExperienceRouter = require("./Experience")
 const JobPostPackageRouter = require("./Postpackage")
 const BusinessRouter = require("./Business")
+const PostjobsRouter = require("./Postjobs")
 
 const { notFound, errHandler } = require("../middleware/ErrHanler");
 const Root = (app) => {
@@ -19,6 +20,7 @@ const Root = (app) => {
     app.use("/api/experience", ExperienceRouter)
     app.use("/api/postpackage", JobPostPackageRouter)
     app.use("/api/business", BusinessRouter)
+    app.use("/api/postjobs", PostjobsRouter)
     app.use(notFound)
     app.use(errHandler)
 }

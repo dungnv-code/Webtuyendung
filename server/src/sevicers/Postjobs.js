@@ -1,0 +1,224 @@
+const usePostJobs = require("../repository/PostJobs");
+const seedrandom = require("seedrandom");
+const useBusiness = require("../repository/Business");
+const createPostjobs = async (businessId, data) => {
+
+    // 1. Kiểm tra bài đăng trùng
+    const existPostJobs = await usePostJobs.findByOne({ title: data.title });
+    if (existPostJobs) {
+        throw new Error("Bài đăng công việc đã tồn tại");
+    }
+
+    // 2. Kiểm tra doanh nghiệp tồn tại
+    const business = await useBusiness.findByOne({ _id: businessId });
+    if (!business) {
+        throw new Error("Doanh nghiệp không tồn tại");
+    }
+
+    // 3. Kiểm tra lượt đăng
+    if (data.postPackage == 0) {
+        if (business.normalPosts <= 0) {
+            throw new Error("Bạn đã hết lượt đăng bình thường");
+        }
+    }
+
+    if (data.postPackage == 1) {
+        if (business.featuredPosts <= 0) {
+            throw new Error("Bạn đã hết lượt đăng nổi bật");
+        }
+    }
+
+    // 4. Gán doanh nghiệp cho bài đăng
+    const convertDate = (str) => {
+        const [day, month, year] = str.split("/");
+        return new Date(`${year}-${month}-${day}`);
+    };
+
+    data.deadline = convertDate(data.deadline);
+    data.business = businessId;
+
+    // 5. Tạo bài đăng
+    const PostJobs = await usePostJobs.create(data);
+
+    // 6. Trừ lượt đăng sau khi tạo thành công
+    if (PostJobs) {
+        if (data.postPackage == 0) {
+            business.normalPosts -= 1;
+        } else if (data.postPackage == 1) {
+            business.featuredPosts -= 1;
+        }
+        await business.save();
+    }
+
+    // 7. Trả về kết quả
+    return {
+        success: true,
+        message: "Tạo bài đăng thành công",
+        data: PostJobs,
+    };
+};
+
+
+const updatePostjobs = async (idp, data) => {
+    const existPostJobs = await usePostJobs.findByOne({ _id: idp });
+    if (!existPostJobs) {
+        throw new Error("Không tìm thấy bài đăng công việc");
+    }
+    const updatedPostJobs = await usePostJobs.updatebyOne({ _id: idp }, data);
+    return {
+        success: true,
+        data: updatedPostJobs,
+    };
+}
+
+// ---------------------- BUILD FILTER ----------------------
+const buildFilter = (queries) => {
+    const filter = {};
+
+    for (const key in queries) {
+
+        // Bỏ qua filter dạng flatten (job_title, job.title)
+        if (key.includes("_") || key.includes(".")) continue;
+
+        filter[key] = { $regex: queries[key], $options: "i" };
+    }
+
+    return filter;
+};
+
+
+// ---------------------- FLATTEN HELPERS ----------------------
+const flattenPopulate = (item, populations = []) => {
+    populations.forEach(pop => {
+        const path = pop.path;
+
+        if (item[path] && typeof item[path] === "object") {
+            for (const key in item[path]) {
+                const newKey = `${path}_${key}`;
+                item[newKey] = item[path][key];
+            }
+            delete item[path];
+        }
+    });
+
+    return item;
+};
+
+const flattenPopulateArray = (items, populations = []) => {
+    if (!Array.isArray(items)) return items;
+    return items.map(item => flattenPopulate(item, populations));
+};
+
+const convertFlattenQuery = (queryParams, populate = []) => {
+    const flatFilters = {};
+
+    for (const key in queryParams) {
+
+        if (key.includes(".")) {
+            const [path, field] = key.split(".");
+            const isPopulated = populate?.some(p => p.path === path);
+
+            if (isPopulated) {
+                flatFilters[`${path}_${field}`] = queryParams[key];
+            }
+            continue;
+        }
+
+
+        if (key.includes("_")) {
+            const [path] = key.split("_");
+            const isPopulated = populate?.some(p => p.path === path);
+
+            if (isPopulated) {
+                flatFilters[key] = queryParams[key];
+            }
+        }
+    }
+
+    return flatFilters;
+};
+
+
+const applyFlattenFilter = (items, flatFilters = {}) => {
+    return items.filter(item => {
+
+        for (const key in flatFilters) {
+            const expected = String(flatFilters[key]).toLowerCase().normalize("NFC");
+            const actual = String(item[key] ?? "").toLowerCase().normalize("NFC");
+
+            if (actual !== expected) return false;
+        }
+
+        return true;
+    });
+};
+
+
+const getAllPostjobs = async (queryParams) => {
+    const excludeFields = ["limit", "sort", "page", "fields", "random", "seed", "populate", "flatten"];
+    const queries = { ...queryParams };
+
+    excludeFields.forEach(el => delete queries[el]);
+
+    const filter = buildFilter(queries);
+
+    const limit = Number(queryParams.limit) || 20;
+    const sort = queryParams.sort || "-createdAt";
+    const page = Number(queryParams.page) || 1;
+    const skip = (page - 1) * limit;
+    const fields = queryParams.fields?.split(",").join(" ");
+    const flatten = queryParams.flatten === "true";
+
+    let populate = null;
+    if (queryParams.populate) {
+        populate = queryParams.populate.split(";").map(p => {
+            const [path, select] = p.split(":");
+            return {
+                path: path.trim(),
+                select: select ? select.replace(/,/g, " ") : undefined
+            };
+        });
+    }
+
+    let [jobs, total] = await Promise.all([
+        usePostJobs.findAll(filter, { fields, sort, skip, limit, populate }),
+        usePostJobs.countDocuments(filter)
+    ]);
+
+    if (flatten && populate) {
+
+        jobs = flattenPopulateArray(jobs, populate);
+
+        const flatFilters = convertFlattenQuery(queryParams, populate);
+
+        if (Object.keys(flatFilters).length > 0) {
+            jobs = applyFlattenFilter(jobs, flatFilters);
+        }
+    }
+
+    return {
+        jobs,
+        total,
+        totalPages: Math.ceil(total / limit),
+        currentPage: page
+    };
+};
+
+const deletePostjobs = async (ids) => {
+    const existPostJobs = await usePostJobs.findByOne({ _id: ids });
+    if (!existPostJobs) {
+        throw new Error("Không tìm thấy bài đăng công việc để xóa");
+    }
+    await usePostJobs.deletebyOne({ _id: ids });
+    return {
+        success: true,
+        mes: "Xóa bài đăng công việc thành công",
+    };
+}
+
+module.exports = {
+    createPostjobs,
+    updatePostjobs,
+    getAllPostjobs,
+    deletePostjobs,
+}
