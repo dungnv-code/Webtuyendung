@@ -1,7 +1,7 @@
 const crypto = require("crypto");
 
 function makeNumberToken(length = 10) {
-    const digits = '0123456789';
+    const digits = '0123456789ABCDFGHJKLZXCVBNMQWERTYUIOP';
     const bytes = crypto.randomBytes(length);
     let token = '';
 

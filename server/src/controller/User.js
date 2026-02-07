@@ -106,7 +106,7 @@ class ControllerUser {
     });
 
     getAll = asyncHandler(async (req, res) => {
-        const reponse = await userSevicer.getAllUser();
+        const reponse = await userSevicer.getAllUser(req.query);
         res.status(200).json(reponse);
     });
 
@@ -137,6 +137,7 @@ class ControllerUser {
             updatedUser
         });
     });
+
     changePassword = asyncHandler(async (req, res) => {
         const err = validationResult(req);
         if (!err.isEmpty()) {
@@ -146,6 +147,19 @@ class ControllerUser {
         const reponse = await userSevicer.changePasswordUser(id, req.body);
         res.status(200).json(reponse);
     });
+
+    getDetailBusiness = asyncHandler(async (req, res) => {
+        const { id } = req.user;
+        const reponse = await userSevicer.getDetailBusinessUser(id);
+        res.status(200).json(reponse);
+
+    });
+
+    createStaff = asyncHandler(async (req, res) => {
+        const { businessId } = req.user;
+        const reponse = await userSevicer.createStaffUser(businessId, req.body);
+        res.status(200).json(reponse);
+    })
 }
 
 module.exports = new ControllerUser();

@@ -32,4 +32,19 @@ const TokenIsAdmin = asyncHandler((req, res, next) => {
 
 })
 
-module.exports = { VerifyToken, TokenIsAdmin };
+const TokenIsNhaTuyenDung = asyncHandler((req, res, next) => {
+
+    const { role } = req.user;
+
+    if (role === "nhatuyendung") {
+        return next();
+    }
+
+    return res.status(401).json({
+        success: false,
+        mes: 'Bạn không có quyền truy cập tài nguyên này'
+    });
+
+})
+
+module.exports = { VerifyToken, TokenIsAdmin, TokenIsNhaTuyenDung };

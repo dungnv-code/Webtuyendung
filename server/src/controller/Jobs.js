@@ -27,7 +27,7 @@ class JobController {
     });
 
     getAll = asyncHandler(async (req, res) => {
-        const reponse = await jobsSevicer.getAllJobs();
+        const reponse = await jobsSevicer.getAllJobs(req.query);
         res.status(200).json(reponse);
     });
 

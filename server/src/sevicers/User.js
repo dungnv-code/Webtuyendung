@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 const makeNumberToken = require("../ulti/makeToken");
 const sendMail = require("../ulti/sendMail");
 const crypto = require("crypto");
-
+const seedrandom = require("seedrandom");
 const genateAccessToken = (payload) => {
     return jwt.sign(payload, process.env.JWT_SECRET_KEY, { expiresIn: "3h" });
 }
@@ -47,6 +47,7 @@ const RegisterUser = async (data) => {
         mes: "Vui lòng kiểm tra code trong email để hoàn tất đăng kí",
     }
 }
+
 
 const finalRegisterUser = async (data) => {
     const token = data;
@@ -108,7 +109,7 @@ const LoginUser = async (data) => {
         throw new Error("Mât khẩu không đúng");
     }
 
-    const accessToken = genateAccessToken({ id: user._id, role: user.role });
+    const accessToken = genateAccessToken({ id: user._id, role: user.role, businessId: user.business || null });
     const refreshToken = genateRefreshToken({ id: user._id });
     user.refreshToken = refreshToken;
     await user.save();
@@ -187,7 +188,7 @@ const refreshTokenUser = async (refreshToken) => {
     if (!user) {
         throw new Error("Không tìm thấy user");
     }
-    const newAccessToken = genateAccessToken({ id: user._id, role: user.role });
+    const newAccessToken = genateAccessToken({ id: user._id, role: user.role, businessId: user.business || null });
     const newRefreshToken = genateRefreshToken({ id: user._id });
     user.refreshToken = newRefreshToken;
     await user.save();
@@ -210,6 +211,33 @@ const getSingleUser = async (id) => {
         data: user,
     };
 }
+
+const buildFilter = (queries) => {
+    const filter = {};
+
+    for (const key in queries) {
+        const match = key.match(/^(\w+)\[(gte|gt|lte|lt)\]$/);
+
+        if (match) {
+            const [, field, op] = match;
+            filter[field] = filter[field] || {};
+            filter[field][`$${op}`] = Number(queries[key]);
+        }
+        else if (key === "username") {
+            filter.username = { $regex: queries[key], $options: "i" };
+        }
+        else {
+            const value = queries[key];
+
+            if (typeof value === "string" && value.includes(",")) {
+                filter[key] = { $in: value.split(",") };
+            } else {
+                filter[key] = (!isNaN(value)) ? Number(value) : value;
+            }
+        }
+    }
+    return filter;
+};
 
 const getAllUser = async () => {
     const users = await userRepository.findAll({}).select('-refreshToken -password');
@@ -266,7 +294,7 @@ const changePasswordUser = async (idu, { oldpassword, newpassword }) => {
     }
     const isPasswordValid = bcrypt.compareSync(oldpassword, user.password);
     if (!isPasswordValid) {
-        throw new Error("Mât khẩu cũ không đúng");
+        throw new Error("Mật khẩu cũ không đúng");
     }
     user.password = bcrypt.hashSync(newpassword, 10);
     await user.save();
@@ -275,6 +303,61 @@ const changePasswordUser = async (idu, { oldpassword, newpassword }) => {
         mes: "Đổi mật khẩu thành công",
     };
 }
+
+const getDetailBusinessUser = async (iduser) => {
+    const Business = await userRepository.findByOne({ _id: iduser }).populate('business');
+    if (!Business) {
+        throw new Error("Không tìm thấy Doanh nghiệp");
+    }
+    return {
+        success: true,
+        data: Business.business,
+    };
+}
+
+const createStaffUser = async (businessId, data) => {
+    const { email } = data;
+    const exist = await userRepository.findByOne({ email: email });
+    if (exist) {
+        throw new Error("Email đã tồn tại");
+    }
+
+    // 2. Tạo password random
+    const generatedPassword = makeNumberToken(8);
+
+    // 3. Hash mật khẩu
+    const hashedPassword = await bcrypt.hash(generatedPassword, 10);
+
+    // 4. Tạo user
+    const newUser = await userRepository.createUser({
+        username: data.username,
+        email,
+        phone: data.phone,
+        role: "STAFF",
+        password: hashedPassword,
+        business: businessId
+    });
+
+    // 5. Gửi email mật khẩu cho nhân viên
+    const html = `
+            <h2>Xin chào ${data.username}</h2>
+            <p>Bạn đã được thêm vào hệ thống tuyển dụng công ty.</p>
+            <p><b>Email:</b> ${data.email}</p>
+            <p><b>Mật khẩu:</b> ${generatedPassword}</p>
+            <p>Bạn có thể đăng nhập và vui lòng không chia mật khẩu.</p>
+        `
+    await sendMail({
+        email,
+        html,
+        subject: "Mật khẩu tại Tuyển Dụng",
+    });
+
+    return {
+        success: true,
+        message: "Tạo nhân viên thành công. Mật khẩu đã gửi vào email.",
+        staffId: newUser._id
+    };
+};
 
 module.exports = {
     RegisterUser,
@@ -289,4 +372,6 @@ module.exports = {
     deletebyadminUser,
     updateUser,
     changePasswordUser,
+    getDetailBusinessUser,
+    createStaffUser
 };

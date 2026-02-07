@@ -4,8 +4,19 @@ const findByOne = (condition) => {
     return Skill.findOne(condition);
 };
 
-const findAll = (condition) => {
-    return Skill.find(condition);
+const findAll = (condition, options = {}) => {
+    let query = Skill.find(condition);
+
+    if (options.fields) query = query.select(options.fields);
+    if (options.sort) query = query.sort(options.sort);
+    if (options.skip) query = query.skip(options.skip);
+    if (options.limit) query = query.limit(options.limit);
+    if (options.populate) query = query.populate(options.populate);
+    return query.lean();
+};
+
+const countDocuments = (condition = {}) => {
+    return Skill.countDocuments(condition);
 };
 
 const create = (data) => {
@@ -26,4 +37,5 @@ module.exports = {
     deletebyOne,
     findAll,
     updatebyOne,
+    countDocuments,
 }

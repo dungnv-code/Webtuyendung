@@ -10,6 +10,7 @@ class SkillController {
         const reponse = await skillSevicer.createSkill({ ...req.body });
         res.status(200).json(reponse);
     });
+
     update = asyncHandler(async (req, res) => {
         const { ids } = req.params;
         const err = validationResult(req);
@@ -19,10 +20,12 @@ class SkillController {
         const reponse = await skillSevicer.updateSkill(ids, { ...req.body });
         res.status(200).json(reponse);
     });
+
     getAll = asyncHandler(async (req, res) => {
-        const reponse = await skillSevicer.getAllSkill();
+        const reponse = await skillSevicer.getAllSkill(req.query);
         res.status(200).json(reponse);
     });
+
     delete = asyncHandler(async (req, res) => {
         const { ids } = req.params;
         const reponse = await skillSevicer.deleteSkill(ids);

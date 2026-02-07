@@ -27,7 +27,7 @@ class ExperienceController {
     });
 
     getAll = asyncHandler(async (req, res) => {
-        const reponse = await ExperienceSevicer.getAllExperience();
+        const reponse = await ExperienceSevicer.getAllExperience(req.query);
         res.status(200).json(reponse);
     });
 

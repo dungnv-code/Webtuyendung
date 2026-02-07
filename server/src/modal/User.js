@@ -12,6 +12,7 @@ const UserSchema = new Schema({
     status: { type: String, enum: ["Block", "Active"], default: "Active" },
     resetpasswordOtp: { type: String, default: null },
     resetpasswordOtpExpire: { type: Date, default: null },
+    business: { type: Schema.Types.ObjectId, ref: "Business", default: null }
 }, { timestamps: true })
 
 module.exports = mongoose.model("User", UserSchema);

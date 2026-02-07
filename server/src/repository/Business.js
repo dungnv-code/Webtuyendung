@@ -1,11 +1,11 @@
-const jobPostPackage = require("../modal/jobPostPackage")
-
+const Business = require("../modal/Business")
+const User = require("../modal/User")
 const findByOne = (condition) => {
-    return jobPostPackage.findOne(condition);
+    return Business.findOne(condition);
 };
 
 const findAll = (condition, options = {}) => {
-    let query = jobPostPackage.find(condition);
+    let query = Business.find(condition);
     if (options.fields) query = query.select(options.fields);
     if (options.sort) query = query.sort(options.sort);
     if (options.skip) query = query.skip(options.skip);
@@ -15,19 +15,27 @@ const findAll = (condition, options = {}) => {
 };
 
 const countDocuments = (condition = {}) => {
-    return jobPostPackage.countDocuments(condition);
+    return Business.countDocuments(condition);
+};
+
+const findAllUser = (condition) => {
+    return User.find(condition);
 };
 
 const create = (data) => {
-    return jobPostPackage.create(data);
+    return Business.create(data);
 };
 
 const deletebyOne = (condition) => {
-    return jobPostPackage.findOneAndDelete(condition);
+    return Business.findOneAndDelete(condition);
 }
 
 const updatebyOne = (condition, data) => {
-    return jobPostPackage.findOneAndUpdate(condition, data, { new: true });
+    return Business.findOneAndUpdate(condition, data, { new: true });
+};
+
+const updatebyOneUser = (condition, data) => {
+    return User.findOneAndUpdate(condition, data, { new: true });
 };
 
 module.exports = {
@@ -36,5 +44,7 @@ module.exports = {
     deletebyOne,
     findAll,
     updatebyOne,
-    countDocuments,
+    updatebyOneUser,
+    findAllUser,
+    countDocuments
 }

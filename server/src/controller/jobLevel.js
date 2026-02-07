@@ -27,7 +27,7 @@ class LevelController {
     });
 
     getAll = asyncHandler(async (req, res) => {
-        const reponse = await jobLevelSevicer.getAllLevel();
+        const reponse = await jobLevelSevicer.getAllLevel(req.query);
         res.status(200).json(reponse);
     });
 

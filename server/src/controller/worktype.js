@@ -3,6 +3,7 @@ const asyncHandler = require('express-async-handler');
 const worktypeSevicer = require("../sevicers/worktype");
 const slugify = require('slugify');
 class WorktypeController {
+
     create = asyncHandler(async (req, res) => {
         const err = validationResult(req);
         if (!err.isEmpty()) {
@@ -12,6 +13,7 @@ class WorktypeController {
         const reponse = await worktypeSevicer.createWorktype({ ...req.body, slug });
         res.status(200).json(reponse);
     });
+
     update = asyncHandler(async (req, res) => {
         const { idw } = req.params;
         const err = validationResult(req);
@@ -22,10 +24,12 @@ class WorktypeController {
         const reponse = await worktypeSevicer.updateWorktype(idw, { ...req.body, slug });
         res.status(200).json(reponse);
     });
+
     getAll = asyncHandler(async (req, res) => {
-        const reponse = await worktypeSevicer.getAllWorktype();
+        const reponse = await worktypeSevicer.getAllWorktype(req.query);
         res.status(200).json(reponse);
     });
+
     delete = asyncHandler(async (req, res) => {
         const { idw } = req.params;
         const reponse = await worktypeSevicer.deleteWorktype(idw);

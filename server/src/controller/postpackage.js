@@ -24,7 +24,7 @@ class PostpackageController {
     });
 
     getAll = asyncHandler(async (req, res) => {
-        const reponse = await PostpackageSevicer.getAllPostpackage();
+        const reponse = await PostpackageSevicer.getAllPostpackage(req.query);
         res.status(200).json(reponse);
     });
 

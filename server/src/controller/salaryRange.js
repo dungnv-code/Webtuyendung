@@ -27,7 +27,7 @@ class SalaryRangeController {
     });
 
     getAll = asyncHandler(async (req, res) => {
-        const reponse = await SalaryRangeSevicer.getAllSalaryRange();
+        const reponse = await SalaryRangeSevicer.getAllSalaryRange(req.query);
         res.status(200).json(reponse);
     });
 
