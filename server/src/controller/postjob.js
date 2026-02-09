@@ -32,6 +32,12 @@ class PostJobController {
         res.status(200).json(reponse);
     });
 
+    getDetail = asyncHandler(async (req, res) => {
+        const { idp } = req.params;
+        const reponse = await PostjobsSevicer.getDetailPostjobs(idp);
+        res.status(200).json(reponse);
+    });
+
     delete = asyncHandler(async (req, res) => {
         const { idp } = req.params;
         const reponse = await PostjobsSevicer.deletePostjobs(idp);

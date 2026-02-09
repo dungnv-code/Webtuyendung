@@ -9,6 +9,7 @@ Router.post("/create", [VerifyToken, TokenIsNhaTuyenDungOrStaff],
 Router.put("/update/:idp", [VerifyToken, TokenIsNhaTuyenDungOrStaff],
     PostJobController.update);
 Router.get("/getAll", PostJobController.getAll);
+Router.get("/getDetail/:idp", PostJobController.getDetail);
 Router.delete("/delete/:idp", [VerifyToken, TokenIsNhaTuyenDungOrStaff], PostJobController.delete);
 
 module.exports = Router;

@@ -1,5 +1,6 @@
 const useBusiness = require("../repository/Business.js");
-
+const usePostJobs = require("../repository/PostJobs.js");
+const useInvoid = require("../repository/Invoid.js")
 const createBusiness = async (id, data) => {
     const existBusiness = await useBusiness.findByOne({ slug: data.slug });
     if (existBusiness) {
@@ -151,6 +152,28 @@ const getStaffsUser = async (businessId) => {
     };
 }
 
+const getPostJobsBusiness = async (businessId) => {
+    const Business = await usePostJobs.findAll({ business: businessId }).select("-refreshToken -password");
+    if (Business.length == 0) {
+        throw new Error("Chưa có bài viết nào!");
+    }
+    return {
+        success: true,
+        data: Business,
+    };
+}
+
+const getInvoidsBusiness = async (businessId) => {
+    const Business = await useInvoid.findAll({ business: businessId }).select("-refreshToken -password");
+    if (Business.length == 0) {
+        throw new Error("Chưa có hoá đơn nào!");
+    }
+    return {
+        success: true,
+        data: Business,
+    };
+}
+
 const changeStatusBusiness = async (idb) => {
     // 1. Tìm business
     const business = await useBusiness.findByOne({ _id: idb });
@@ -182,5 +205,7 @@ module.exports = {
     getDetailBusiness,
     getDetailbyNTDBusiness,
     getStaffsUser,
+    getPostJobsBusiness,
+    getInvoidsBusiness,
     changeStatusBusiness,
 };

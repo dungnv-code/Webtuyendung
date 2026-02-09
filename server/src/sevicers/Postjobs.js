@@ -71,23 +71,70 @@ const updatePostjobs = async (idp, data) => {
     };
 }
 
-// ---------------------- BUILD FILTER ----------------------
+// =======================================================================
+// --------------------------  BUILD FILTER (MONGO) -----------------------
+// =======================================================================
+
 const buildFilter = (queries) => {
     const filter = {};
 
     for (const key in queries) {
 
-        // Bỏ qua filter dạng flatten (job_title, job.title)
+        // Bỏ qua query dạng flatten
         if (key.includes("_") || key.includes(".")) continue;
 
-        filter[key] = { $regex: queries[key], $options: "i" };
+        const value = queries[key];
+
+        // Nếu dạng toán tử: ?min[gt]=1000
+        if (typeof value === "object" && !Array.isArray(value)) {
+            filter[key] = {};
+            for (const op in value) {
+                const mongoOp = `$${op}`;
+                filter[key][mongoOp] = isNaN(value[op]) ? value[op] : Number(value[op]);
+            }
+        } else {
+            // Tag thường → regex search
+            filter[key] = { $regex: value, $options: "i" };
+        }
     }
 
     return filter;
 };
 
 
-// ---------------------- FLATTEN HELPERS ----------------------
+// =======================================================================
+// ---------------------- OPERATOR DETECTOR (IMPORTANT) ------------------
+// =======================================================================
+// Detect dạng key: salaryRange_min[gt]
+
+const detectOperator = (key) => {
+    const match = key.match(/(.+)\[(gt|gte|lt|lte|eq|ne)\]$/);
+    if (!match) return null;
+
+    return {
+        field: match[1],          // salaryRange_min
+        op: `$${match[2]}`        // $gt
+    };
+};
+
+
+// =======================================================================
+// -------------------------  FLATTEN HELPERS ----------------------------
+// =======================================================================
+
+// Parse toán tử
+const parseOperatorValue = (raw) => {
+    if (typeof raw === "object") {
+        const ops = {};
+        Object.keys(raw).forEach(op => {
+            ops[`$${op}`] = isNaN(raw[op]) ? raw[op] : Number(raw[op]);
+        });
+        return ops;
+    }
+    return raw;
+};
+
+// Nhúng populate vào object chính
 const flattenPopulate = (item, populations = []) => {
     populations.forEach(pop => {
         const path = pop.path;
@@ -100,7 +147,6 @@ const flattenPopulate = (item, populations = []) => {
             delete item[path];
         }
     });
-
     return item;
 };
 
@@ -109,28 +155,50 @@ const flattenPopulateArray = (items, populations = []) => {
     return items.map(item => flattenPopulate(item, populations));
 };
 
+
+// =======================================================================
+// ---------------  CHUYỂN QUERY FLATTEN + HỖ TRỢ TOÁN TỬ ---------------
+// =======================================================================
+
 const convertFlattenQuery = (queryParams, populate = []) => {
     const flatFilters = {};
 
     for (const key in queryParams) {
+        const raw = queryParams[key];
 
-        if (key.includes(".")) {
-            const [path, field] = key.split(".");
-            const isPopulated = populate?.some(p => p.path === path);
+        // 👉 1) Detect toán tử dạng salaryRange_min[gt]
+        const opInfo = detectOperator(key);
+        if (opInfo) {
+            const { field, op } = opInfo;
+
+            const [popPath] = field.split("_");
+            const isPopulated = populate.some(p => p.path === popPath);
 
             if (isPopulated) {
-                flatFilters[`${path}_${field}`] = queryParams[key];
+                if (!flatFilters[field]) flatFilters[field] = {};
+                flatFilters[field][op] = isNaN(raw) ? raw : Number(raw);
             }
             continue;
         }
 
-
-        if (key.includes("_")) {
-            const [path] = key.split("_");
-            const isPopulated = populate?.some(p => p.path === path);
+        // 👉 2) Dạng . (business.name)
+        if (key.includes(".")) {
+            const [path, field] = key.split(".");
+            const isPopulated = populate.some(p => p.path === path);
 
             if (isPopulated) {
-                flatFilters[key] = queryParams[key];
+                flatFilters[`${path}_${field}`] = parseOperatorValue(raw);
+            }
+            continue;
+        }
+
+        // 👉 3) Dạng gạch dưới (business_name)
+        if (key.includes("_")) {
+            const [path] = key.split("_");
+            const isPopulated = populate.some(p => p.path === path);
+
+            if (isPopulated) {
+                flatFilters[key] = parseOperatorValue(raw);
             }
         }
     }
@@ -139,14 +207,46 @@ const convertFlattenQuery = (queryParams, populate = []) => {
 };
 
 
+// =======================================================================
+// ------------------ APPLY FLATTEN FILTER (TOÁN TỬ) ---------------------
+// =======================================================================
+
 const applyFlattenFilter = (items, flatFilters = {}) => {
     return items.filter(item => {
 
         for (const key in flatFilters) {
-            const expected = String(flatFilters[key]).toLowerCase().normalize("NFC");
-            const actual = String(item[key] ?? "").toLowerCase().normalize("NFC");
+            const rule = flatFilters[key];
+            const actualValue = item[key];
 
-            if (actual !== expected) return false;
+            if (actualValue === undefined || actualValue === null) {
+                return false;
+            }
+
+            // Nếu là dạng toán tử
+            if (typeof rule === "object" && !Array.isArray(rule)) {
+
+                for (const op in rule) {
+                    let expected = rule[op];
+
+                    const a = isNaN(actualValue) ? actualValue : Number(actualValue);
+                    const b = isNaN(expected) ? expected : Number(expected);
+
+                    switch (op) {
+                        case "$gt": if (!(a > b)) return false; break;
+                        case "$gte": if (!(a >= b)) return false; break;
+                        case "$lt": if (!(a < b)) return false; break;
+                        case "$lte": if (!(a <= b)) return false; break;
+                        case "$eq": if (!(a == b)) return false; break;
+                        case "$ne": if (!(a != b)) return false; break;
+                    }
+                }
+            } else {
+                // Text exact compare
+                if (
+                    String(actualValue).toLowerCase() !==
+                    String(rule).toLowerCase()
+                ) return false;
+            }
         }
 
         return true;
@@ -154,14 +254,20 @@ const applyFlattenFilter = (items, flatFilters = {}) => {
 };
 
 
+// =======================================================================
+// ------------------------ GET ALL POSTJOBS -----------------------------
+// =======================================================================
+
 const getAllPostjobs = async (queryParams) => {
+
     const excludeFields = ["limit", "sort", "page", "fields", "random", "seed", "populate", "flatten"];
     const queries = { ...queryParams };
-
     excludeFields.forEach(el => delete queries[el]);
 
+    // Build filter MongoDB
     const filter = buildFilter(queries);
 
+    // Paging + sort
     const limit = Number(queryParams.limit) || 20;
     const sort = queryParams.sort || "-createdAt";
     const page = Number(queryParams.page) || 1;
@@ -169,6 +275,7 @@ const getAllPostjobs = async (queryParams) => {
     const fields = queryParams.fields?.split(",").join(" ");
     const flatten = queryParams.flatten === "true";
 
+    // Populate
     let populate = null;
     if (queryParams.populate) {
         populate = queryParams.populate.split(";").map(p => {
@@ -180,13 +287,14 @@ const getAllPostjobs = async (queryParams) => {
         });
     }
 
+    // Query DB
     let [jobs, total] = await Promise.all([
         usePostJobs.findAll(filter, { fields, sort, skip, limit, populate }),
         usePostJobs.countDocuments(filter)
     ]);
 
+    // Flatten + filter
     if (flatten && populate) {
-
         jobs = flattenPopulateArray(jobs, populate);
 
         const flatFilters = convertFlattenQuery(queryParams, populate);
@@ -204,12 +312,20 @@ const getAllPostjobs = async (queryParams) => {
     };
 };
 
-const deletePostjobs = async (ids) => {
-    const existPostJobs = await usePostJobs.findByOne({ _id: ids });
+const getDetailPostjobs = async (idp) => {
+    const detailPostJobs = await usePostJobs.findByOne({ _id: idp });
+    return {
+        success: true,
+        data: detailPostJobs,
+    };
+}
+
+const deletePostjobs = async (idp) => {
+    const existPostJobs = await usePostJobs.findByOne({ _id: idp });
     if (!existPostJobs) {
         throw new Error("Không tìm thấy bài đăng công việc để xóa");
     }
-    await usePostJobs.deletebyOne({ _id: ids });
+    await usePostJobs.deletebyOne({ _id: idp });
     return {
         success: true,
         mes: "Xóa bài đăng công việc thành công",
@@ -221,4 +337,5 @@ module.exports = {
     updatePostjobs,
     getAllPostjobs,
     deletePostjobs,
+    getDetailPostjobs
 }

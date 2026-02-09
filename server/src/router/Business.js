@@ -20,6 +20,8 @@ Router.delete("/delete/:idb", [VerifyToken, TokenIsNhaTuyenDung], BusinessContro
 Router.get("/getDetail/:idb", [VerifyToken, TokenIsNhaTuyenDung], BusinessController.getDetail);
 Router.get("/getDetailbyNTD", [VerifyToken, TokenIsNhaTuyenDung], BusinessController.getDetailbyNTD);
 Router.get("/getStaffs", [VerifyToken, TokenIsNhaTuyenDung], BusinessController.getStaffs);
+Router.get("/getPostJobs", [VerifyToken, TokenIsNhaTuyenDung], BusinessController.getPostJobs);
+Router.get("/getInvoids", [VerifyToken, TokenIsNhaTuyenDung], BusinessController.getInvoids);
 Router.put("/changeStatus/:idb", [VerifyToken, TokenIsAdmin], BusinessController.changeStatus)
 
 module.exports = Router;

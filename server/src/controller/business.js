@@ -84,6 +84,18 @@ class BusinessController {
         const reponse = await BusinessSevicer.changeStatusBusiness(idb);
         res.status(200).json(reponse);
     })
+
+    getPostJobs = asyncHandler(async (req, res) => {
+        const { businessId } = req.user;
+        const reponse = await BusinessSevicer.getPostJobsBusiness(businessId);
+        res.status(200).json(reponse);
+    })
+
+    getInvoids = asyncHandler(async (req, res) => {
+        const { businessId } = req.user;
+        const reponse = await BusinessSevicer.getInvoidsBusiness(businessId);
+        res.status(200).json(reponse);
+    })
 }
 
 module.exports = new BusinessController();

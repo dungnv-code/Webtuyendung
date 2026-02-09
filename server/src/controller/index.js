@@ -8,10 +8,11 @@ const ExperienceController = require('./experience.js');
 const PostpackageController = require('./postpackage.js');
 const BusinessController = require('./business.js');
 const PostJobController = require('./postjob.js');
+const InvoidController = require('./invoid.js');
 
 module.exports = {
     userController, jobsController, skillController
     , jobLevelController, WorktypeController, salaryRangeController
     , ExperienceController, PostpackageController, BusinessController,
-    PostJobController
+    PostJobController, InvoidController
 };
