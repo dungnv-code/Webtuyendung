@@ -2,7 +2,7 @@ import { createSlice } from '@reduxjs/toolkit';
 import * as action from "./asyncActionJob";
 
 export const JobSlice = createSlice({
-    name: 'user',
+    name: 'app',
     initialState: {
         isLoading: false,
         skill: [],

@@ -38,14 +38,12 @@ class ControllerUser {
         if (!err.isEmpty()) {
             return res.status(400).json({ errors: err.array() });
         }
-
         const reponse = await userSevicer.RegisterUser(req.body);
         res.status(200).json(reponse);
     });
 
     finalRegister = asyncHandler(async (req, res) => {
-        console.log("finalRegister called with token:", req.params.token);
-        const token = req.params.token;
+        const token = req.body.token;
         const reponse = await userSevicer.finalRegisterUser(token);
         res.status(200).json(reponse);
     });

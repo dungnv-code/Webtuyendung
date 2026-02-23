@@ -12,13 +12,14 @@ export const UserSlice = createSlice({
 
     reducers: {
         LogIn: (state, action) => {
+            console.log("Payload từ LogIn reducer:", action);
             state.isLogIn = true;
-            state.token = action.payload.token;
+            state.token = action.payload.accessToken;
         },
         LogOut: (state) => {
             state.isLogIn = false;
             state.token = null;
-            state.current = null;   // reset luôn user khi logout
+            state.current = null;
         },
     },
 

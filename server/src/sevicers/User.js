@@ -14,7 +14,7 @@ const genateRefreshToken = (payload) => {
 }
 
 const RegisterUser = async (data) => {
-    const { username, email, password, mobile, role } = data;
+    const { username, email, password, phone, role } = data;
 
     const isCheckemail = await userRepository.findByOne({ email });
     if (isCheckemail) {
@@ -25,7 +25,7 @@ const RegisterUser = async (data) => {
     const emailEdi = btoa(email) + "@" + token;
 
     const reponse = await userRepository.createUser({
-        username, email: emailEdi, password: bcrypt.hashSync(password, 10), mobile, role
+        username, email: emailEdi, password: bcrypt.hashSync(password, 10), phone, role
     })
 
     if (reponse) {
@@ -39,7 +39,7 @@ const RegisterUser = async (data) => {
     }
 
     setInterval(async () => {
-        await userRepository.deleteUser({ email: emailEdi });
+        await userRepository.deletebyOne({ email: emailEdi });
     }, 3 * 60 * 1000);
 
     return {

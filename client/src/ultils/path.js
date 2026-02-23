@@ -3,13 +3,13 @@ const path = {
     PUBLIC: "/",
     HOME: "",
     ALL: "*",
-    LOGIN: "login",
-    REGISTER: "register",
-    INTRODUCTION: "introduction",
-    JOB: "job",
-    COMPANY: "company",
+    LOGIN: "/login",
+    REGISTER: "/register",
+    INTRODUCTION: "/introduction",
+    JOB: "/job",
+    COMPANY: "/company",
     // admin
-    ADMIN: "admin",
+    ADMIN: "/admin",
 }
 
 export default path;
