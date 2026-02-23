@@ -1,24 +1,50 @@
-# Logs
-logs
-*.log
+# 👉 Các thư mục build và dependency
+/node_modules/
+/build/
+/dist/
+
+# 👉 Các file log và cache
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-lerna-debug.log*
+.vite/
+.cache/
+.eslintcache
 
-node_modules
-dist
-dist-ssr
-*.local
+# 👉 File môi trường (chứa API key, cấu hình riêng)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+client/.env
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
+# 👉 File hệ điều hành
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+Thumbs.db
+
+# 👉 Cấu hình IDE
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# 👉 Báo cáo kiểm thử
+coverage/
+
+# 👉 TypeScript
+*.tsbuildinfo
+
+# 👉 Lock file (chọn 1 nếu làm việc nhóm)
+/package-lock.json
+# /yarn.lock
+# /pnpm-lock.yaml
+
+# 👉 Storybook (nếu dùng)
+.out/
+.storybook-out/
+
+# 👉 Khác (nếu có .next, .parcel...)
+.next/
+.parcel-cache/
