@@ -114,6 +114,12 @@ class ControllerUser {
         res.status(200).json(reponse);
     });
 
+    changeStatus = asyncHandler(async (req, res) => {
+        const { idu } = req.params;
+        const reponse = await userSevicer.changeStatusUser(idu);
+        res.status(200).json(reponse);
+    });
+
     update = asyncHandler(async (req, res) => {
         const { id } = req.user;
 

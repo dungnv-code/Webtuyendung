@@ -1,5 +1,6 @@
 const useSkill = require("../repository/Skills");
 const seedrandom = require("seedrandom");
+const mongoose = require("mongoose")
 const createSkill = async (data) => {
     const existJob = await useSkill.findByOne({ nameskill: data.nameskill });
     if (existJob) {

@@ -1,25 +1,10 @@
 import { Link } from 'react-router-dom';
 import banner from '../../../assets/banner.png';
 import path from '../../../ultils/path';
-import { getSkill } from "../../../redux/userJob/asyncActionJob";
+
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 const Home = () => {
-
-    const dispatch = useDispatch();
-
-    useEffect(() => {
-        const fetchSkills = async () => {
-            try {
-                const response = await dispatch(getSkill());
-                console.log("Skills:", response);
-            } catch (error) {
-                console.error("Error fetching skills:", error);
-            }
-        };
-
-        fetchSkills();
-    }, [dispatch]);
 
     return (
         <div className="home">

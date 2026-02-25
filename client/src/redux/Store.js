@@ -1,5 +1,4 @@
 import { configureStore } from "@reduxjs/toolkit";
-import jobReducer from "./userJob/userJob";
 import userReducer from "./userUser/userSlice";
 import storage from "redux-persist/lib/storage";
 import { persistReducer, persistStore } from "redux-persist"
@@ -15,7 +14,6 @@ const UserConfig = {
 
 export const store = configureStore({
     reducer: {
-        "app": jobReducer,
         "user": persistReducer(UserConfig, userReducer),
     }
 })

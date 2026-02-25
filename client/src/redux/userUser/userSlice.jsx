@@ -12,9 +12,9 @@ export const UserSlice = createSlice({
 
     reducers: {
         LogIn: (state, action) => {
-            console.log("Payload từ LogIn reducer:", action);
             state.isLogIn = true;
             state.token = action.payload.accessToken;
+            state.current = action.payload.user || null;
         },
         LogOut: (state) => {
             state.isLogIn = false;
@@ -27,16 +27,22 @@ export const UserSlice = createSlice({
         builder.addCase(action.getCurrent.pending, (state) => {
             state.isLoading = true;
         });
+
         builder.addCase(action.getCurrent.fulfilled, (state, action) => {
             state.isLoading = false;
-            state.current = action.payload; // payload = user
+            state.current = action.payload;  // payload = user
             state.isLogIn = true;
         });
-        builder.addCase(action.getCurrent.rejected, (state) => {
+
+        builder.addCase(action.getCurrent.rejected, (state, action) => {
             state.isLoading = false;
-            state.current = null;
-            state.isLogIn = false;
-            state.token = null;
+
+            // ⭐ Chỉ logout nếu server trả lỗi 401
+            if (action.error?.message === "401" || action.payload?.status === 401) {
+                state.isLogIn = false;
+                state.token = null;
+                state.current = null;
+            }
         });
     }
 });

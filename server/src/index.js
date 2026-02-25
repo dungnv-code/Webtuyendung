@@ -20,7 +20,7 @@ const limiter = rateLimit({
         mes: "Bạn đã gửi quá nhiều request. Hãy thử lại sau!"
     }
 });
-app.use(limiter);
+// app.use(limiter);
 
 app.use(cors(corsOptions));
 app.use(express.json({ extended: true }));

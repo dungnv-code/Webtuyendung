@@ -5,7 +5,6 @@ const Footer = () => {
             <div className="container">
                 <div className="row">
 
-                    {/* Cột 1 */}
                     <div className="col-md-4 mb-3">
                         <h5>Về chúng tôi</h5>
                         <p>
@@ -14,7 +13,6 @@ const Footer = () => {
 
                     </div>
 
-                    {/* Cột 2 */}
                     <div className="col-md-4 mb-3">
                         <h5>Liên kết</h5>
                         <ul className="list-unstyled">
@@ -25,7 +23,6 @@ const Footer = () => {
                         </ul>
                     </div>
 
-                    {/* Cột 3 */}
                     <div className="col-md-4 mb-3">
                         <h5>Liên hệ</h5>
                         <p>Email: support@gmail.com</p>
@@ -34,9 +31,8 @@ const Footer = () => {
 
                 </div>
 
-                {/* Line dưới */}
                 <div className="text-center mt-3 border-top pt-2">
-                    © 2026 All rights reserved.
+                    © 2026 Tuyển dụng. All rights reserved.
                 </div>
             </div>
         </footer>

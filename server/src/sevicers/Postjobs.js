@@ -218,7 +218,14 @@ const applyFlattenFilter = (items, flatFilters = {}) => {
             const rule = flatFilters[key];
             const actualValue = item[key];
 
-            if (actualValue === undefined || actualValue === null) {
+            // ⭐ CHỈ THÊM ĐÚNG CHỖ NÀY:
+            if (actualValue === null) {
+                // salaryRange_max = null --> chỉ chấp nhận khi operator là $gte (trường hợp max >= value)
+                // nghĩa là null = vô hạn => luôn đúng
+                continue;
+            }
+
+            if (actualValue === undefined) {
                 return false;
             }
 
@@ -252,7 +259,6 @@ const applyFlattenFilter = (items, flatFilters = {}) => {
         return true;
     });
 };
-
 
 // =======================================================================
 // ------------------------ GET ALL POSTJOBS -----------------------------

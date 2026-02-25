@@ -4,7 +4,7 @@ import path from "../../../ultils/path";
 import { Link, useNavigate } from "react-router-dom";
 import { register, finalRegister } from "../../../api/user";
 import Swal from "sweetalert2";
-
+import Loading from "../../../component/loading/Loading";
 const styles = {
     container: {
         position: "relative",
@@ -85,11 +85,11 @@ const styles = {
         cursor: "pointer",
         transition: "0.25s",
     },
-
 };
 
 const Register = () => {
     const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);
     const [inputValue, setInputValue] = useState({
         username: "",
         email: "",
@@ -105,8 +105,14 @@ const Register = () => {
     const [focusField, setFocusField] = useState("");
 
     const showModal = () => {
-        const modal = new window.bootstrap.Modal(document.getElementById("exampleModal"));
+        const modal = new window.bootstrap.Modal(document.getElementById("registerModal"));
         modal.show();
+    };
+
+    const hideModal = () => {
+        const modalElement = document.getElementById("registerModal");
+        const modal = window.bootstrap.Modal.getOrCreateInstance(modalElement);
+        modal.hide();
     };
 
     const handleOnSubmit = () => {
@@ -136,11 +142,14 @@ const Register = () => {
                 phone: inputValue.phone,
                 role: inputValue.role
             }
+            setLoading(true);
             register(data)
                 .then((res) => {
                     if (res.success) {
+                        setLoading(false);
                         showModal();
                     } else {
+                        setLoading(false);
                         Swal.fire({
                             icon: "error",
                             title: "Đăng ký thất bại",
@@ -150,6 +159,7 @@ const Register = () => {
                     }
                 })
                 .catch((err) => {
+                    setLoading(false);
                     Swal.fire({
                         icon: "error",
                         title: "Đăng ký thất bại",
@@ -162,6 +172,7 @@ const Register = () => {
 
 
     const hanleComformCode = () => {
+        setLoading(true);
         finalRegister(code)
             .then((res) => {
                 if (res.success) {
@@ -171,9 +182,12 @@ const Register = () => {
                         text: res.mes || "Bạn đã đăng ký thành công. Vui lòng đăng nhập.",
                         confirmButtonText: "OK",
                     }).then(() => {
+                        setLoading(false);
+                        hideModal();
                         navigate(path.LOGIN);
                     });
                 } else {
+                    setLoading(false);
                     Swal.fire({
                         icon: "error",
                         title: "Xác nhận thất bại",
@@ -183,6 +197,7 @@ const Register = () => {
                 }
             })
             .catch((err) => {
+                setLoading(false);
                 Swal.fire({
                     icon: "error",
                     title: "Xác nhận thất bại",
@@ -194,13 +209,14 @@ const Register = () => {
 
     return (
         <div style={styles.container}>
-            <div className="modal fade" id="exampleModal" tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                <div className="modal-dialog modal-dialog-centered">
+            {loading && <Loading />}
+            <div className="modal fade" id="registerModal" tabIndex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
+                <div className="modal-dialog ">
                     <div className="modal-content shadow-lg border-0 rounded-3">
 
-                        <div className="modal-header bg-primary text-white rounded-top-3">
-                            <h5 className="modal-title" id="exampleModalLabel">
-                                <i className="bi bi-envelope-check"></i> Kiểm tra email của bạn
+                        <div className="modal-header text-white rounded-top-3" style={{ backgroundColor: "#00b14f" }}>
+                            <h5 className="modal-title" id="registerModalLabel">
+                                <i className="bi bi-envelope-check"></i>Hoàn tất đăng ký
                             </h5>
                             <button type="button" className="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
@@ -219,7 +235,7 @@ const Register = () => {
                                 <i className="bi bi-x-circle"></i> Huỷ
                             </button>
 
-                            <button type="button" onClick={hanleComformCode} className="btn btn-primary">
+                            <button type="button" onClick={hanleComformCode} className="btn" style={{ backgroundColor: "#00b14f" }}>
                                 <i className="bi bi-check2-circle"></i> Xác nhận
                             </button>
                         </div>
@@ -350,12 +366,10 @@ const Register = () => {
                     <button type="submit" style={styles.button}>
                         Đăng ký
                     </button>
-                    <button type="button" className="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
-                        Launch demo modal
-                    </button>
                 </form>
             </div>
         </div>
+
     );
 };
 

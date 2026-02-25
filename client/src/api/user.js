@@ -12,12 +12,17 @@ const finalRegister = (token) => {
     return axios.post("/user/finalRegister", { token });
 }
 
-const getUserSingle = () => {
-    return axios.get("/user/getSingle");
+const forgotPassword = (email) => {
+    return axios.post("/user/forgotPassword", { email });
 }
 
-const getSkillapi = () => {
-    return axios.get("/skill/getAll");
+const resetPassword = (data) => {
+    console.log("Data sent to API:", data); // Debug log to check the data being sent
+    return axios.post("/user/resetPassword", data);
+}
+
+const getUserSingle = () => {
+    return axios.get("/user/getSingle");
 }
 
 
@@ -25,6 +30,7 @@ export {
     login,
     register,
     finalRegister,
+    forgotPassword,
+    resetPassword,
     getUserSingle,
-    getSkillapi,
 }

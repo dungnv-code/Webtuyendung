@@ -1,0 +1,59 @@
+/* ============================
+   SIDEBAR ADMIN ĐẸP – HIỆN ĐẠI
+=============================== */
+.admin-sidebar {
+    background: linear-gradient(180deg, #1e1f26 0%, #2b2c33 100%);
+    color: #fff;
+    width: 20%;
+    padding: 20px 0;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 4px 0 10px rgba(0, 0, 0, 0.25);
+}
+
+/* Logo / Brand */
+.admin-sidebar .navbar-brand h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #ffffff;
+    text-align: center;
+    width: 100%;
+}
+
+/* UL */
+.admin-sidebar ul {
+    margin-top: 20px;
+}
+
+/* Link item */
+.admin-sidebar .nav-link {
+    color: #bfc4cf;
+    font-size: 1rem;
+    padding: 12px 20px;
+    margin: 6px 12px;
+    border-radius: 10px;
+    transition: 0.25s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Hover */
+.admin-sidebar .nav-link:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    transform: translateX(4px);
+}
+
+/* Active */
+.admin-sidebar .nav-link.active {
+    background: #0d6efd;
+    color: #fff !important;
+    font-weight: 600;
+    box-shadow: 0 3px 8px rgba(13, 110, 253, 0.4);
+}
+
+/* Icon style */
+.admin-sidebar .nav-link i {
+    font-size: 1.2rem;
+}

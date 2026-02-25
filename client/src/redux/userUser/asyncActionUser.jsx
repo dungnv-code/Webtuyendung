@@ -3,13 +3,14 @@ import { getUserSingle } from "../../api/user";
 
 export const getCurrent = createAsyncThunk(
     "app/getCurrent",
-    async (data, { rejectWithValue }) => {
+    async (_, { rejectWithValue }) => {
         try {
             const response = await getUserSingle();
-            if (response?.success == "false") {
-                return rejectWithValue(response.rs);
+            if (!response.success) {
+                return rejectWithValue(response);
             }
-            return response.rs;
+
+            return response.data; // ⭐ Chỉ trả về user
         } catch (error) {
             return rejectWithValue(error.response?.data || error.message);
         }

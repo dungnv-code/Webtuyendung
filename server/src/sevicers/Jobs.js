@@ -4,7 +4,7 @@ const seedrandom = require("seedrandom");
 const createJob = async (data) => {
     const existJob = await useJob.findByOne({ slug: data.slug });
     if (existJob) {
-        throw new Error("Job with this slug already exists");
+        throw new Error("Công việc đã tồn tại");
     }
     const job = await useJob.create(data);
     return {
@@ -16,7 +16,7 @@ const createJob = async (data) => {
 const updateJob = async (idj, data) => {
     const existJob = await useJob.findByOne({ _id: idj });
     if (!existJob) {
-        throw new Error("Không tìm thấy job");
+        throw new Error("Không tìm thấy công việc");
     }
     const updatedJob = await useJob.updatebyOne({ _id: idj }, data);
     return {
@@ -109,12 +109,12 @@ const getAllJobs = async (queryParams) => {
 const deleteJob = async (idj) => {
     const existJob = await useJob.findByOne({ _id: idj });
     if (!existJob) {
-        throw new Error("Không tìm thấy job để xóa");
+        throw new Error("Không tìm thấy công việc để xóa");
     }
     await useJob.deletebyOne({ _id: idj });
     return {
         success: true,
-        mes: "Xóa job thành công",
+        mes: "Xóa công việc thành công",
     };
 }
 

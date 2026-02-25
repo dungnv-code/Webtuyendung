@@ -98,7 +98,7 @@ const getAllLevel = async (queryParams) => {
     ]);
 
     return {
-        jobs,
+        data: jobs,
         total,
         totalPages: Math.ceil(total / limit),
         currentPage: page

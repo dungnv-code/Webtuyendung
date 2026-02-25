@@ -1,0 +1,132 @@
+import axios from "../ultils/axios"
+// jobs
+const getAllJob = (params) => {
+    return axios.get("/jobs/getAll", { params });
+}
+
+const createJob = (data) => {
+    return axios.post("/jobs/create", data)
+}
+
+const updateJob = (id, data) => {
+    return axios.put(`/jobs/update/${id}`, data)
+}
+
+const deleteJob = (id) => {
+    return axios.delete(`/jobs/delete/${id}`)
+}
+
+// level
+
+const getAllLevel = (params) => {
+    return axios.get(`/level/getAll`, { params })
+}
+
+const createLevel = (data) => {
+    return axios.post("/level/create", data)
+}
+
+const updateLevel = (id, data) => {
+    return axios.put(`/level/update/${id}`, data)
+}
+
+const deleteLevel = (id) => {
+    return axios.delete(`/level/delete/${id}`)
+}
+// style work
+
+const getAllStyleJob = (params) => {
+    return axios.get(`/worktype/getAll`, { params })
+}
+
+const createStyleJob = (data) => {
+    return axios.post("/worktype/create", data)
+}
+
+const updateStyleJob = (id, data) => {
+    return axios.put(`/worktype/update/${id}`, data)
+}
+
+const deleteStyleJob = (id) => {
+    return axios.delete(`/worktype/delete/${id}`)
+}
+
+// exp
+
+const getAllExp = (params) => {
+    return axios.get(`/experience/getAll`, { params })
+}
+
+const createExp = (data) => {
+    return axios.post("/experience/create", data)
+}
+
+const updateExp = (id, data) => {
+    return axios.put(`/experience/update/${id}`, data)
+}
+
+const deleteExp = (id) => {
+    return axios.delete(`/experience/delete/${id}`)
+}
+
+// user 
+const getAllUser = (params) => {
+    return axios.get(`/user/getAll`, { params })
+}
+
+const deleteUser = (id) => {
+    return axios.delete(`/user/delete/${id}`)
+}
+
+const changeStatusUser = (id) => {
+    return axios.put(`/user/changeStatus/${id}`)
+}
+
+// skill
+const getAllSkill = (params) => {
+    return axios.get(`/skill/getAll`, { params })
+}
+
+const createSkill = (data) => {
+    return axios.post("/skill/create", data)
+}
+
+const updateSkill = (id, data) => {
+    return axios.put(`/skill/update/${id}`, data)
+}
+
+const deleteSkill = (id) => {
+    return axios.delete(`/skill/delete/${id}`)
+}
+
+export {
+    // Job
+    getAllJob,
+    createJob,
+    updateJob,
+    deleteJob,
+    // level
+    getAllLevel,
+    createLevel,
+    updateLevel,
+    deleteLevel,
+    // stylejob
+    getAllStyleJob,
+    createStyleJob,
+    updateStyleJob,
+    deleteStyleJob,
+    // exp
+    getAllExp,
+    createExp,
+    updateExp,
+    deleteExp,
+    // user
+    getAllUser,
+    deleteUser,
+    changeStatusUser,
+    // skill
+    getAllSkill,
+    updateSkill,
+    createSkill,
+    deleteSkill,
+}
