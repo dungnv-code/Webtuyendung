@@ -164,27 +164,21 @@ const Login = () => {
 
                 setInputValue({ email: "", password: "" });
 
-                // Lưu redux
                 dispatch(LogIn(res.data));
 
-                // Decode JWT
                 const decoded = jwtDecode(res.data.accessToken);
                 const role = decoded.role;
-                console.log("ROLE:", role);
-
-                // Redirect theo ROLE
                 if (role === "ADMIN") {
                     navigate(path.DASHBOARDADMIN);
                 } else if (role === "nhatuyendung" || role === "STAFF") {
                     navigate(path.DASHBOARDBUSINESS);
                 } else {
-                    console.warn("Role không xác định, chuyển về HOME");
                     navigate(path.HOME);
+                    dispatch(getCurrent)
                 }
             })
             .catch(err => {
                 setLoading(false);
-
                 Swal.fire({
                     title: "Lỗi!",
                     text: err?.response?.data?.mes || "Đăng nhập thất bại!",

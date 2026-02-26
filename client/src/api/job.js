@@ -99,6 +99,48 @@ const deleteSkill = (id) => {
     return axios.delete(`/skill/delete/${id}`)
 }
 
+// salaryrange
+
+const getAllSalaryrange = (params) => {
+    return axios.get(`/salaryrange/getAll`, { params })
+}
+
+const createSalaryrange = (data) => {
+    return axios.post("/salaryrange/create", data)
+}
+
+const updateSalaryrange = (id, data) => {
+    return axios.put(`/salaryrange/update/${id}`, data)
+}
+
+const deleteSalaryrange = (id) => {
+    return axios.delete(`/salaryrange/delete/${id}`)
+}
+
+// PacketPost
+
+const getAllPacketPost = (params) => {
+    return axios.get(`/postpackage/getAll`, { params })
+}
+
+const createPacketPost = (data) => {
+    return axios.post("/postpackage/create", data)
+}
+
+const updatePacketPost = (id, data) => {
+    return axios.put(`/postpackage/update/${id}`, data)
+}
+
+const deletePacketPost = (id) => {
+    return axios.delete(`/postpackage/delete/${id}`)
+}
+
+const changeStatusPacketPost = (id) => {
+    return axios.put(`/postpackage/changeStatus/${id}`)
+}
+
+
+
 export {
     // Job
     getAllJob,
@@ -129,4 +171,15 @@ export {
     updateSkill,
     createSkill,
     deleteSkill,
+    // salaryrange
+    getAllSalaryrange,
+    createSalaryrange,
+    updateSalaryrange,
+    deleteSalaryrange,
+    // postpackage
+    getAllPacketPost,
+    createPacketPost,
+    updatePacketPost,
+    deletePacketPost,
+    changeStatusPacketPost,
 }

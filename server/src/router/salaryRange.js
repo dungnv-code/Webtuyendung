@@ -11,4 +11,5 @@ Router.put("/update/:ids", [VerifyToken, TokenIsAdmin],
 Router.get("/getAll", salaryRangeController.getAll);
 Router.delete("/delete/:ids", [VerifyToken, TokenIsAdmin], salaryRangeController.delete);
 
+
 module.exports = Router;

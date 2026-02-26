@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import PaginationCustom from "../../../component/pagination/pagination";
-import { getAllSkill, createSkill, updateSkill, deleteSkill, getAllJob } from "../../../api/job"
+import { getAllSalaryrange, createSalaryrange, updateSalaryrange, deleteSalaryrange } from "../../../api/job"
 import { DeleteTwoTone, EditTwoTone, EditOutlined, PlusOutlined, SearchOutlined, RedoOutlined } from '@ant-design/icons';
 import { toast } from "react-toastify";
 
@@ -26,10 +26,11 @@ const ManagerSalaryRange = () => {
     const [limit, setLimit] = useState(3);
     const [totalPages, setTotalPages] = useState(0);
     const [listJob, setListJob] = useState([]);
-    const [listJobSelect, setListJobSelect] = useState([]);
+
     const [inputValue, setInputValue] = useState({
-        nameskill: "",
-        job: ""
+        salaryRange: "",
+        min: "",
+        max: ""
     });
     const [inputSearch, setinputSearch] = useState("");
     const [error, setError] = useState({});
@@ -39,7 +40,7 @@ const ManagerSalaryRange = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await getAllSkill({ page: currentPage, limit, populate: "job:title,slug", flatten: true });
+                const response = await getAllSalaryrange({ page: currentPage, limit });
                 setListJob(response.data);
                 setTotalPages(response.totalPages);
             } catch (error) {
@@ -49,32 +50,22 @@ const ManagerSalaryRange = () => {
         fetchData();
     }, [currentPage, limit, loaddata]);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const response = await getAllJob();
-                setListJobSelect(response.data);
-            } catch (error) {
-                console.error("Error fetching jobs:", error);
-            }
-        };
-        fetchData();
-    }, [])
 
     const hanleCreateJob = async () => {
         const newError = {};
 
-        if (!inputValue.nameskill.trim()) {
-            newError.nameskill = "Vui lòng nhập tên khoảng lương!";
+        if (!inputValue.salaryRange.trim()) {
+            newError.salaryRange = "Vui lòng nhập tên khoảng lương!";
         }
-        if (!inputValue.job.trim()) {
-            newError.job = "Vui lòng chọn nhóm công việc!";
+        if (!inputValue.min.trim()) {
+            newError.min = "Vui lòng nhập giá trị min!";
         }
+
         setError(newError);
         if (Object.keys(newError).length === 0) {
             try {
-                await createSkill(inputValue);
-                setInputValue({ job: "", nameskill: "" });
+                await createSalaryrange(inputValue);
+                setInputValue({ salaryRange: "", min: "", max: "" });
                 setCurrentPage(1);
                 toast.success("Thêm khoảng lương thành công!")
                 setLoaddata(!loaddata)
@@ -86,17 +77,17 @@ const ManagerSalaryRange = () => {
 
     const hanleUpdateJob = async () => {
         const newError = {};
-        if (!inputValue.nameskill.trim()) {
-            newError.nameskill = "Vui lòng nhập tên khoảng lương!";
+        if (!inputValue.salaryRange.trim()) {
+            newError.salaryRange = "Vui lòng nhập tên khoảng lương!";
         }
-        if (!inputValue.job.trim()) {
-            newError.job = "Vui lòng chọn nhóm công việc!";
+        if (inputValue.min == null || inputValue.min === "") {
+            newError.min = "Vui lòng nhập giá trị min!";
         }
         setError(newError);
         if (Object.keys(newError).length === 0) {
             try {
-                await updateSkill(currentIndex, inputValue);
-                setInputValue({ job: "", nameskill: "" });
+                await updateSalaryrange(currentIndex, inputValue);
+                setInputValue({ salaryRange: "", min: "", max: "" });
                 setCurrentPage(1);
                 toast.success("Sửa khoảng lương thành công!")
                 setLoaddata(!loaddata)
@@ -108,8 +99,8 @@ const ManagerSalaryRange = () => {
 
     const hanleDeleteJob = async (id) => {
         try {
-            await deleteSkill(id);
-            setInputValue({ job: "", nameskill: "" });
+            await deleteSalaryrange(id);
+            setInputValue({ salaryRange: "", min: "", max: "" });
             setCurrentPage(1);
             toast.success("Xoá khoảng lương thành công!")
             setLoaddata(!loaddata)
@@ -120,20 +111,19 @@ const ManagerSalaryRange = () => {
 
     const hanleSearch = async () => {
         try {
-            const response = await getAllSkill({ page: currentPage, limit, populate: "job:title,slug", flatten: true, nameskill: inputSearch });
+            const response = await getAllSalaryrange({ page: currentPage, limit, salaryRange: inputSearch });
             setinputSearch("")
             setListJob(response.data);
             setTotalPages(response.totalPages);
         } catch (error) {
             // console.error("Error fetching jobs:", error);
         }
-
     }
 
     const hanleReset = async () => {
         const fetchData = async () => {
             try {
-                const response = await getAllSkill({ page: currentPage, limit });
+                const response = await getAllSalaryrange({ page: currentPage, limit });
                 setListJob(response.data);
                 setTotalPages(response.totalPages);
                 setLoaddata(!loaddata)
@@ -142,7 +132,7 @@ const ManagerSalaryRange = () => {
             }
         };
         fetchData();
-        setInputValue({ job: "", nameskill: "" });
+        setInputValue({ salaryRange: "", min: "", max: "" });
     }
 
     return (
@@ -235,12 +225,12 @@ const ManagerSalaryRange = () => {
                                 color: "#0ea5e9",
                             }}
                         >
-                            Tên kỹ năng
+                            Tên khoảng lương
                         </label>
 
                         <input
                             type="text"
-                            placeholder="Nhập tên kỹ năng..."
+                            placeholder="Nhập tên khoảng lương..."
                             style={{
                                 padding: "12px 16px",
                                 width: "100%",
@@ -254,20 +244,20 @@ const ManagerSalaryRange = () => {
                                 boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                                 transition: "0.25s ease",
                             }}
-                            value={inputValue.nameskill}
+                            value={inputValue.salaryRange}
                             onChange={(e) =>
                                 setInputValue({
                                     ...inputValue,
-                                    nameskill: e.target.value,
+                                    salaryRange: e.target.value,
                                 })
                             }
                             onFocus={(e) => (e.target.style.border = "1px solid #38bdf8")}
                             onBlur={(e) => (e.target.style.border = "1px solid rgba(255,255,255,0.25)")}
                         />
 
-                        {error?.nameskill && (
+                        {error?.salaryRange && (
                             <p style={{ color: "red", fontSize: "12px", marginTop: "6px" }}>
-                                {error.nameskill}
+                                {error.salaryRange}
                             </p>
                         )}
 
@@ -281,48 +271,84 @@ const ManagerSalaryRange = () => {
                                 color: "#0ea5e9",
                             }}
                         >
-                            Nhóm công việc
+                            Khoảng giá trị
                         </label>
 
-                        <select
-                            className="form-select"
-                            style={{
-                                padding: "12px",
-                                borderRadius: "10px",
-                                border: "1px solid rgba(255,255,255,0.3)",
-                                background: "rgba(255,255,255,0.3)",
-                                color: "black",
-                                fontWeight: "500",
-                                transition: "0.25s ease",
-                            }}
-                            value={inputValue.job}
-                            onChange={(e) =>
-                                setInputValue({
-                                    ...inputValue,
-                                    job: e.target.value,
-                                })
-                            }
-                            onFocus={(e) => {
-                                e.target.style.outline = "2px solid #38bdf8";
-                                e.target.style.boxShadow = "0 0 8px #38bdf8";
-                            }}
-                            onBlur={(e) => {
-                                e.target.style.outline = "none";
-                                e.target.style.boxShadow = "none";
-                            }}
-                        >
-                            <option value="">Chọn một nhóm</option>
-                            {listJobSelect?.map((item) => (
-                                <option key={item._id} value={item._id}>
-                                    {item.title}
-                                </option>
-                            ))}
-                        </select>
-                        {error?.job && (
-                            <p style={{ color: "red", fontSize: "12px", marginTop: "6px" }}>
-                                {error.job}
-                            </p>
-                        )}
+                        <div className="row">
+                            {/* Ô Mã */}
+                            <div className="col-md-6">
+                                <label className="form-label fw-semibold">Giá trị min</label>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    placeholder="Min..."
+                                    style={{
+                                        padding: "12px",
+                                        borderRadius: "10px",
+                                        border: "1px solid rgba(255,255,255,0.3)",
+                                        background: "rgba(255,255,255,0.3)",
+                                        color: "black",
+                                        fontWeight: "500",
+                                        transition: "0.25s ease",
+                                    }}
+                                    value={inputValue.min}
+                                    onChange={(e) =>
+                                        setInputValue({
+                                            ...inputValue,
+                                            min: e.target.value,
+                                        })
+                                    }
+                                    onFocus={(e) => {
+                                        e.target.style.outline = "2px solid #38bdf8";
+                                        e.target.style.boxShadow = "0 0 8px #38bdf8";
+                                    }}
+                                    onBlur={(e) => {
+                                        e.target.style.outline = "none";
+                                        e.target.style.boxShadow = "none";
+                                    }}
+                                />
+                                {error?.min && (
+                                    <p style={{ color: "red", fontSize: "12px", marginTop: "6px" }}>
+                                        {error.min}
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Ô Nhóm Select */}
+                            <div className="col-md-6">
+                                <label className="form-label fw-semibold">Giá trị max</label>
+                                <input
+                                    type="text"
+                                    className="form-control"
+                                    placeholder="Max..."
+                                    style={{
+                                        padding: "12px",
+                                        borderRadius: "10px",
+                                        border: "1px solid rgba(255,255,255,0.3)",
+                                        background: "rgba(255,255,255,0.3)",
+                                        color: "black",
+                                        fontWeight: "500",
+                                        transition: "0.25s ease",
+                                    }}
+                                    value={inputValue.max}
+                                    onChange={(e) =>
+                                        setInputValue({
+                                            ...inputValue,
+                                            max: e.target.value,
+                                        })
+                                    }
+                                    onFocus={(e) => {
+                                        e.target.style.outline = "2px solid #38bdf8";
+                                        e.target.style.boxShadow = "0 0 8px #38bdf8";
+                                    }}
+                                    onBlur={(e) => {
+                                        e.target.style.outline = "none";
+                                        e.target.style.boxShadow = "none";
+                                    }}
+                                />
+                            </div>
+                        </div>
+
                     </div>
                     {/* BUTTON HÀNG DƯỚI */}
                     <div
@@ -407,7 +433,8 @@ const ManagerSalaryRange = () => {
                             <tr>
                                 <th scope="col">STT</th>
                                 <th scope="col">Tên khoảng lương</th>
-                                <th scope="col">Nhóm công việc</th>
+                                <th scope="col">Min</th>
+                                <th scope="col">Max</th>
                                 <th scope="col">Sửa</th>
                                 <th scope="col">Xóa</th>
                             </tr>
@@ -417,9 +444,10 @@ const ManagerSalaryRange = () => {
                             {listJob?.map((job, index) => (
                                 <tr key={job._id}>
                                     <td>{(currentPage - 1) * limit + (index + 1)}</td>
-                                    <td>{job.nameskill}</td>
-                                    <td>{job.job_title}</td>
-                                    <td className="text-primary fs-5" onClick={() => { setCurrentIndex(job._id), setInputValue({ job: job.job__id, nameskill: job.nameskill }) }} role="button">
+                                    <td>{job.salaryRange}</td>
+                                    <td>{job.min}</td>
+                                    <td>{job.max}</td>
+                                    <td className="text-primary fs-5" onClick={() => { setCurrentIndex(job._id), setInputValue({ salaryRange: job.salaryRange, min: job.min, max: job.max }) }} role="button">
                                         <EditTwoTone />
                                     </td>
                                     <td className="text-danger fs-5" onClick={() => { hanleDeleteJob(job._id) }} role="button">

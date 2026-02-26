@@ -33,6 +33,12 @@ class PostpackageController {
         const reponse = await PostpackageSevicer.deletePostpackage(idp);
         res.status(200).json(reponse);
     });
+
+    changeStatus = asyncHandler(async (req, res) => {
+        const { idp } = req.params;
+        const reponse = await PostpackageSevicer.changeStatusPostpackage(idp);
+        res.status(200).json(reponse);
+    });
 }
 
 module.exports = new PostpackageController();

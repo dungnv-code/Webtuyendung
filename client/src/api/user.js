@@ -1,7 +1,11 @@
 import axios from "../ultils/axios"
 
 const login = (data) => {
-    return axios.post("/user/Login", data);
+    return axios.post("/user/Login", data, { withCredentials: true });
+}
+
+const logout = () => {
+    return axios.post("/user/Logout", {}, { withCredentials: true });
 }
 
 const register = (data) => {
@@ -28,6 +32,7 @@ const getUserSingle = () => {
 
 export {
     login,
+    logout,
     register,
     finalRegister,
     forgotPassword,

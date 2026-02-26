@@ -12,5 +12,6 @@ Router.put("/update/:idp", [VerifyToken, TokenIsAdmin],
     PostpackageController.update);
 Router.get("/getAll", PostpackageController.getAll);
 Router.delete("/delete/:idp", [VerifyToken, TokenIsAdmin], PostpackageController.delete);
+Router.put("/changeStatus/:idp", [VerifyToken, TokenIsAdmin], PostpackageController.changeStatus);
 
 module.exports = Router;

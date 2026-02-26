@@ -6,6 +6,9 @@ import {
 
 } from '@ant-design/icons';
 
+import { LogOut } from "../../redux/userUser/userSlice"
+import { logout } from "../../api/user";
+import { useDispatch } from "react-redux";
 const sidebarStyle = {
     container: {
         background: "rgba(15, 23, 42, 0.85)",
@@ -20,7 +23,6 @@ const sidebarStyle = {
         borderRight: "1px solid rgba(255,255,255,0.12)",
         boxShadow: "6px 0 20px rgba(0,0,0,0.35)",
         overflowY: "auto",
-
         scrollbarWidth: "none",
         msOverflowStyle: "none",
     },
@@ -88,6 +90,16 @@ import { useState } from "react";
 
 const Adminsibar = () => {
     const [hoverIndex, setHoverIndex] = useState(null);
+    const dispatch = useDispatch();
+
+    const handleClickLogout = async () => {
+        try {
+            dispatch(LogOut());
+            await logout();
+        } catch (error) {
+            console.log("Logout error:", error);
+        }
+    };
 
     const menuItems = [
         { text: "Trang chủ", icon: <HomeOutlined />, to: path.DASHBOARDADMIN },
@@ -102,7 +114,7 @@ const Adminsibar = () => {
         { text: "Quản lí các gói bài đăng", icon: <CodeSandboxOutlined />, to: path.PACKETPOSTADMIN },
         { text: "Quản lí công ty", icon: <ContainerOutlined />, to: path.COMPANYADMIN },
         { text: "Quản lí bài đăng", icon: <ContainerOutlined />, to: path.POSTADMIN },
-        { text: "Đăng xuất", icon: <LoginOutlined />, to: path.LOGIN },
+        { text: "Đăng xuất", icon: <LoginOutlined />, to: path.LOGIN, Click: handleClickLogout },
     ];
 
     return (
@@ -121,6 +133,7 @@ const Adminsibar = () => {
                             })}
                             onMouseEnter={() => setHoverIndex(index)}
                             onMouseLeave={() => setHoverIndex(null)}
+                            onClick={item?.Click}
                         >
                             {item.icon && <span className="icon">{item.icon}</span>}
                             {item.text}

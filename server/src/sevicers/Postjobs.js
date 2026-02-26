@@ -260,9 +260,6 @@ const applyFlattenFilter = (items, flatFilters = {}) => {
     });
 };
 
-// =======================================================================
-// ------------------------ GET ALL POSTJOBS -----------------------------
-// =======================================================================
 
 const getAllPostjobs = async (queryParams) => {
 
@@ -311,7 +308,7 @@ const getAllPostjobs = async (queryParams) => {
     }
 
     return {
-        jobs,
+        data: jobs,
         total,
         totalPages: Math.ceil(total / limit),
         currentPage: page

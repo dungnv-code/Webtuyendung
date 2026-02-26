@@ -14,9 +14,9 @@ const createSalaryRange = async (data) => {
 
 const updateSalaryRange = async (idl, data) => {
     const isSalaryRange = await useSalaryRange.findByOne({ salaryRange: data.salaryRange });
-    if (isSalaryRange) {
-        throw new Error("Khoảng lương đã tồn tại");
-    }
+    // if (isSalaryRange) {
+    //     throw new Error("Khoảng lương đã tồn tại");
+    // }
     const updatedSalaryRange = await useSalaryRange.updatebyOne({ _id: idl }, { ...data });
     return {
         success: true,
@@ -97,7 +97,7 @@ const getAllSalaryRange = async (queryParams) => {
     ]);
 
     return {
-        jobs,
+        data: jobs,
         total,
         totalPages: Math.ceil(total / limit),
         currentPage: page

@@ -97,7 +97,7 @@ const getAllPostpackage = async (queryParams) => {
     ]);
 
     return {
-        jobs,
+        data: jobs,
         total,
         totalPages: Math.ceil(total / limit),
         currentPage: page
@@ -116,9 +116,31 @@ const deletePostpackage = async (idp) => {
     };
 }
 
+const changeStatusPostpackage = async (idp) => {
+    const user = await usePostpackage.findByOne({ _id: idp });
+    if (!user) {
+        throw new Error("Không tìm thấy user để xóa");
+    }
+
+    let status = "";
+
+    if (user.status == "ACTIVE") {
+        status = "INACTIVE"
+    } else {
+        status = "ACTIVE"
+    }
+
+    await usePostpackage.updatebyOne({ _id: idp }, { status });
+    return {
+        success: true,
+        mes: "Thay đổi trạng thái thành công!",
+    };
+}
+
 module.exports = {
     createPostpackage,
     updatePostpackage,
     getAllPostpackage,
     deletePostpackage,
+    changeStatusPostpackage,
 }
