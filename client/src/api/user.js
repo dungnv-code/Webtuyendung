@@ -8,6 +8,10 @@ const logout = () => {
     return axios.post("/user/Logout", {}, { withCredentials: true });
 }
 
+const refreshToken = () => {
+    return axios.post("/user/refreshToken", {}, { withCredentials: true });
+}
+
 const register = (data) => {
     return axios.post("/user/Register", data);
 }
@@ -32,6 +36,7 @@ const getUserSingle = () => {
 
 export {
     login,
+    refreshToken,
     logout,
     register,
     finalRegister,

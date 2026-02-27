@@ -11,5 +11,6 @@ Router.put("/update/:idp", [VerifyToken, TokenIsNhaTuyenDungOrStaff],
 Router.get("/getAll", PostJobController.getAll);
 Router.get("/getDetail/:idp", PostJobController.getDetail);
 Router.delete("/delete/:idp", [VerifyToken, TokenIsNhaTuyenDungOrStaff], PostJobController.delete);
+Router.put("/changeStatus/:idp", [VerifyToken, TokenIsAdmin], PostJobController.changeStatus);
 
 module.exports = Router;

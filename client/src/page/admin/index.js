@@ -11,3 +11,5 @@ export { default as Graph } from './graph/graph';
 export { default as ManagerExp } from './ManagerExp/ManagerExp';
 export { default as ManagerCompany } from './ManagerCompany/ManagerCompany';
 export { default as PostAdmin } from './ManagerPost/ManagerPost';
+export { default as ManagerCompanyDetail } from './ManagerCompanyDetail/ManagerCompanyDetail';
+export { default as ManagerPostDetail } from './ManagerPostDetail/ManagerPostDetail';

@@ -1,22 +1,18 @@
 import { useSelector, useDispatch } from "react-redux";
 import { Navigate, Outlet } from "react-router-dom";
 import path from "../../../ultils/path";
-
+import { Businesssibar } from "../../../component/"
 import { useEffect } from "react";
-
 
 const BusinessLayout = () => {
 
     return (
         <div className="business-layout">
             <div>
-                <h1>Business Header</h1>
+                <Businesssibar />
             </div>
-            <div className="business-content" style={{ marginLeft: "20%" }}>
+            <div className="business-content" style={{ marginLeft: "25%" }}>
                 <Outlet />
-            </div>
-            <div className="business-footer">
-                <p>Business Footer</p>
             </div>
         </div>
     );

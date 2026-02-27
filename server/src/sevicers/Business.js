@@ -1,8 +1,10 @@
 const useBusiness = require("../repository/Business.js");
 const usePostJobs = require("../repository/PostJobs.js");
 const useInvoid = require("../repository/Invoid.js")
+
+
 const createBusiness = async (id, data) => {
-    const existBusiness = await useBusiness.findByOne({ slug: data.slug });
+    const existBusiness = await useBusiness.findByOne({ nameBusiness: data.nameBusiness });
     if (existBusiness) {
         throw new Error("Doanh nghiệp này đã tồn tại!");
     }
@@ -100,7 +102,7 @@ const getAllBusiness = async (queryParams) => {
     ]);
 
     return {
-        jobs,
+        data: jobs,
         total,
         totalPages: Math.ceil(total / limit),
         currentPage: page

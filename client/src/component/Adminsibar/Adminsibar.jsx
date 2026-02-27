@@ -112,7 +112,7 @@ const Adminsibar = () => {
         { text: "Quản lí khoảng lương", icon: <DollarOutlined />, to: path.SALARYRANGEADMIN },
         { text: "Quản lí kinh nghiệm", icon: <FieldTimeOutlined />, to: path.EXPADMIN },
         { text: "Quản lí các gói bài đăng", icon: <CodeSandboxOutlined />, to: path.PACKETPOSTADMIN },
-        { text: "Quản lí công ty", icon: <ContainerOutlined />, to: path.COMPANYADMIN },
+        { text: "Quản lí doanh nghiệp", icon: <ContainerOutlined />, to: path.COMPANYADMIN },
         { text: "Quản lí bài đăng", icon: <ContainerOutlined />, to: path.POSTADMIN },
         { text: "Đăng xuất", icon: <LoginOutlined />, to: path.LOGIN, Click: handleClickLogout },
     ];

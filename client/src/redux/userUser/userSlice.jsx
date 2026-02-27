@@ -36,8 +36,6 @@ export const UserSlice = createSlice({
 
         builder.addCase(action.getCurrent.rejected, (state, action) => {
             state.isLoading = false;
-
-            // ⭐ Chỉ logout nếu server trả lỗi 401
             if (action.error?.message === "401" || action.payload?.status === 401) {
                 state.isLogIn = false;
                 state.token = null;

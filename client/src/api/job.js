@@ -139,7 +139,33 @@ const changeStatusPacketPost = (id) => {
     return axios.put(`/postpackage/changeStatus/${id}`)
 }
 
+// business
 
+const getAllBusiness = (params) => {
+    return axios.get(`/business/getAll`, { params })
+}
+
+const getDetailBusiness = (id) => {
+    return axios.get(`/business/getDetail/${id}`)
+}
+
+const changeStatusBusiness = (id) => {
+    return axios.put(`/business/changeStatus/${id}`)
+}
+
+// postjobs
+
+const getAllPostjobs = (params) => {
+    return axios.get(`/postjobs/getAll`, { params })
+}
+
+const getDetailPostjobs = (id) => {
+    return axios.get(`/postjobs/getDetail/${id}`)
+}
+
+const changeStatusPostjobs = (id) => {
+    return axios.put(`/postjobs/changeStatus/${id}`)
+}
 
 export {
     // Job
@@ -182,4 +208,12 @@ export {
     updatePacketPost,
     deletePacketPost,
     changeStatusPacketPost,
+    // business
+    getAllBusiness,
+    getDetailBusiness,
+    changeStatusBusiness,
+    // postjobs
+    getAllPostjobs,
+    changeStatusPostjobs,
+    getDetailPostjobs,
 }

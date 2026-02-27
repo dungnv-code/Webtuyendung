@@ -121,7 +121,7 @@ const Login = () => {
         modal.hide();
     };
 
-    const handleOnSubmit = () => {
+    const handleOnSubmit = async () => {
         let newErrors = {};
 
         // ===== VALIDATION =====
@@ -161,11 +161,8 @@ const Login = () => {
                     text: "Đăng nhập thành công!",
                     icon: "success",
                 });
-
                 setInputValue({ email: "", password: "" });
-
                 dispatch(LogIn(res.data));
-
                 const decoded = jwtDecode(res.data.accessToken);
                 const role = decoded.role;
                 if (role === "ADMIN") {
@@ -173,8 +170,10 @@ const Login = () => {
                 } else if (role === "nhatuyendung" || role === "STAFF") {
                     navigate(path.DASHBOARDBUSINESS);
                 } else {
+                    setTimeout(() => {
+                        dispatch(getCurrent())
+                    }, 100);
                     navigate(path.HOME);
-                    dispatch(getCurrent)
                 }
             })
             .catch(err => {

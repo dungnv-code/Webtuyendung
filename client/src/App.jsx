@@ -1,17 +1,20 @@
 import { useState } from 'react'
 import { Route, Routes } from 'react-router-dom';
 import { Home, Login, DefaultLayout, Register, Job, Introduction, Company, Forgotpassword } from './page/public';
-import { BusinessLayout, DashboardBusiness } from './page/business';
+import {
+  BusinessLayout, DashboardBusiness, CreateBusiness, BusinessBuyPostJob,
+  BusinessPostJob, HistoryBuy, ManagerStaff, ManagerInfoBusi, CreateStaff
+} from './page/business';
 import {
   Adminlayout, DashboardAdmin, ManagerJob, ManagerLevel, ManagerPacketPost, ManagerSalaryRange
-  , ManagerSkill, ManagerStyleJob, ManagerUser, Graph, ManagerExp, ManagerCompany, PostAdmin
+  , ManagerSkill, ManagerStyleJob, ManagerUser, Graph, ManagerExp, ManagerCompany, PostAdmin,
+  ManagerCompanyDetail, ManagerPostDetail
 } from './page/admin';
 import path from './ultils/path';
 import './App.css'
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 function App() {
-
   return (
     <>
       <Routes>
@@ -26,6 +29,13 @@ function App() {
         </Route>
         <Route path={path.BUSINESS} element={<BusinessLayout />} >
           <Route path={path.DASHBOARDBUSINESS} element={<DashboardBusiness />} />
+          <Route path={path.CREATEBUSINESS} element={<CreateBusiness />} />
+          <Route path={path.BUSINESSBUYPOSTJOB} element={<BusinessBuyPostJob />} />
+          <Route path={path.BUSINESSPOSTJOB} element={<BusinessPostJob />} />
+          <Route path={path.HISTORYBUY} element={<HistoryBuy />} />
+          <Route path={path.MANAGERSTAFF} element={<ManagerStaff />} />
+          <Route path={path.MANAGERINFOBUSI} element={<ManagerInfoBusi />} />
+          <Route path={path.CREATESTAFF} element={<CreateStaff />} />
         </Route>
         <Route path={path.ADMIN} element={<Adminlayout />} >
           <Route path={path.DASHBOARDADMIN} element={<DashboardAdmin />} />
@@ -39,7 +49,9 @@ function App() {
           <Route path={path.EXPADMIN} element={<ManagerExp />} />
           <Route path={path.SKILLADMIN} element={<ManagerSkill />} />
           <Route path={path.COMPANYADMIN} element={<ManagerCompany />} />
+          <Route path={path.COMPANYADMINDETAIL} element={<ManagerCompanyDetail />} />
           <Route path={path.POSTADMIN} element={<PostAdmin />} />
+          <Route path={path.POSTADMINDETAIL} element={<ManagerPostDetail />} />
         </Route>
       </Routes>
       <ToastContainer

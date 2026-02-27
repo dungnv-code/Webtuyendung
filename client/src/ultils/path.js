@@ -14,7 +14,13 @@ const path = {
     // business
     BUSINESS: "/business",
     DASHBOARDBUSINESS: "/business/dashboard",
-
+    CREATEBUSINESS: "/business/createBusiness",
+    BUSINESSBUYPOSTJOB: "/business/buypostjob",
+    BUSINESSPOSTJOB: "/business/postjob",
+    HISTORYBUY: "/business/historybuy",
+    MANAGERSTAFF: "/business/managerstaff",
+    MANAGERINFOBUSI: "/business/managerinfobusiness",
+    CREATESTAFF: "/business/createstaff",
     // admin
     ADMIN: "/admin",
     DASHBOARDADMIN: "/admin/dashboard",
@@ -28,7 +34,9 @@ const path = {
     USERADMIN: "/admin/user",
     GRAPHADMIN: "/admin/graph",
     COMPANYADMIN: "/admin/company",
+    COMPANYADMINDETAIL: "/admin/company/:idb",
     POSTADMIN: "/admin/post",
+    POSTADMINDETAIL: "/admin/post/:idp",
 }
 
 export default path;

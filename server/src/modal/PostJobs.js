@@ -79,7 +79,7 @@ const PostJobSchema = new mongoose.Schema({
 
     status: {
         type: String,
-        enum: ["pendding", "active", "unactive"],
+        enum: ["pendding", "active"],
         default: "pendding"
     }
 

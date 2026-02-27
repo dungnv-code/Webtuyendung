@@ -43,6 +43,12 @@ class PostJobController {
         const reponse = await PostjobsSevicer.deletePostjobs(idp);
         res.status(200).json(reponse);
     });
+
+    changeStatus = asyncHandler(async (req, res) => {
+        const { idp } = req.params;
+        const reponse = await PostjobsSevicer.changeStatusPostjobs(idp);
+        res.status(200).json(reponse);
+    });
 }
 
 module.exports = new PostJobController();

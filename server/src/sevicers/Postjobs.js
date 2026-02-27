@@ -71,21 +71,15 @@ const updatePostjobs = async (idp, data) => {
     };
 }
 
-// =======================================================================
-// --------------------------  BUILD FILTER (MONGO) -----------------------
-// =======================================================================
 
 const buildFilter = (queries) => {
     const filter = {};
-
     for (const key in queries) {
 
-        // Bỏ qua query dạng flatten
         if (key.includes("_") || key.includes(".")) continue;
 
         const value = queries[key];
 
-        // Nếu dạng toán tử: ?min[gt]=1000
         if (typeof value === "object" && !Array.isArray(value)) {
             filter[key] = {};
             for (const op in value) {
@@ -102,11 +96,6 @@ const buildFilter = (queries) => {
 };
 
 
-// =======================================================================
-// ---------------------- OPERATOR DETECTOR (IMPORTANT) ------------------
-// =======================================================================
-// Detect dạng key: salaryRange_min[gt]
-
 const detectOperator = (key) => {
     const match = key.match(/(.+)\[(gt|gte|lt|lte|eq|ne)\]$/);
     if (!match) return null;
@@ -118,11 +107,6 @@ const detectOperator = (key) => {
 };
 
 
-// =======================================================================
-// -------------------------  FLATTEN HELPERS ----------------------------
-// =======================================================================
-
-// Parse toán tử
 const parseOperatorValue = (raw) => {
     if (typeof raw === "object") {
         const ops = {};
@@ -134,7 +118,6 @@ const parseOperatorValue = (raw) => {
     return raw;
 };
 
-// Nhúng populate vào object chính
 const flattenPopulate = (item, populations = []) => {
     populations.forEach(pop => {
         const path = pop.path;
@@ -156,17 +139,12 @@ const flattenPopulateArray = (items, populations = []) => {
 };
 
 
-// =======================================================================
-// ---------------  CHUYỂN QUERY FLATTEN + HỖ TRỢ TOÁN TỬ ---------------
-// =======================================================================
-
 const convertFlattenQuery = (queryParams, populate = []) => {
     const flatFilters = {};
 
     for (const key in queryParams) {
         const raw = queryParams[key];
 
-        // 👉 1) Detect toán tử dạng salaryRange_min[gt]
         const opInfo = detectOperator(key);
         if (opInfo) {
             const { field, op } = opInfo;
@@ -181,7 +159,6 @@ const convertFlattenQuery = (queryParams, populate = []) => {
             continue;
         }
 
-        // 👉 2) Dạng . (business.name)
         if (key.includes(".")) {
             const [path, field] = key.split(".");
             const isPopulated = populate.some(p => p.path === path);
@@ -192,7 +169,6 @@ const convertFlattenQuery = (queryParams, populate = []) => {
             continue;
         }
 
-        // 👉 3) Dạng gạch dưới (business_name)
         if (key.includes("_")) {
             const [path] = key.split("_");
             const isPopulated = populate.some(p => p.path === path);
@@ -207,10 +183,6 @@ const convertFlattenQuery = (queryParams, populate = []) => {
 };
 
 
-// =======================================================================
-// ------------------ APPLY FLATTEN FILTER (TOÁN TỬ) ---------------------
-// =======================================================================
-
 const applyFlattenFilter = (items, flatFilters = {}) => {
     return items.filter(item => {
 
@@ -218,10 +190,8 @@ const applyFlattenFilter = (items, flatFilters = {}) => {
             const rule = flatFilters[key];
             const actualValue = item[key];
 
-            // ⭐ CHỈ THÊM ĐÚNG CHỖ NÀY:
             if (actualValue === null) {
-                // salaryRange_max = null --> chỉ chấp nhận khi operator là $gte (trường hợp max >= value)
-                // nghĩa là null = vô hạn => luôn đúng
+
                 continue;
             }
 
@@ -229,7 +199,6 @@ const applyFlattenFilter = (items, flatFilters = {}) => {
                 return false;
             }
 
-            // Nếu là dạng toán tử
             if (typeof rule === "object" && !Array.isArray(rule)) {
 
                 for (const op in rule) {
@@ -248,7 +217,7 @@ const applyFlattenFilter = (items, flatFilters = {}) => {
                     }
                 }
             } else {
-                // Text exact compare
+
                 if (
                     String(actualValue).toLowerCase() !==
                     String(rule).toLowerCase()
@@ -335,10 +304,31 @@ const deletePostjobs = async (idp) => {
     };
 }
 
+const changeStatusPostjobs = async (idp) => {
+    const user = await usePostJobs.findByOne({ _id: idp });
+    if (!user) {
+        throw new Error("Không tìm thấy user để xóa");
+    }
+    let status = "";
+
+    if (user.status == "pendding") {
+        status = "active"
+    } else {
+        status = "pendding"
+    }
+
+    await usePostJobs.updatebyOne({ _id: idp }, { status });
+    return {
+        success: true,
+        mes: "Thay đổi trạng thái thành công!",
+    };
+};
+
 module.exports = {
     createPostjobs,
     updatePostjobs,
     getAllPostjobs,
     deletePostjobs,
-    getDetailPostjobs
+    getDetailPostjobs,
+    changeStatusPostjobs,
 }

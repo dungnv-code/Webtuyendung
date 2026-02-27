@@ -5,8 +5,9 @@ const makeNumberToken = require("../ulti/makeToken");
 const sendMail = require("../ulti/sendMail");
 const crypto = require("crypto");
 const seedrandom = require("seedrandom");
+
 const genateAccessToken = (payload) => {
-    return jwt.sign(payload, process.env.JWT_SECRET_KEY, { expiresIn: "3h" });
+    return jwt.sign(payload, process.env.JWT_SECRET_KEY, { expiresIn: "7h" });
 }
 
 const genateRefreshToken = (payload) => {
