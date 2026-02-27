@@ -13,7 +13,7 @@ Router.post("/create", [VerifyToken, TokenIsNhaTuyenDung],
     // body("certification").notEmpty().withMessage("Vui lòng tải lên giấy chứng nhận doanh nghiệp!"),
     uploadBusiness,
     BusinessController.create);
-Router.put("/update/:idb", uploadBusiness, [VerifyToken, TokenIsNhaTuyenDung],
+Router.put("/update", uploadBusiness, [VerifyToken, TokenIsNhaTuyenDung],
     BusinessController.update);
 Router.get("/getAll", BusinessController.getAll);
 Router.delete("/delete/:idb", [VerifyToken, TokenIsNhaTuyenDung], BusinessController.delete);

@@ -5,8 +5,12 @@ import path from "../../../ultils/path"
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import Loading from "../../../component/loading/Loading";
+import { logout } from "../../../api/user"
+import { LogOut } from "../../../redux/userUser/userSlice"
+import { useDispatch } from "react-redux"
 const CreateBusiness = () => {
     const navigate = useNavigate();
+    const dispatch = useDispatch()
     const [form, setForm] = useState({
         nameBusiness: "",
         taxiCodeBusiness: "",
@@ -89,7 +93,11 @@ const CreateBusiness = () => {
                     timer: 2000,
                     showConfirmButton: false
                 });
-                navigate(path.LOGIN);
+                dispatch(LogOut());
+                await logout();
+                setTimeout(() => {
+                    navigate(path.LOGIN);
+                }, 500)
             }
         } catch (error) {
             setLoading(false);
@@ -279,6 +287,7 @@ const CreateBusiness = () => {
                         onEditorChange={(newValue) =>
                             setForm((prev) => ({ ...prev, descriptionBusiness: newValue }))
                         }
+                        value={form?.descriptionBusiness}
                         apiKey={import.meta.env.VITE_API_MAKE_DOWN}
                         // onInit={(_evt, editor) => editorRef.current = editor}
                         initialValue="<p>This is the initial content of the editor.</p>"

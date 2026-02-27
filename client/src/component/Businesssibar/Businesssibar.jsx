@@ -98,7 +98,6 @@ const Businesssibar = () => {
     useEffect(() => {
         const decode = jwtDecode(user.token)
         setDatatoken(decode)
-        console.log(decode)
     }, [])
 
     return (

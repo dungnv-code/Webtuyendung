@@ -28,7 +28,7 @@ class BusinessController {
     });
 
     update = asyncHandler(async (req, res) => {
-        const { idb } = req.params;
+        const idb = req.user.businessId;
         const err = validationResult(req);
         if (!err.isEmpty()) {
             return res.status(400).json({ errors: err.array() });
@@ -75,7 +75,7 @@ class BusinessController {
 
     getStaffs = asyncHandler(async (req, res) => {
         const { businessId } = req.user;
-        const reponse = await BusinessSevicer.getStaffsUser(businessId);
+        const reponse = await BusinessSevicer.getStaffsUser(businessId, req.query);
         res.status(200).json(reponse);
     })
 

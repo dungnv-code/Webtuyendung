@@ -1,7 +1,7 @@
 const useBusiness = require("../repository/Business.js");
 const usePostJobs = require("../repository/PostJobs.js");
 const useInvoid = require("../repository/Invoid.js")
-
+const useUser = require("../repository/User.js")
 
 const createBusiness = async (id, data) => {
     const existBusiness = await useBusiness.findByOne({ nameBusiness: data.nameBusiness });
@@ -143,16 +143,78 @@ const getDetailbyNTDBusiness = async (businessId) => {
     };
 }
 
-const getStaffsUser = async (businessId) => {
-    const Business = await useBusiness.findAllUser({ business: businessId, role: "STAFF" }).select("-refreshToken -password");
-    if (Business.length == 0) {
-        throw new Error("Không tìm thấy nhân viên doanh nghiệp!");
+const buildFilterUser = (queries) => {
+    const filter = {};
+
+    for (const key in queries) {
+        const match = key.match(/^(\w+)\[(gte|gt|lte|lt)\]$/);
+
+        if (match) {
+            const [, field, op] = match;
+            filter[field] = filter[field] || {};
+            filter[field][`$${op}`] = Number(queries[key]);
+        }
+
+        else if (key === "title") {
+            filter.title = { $regex: queries[key], $options: "i" };
+        }
+
+        else if (key === "username") {
+            filter.username = { $regex: queries[key], $options: "i" };
+        }
+
+        else {
+            const value = queries[key];
+
+            if (typeof value === "string" && value.includes(",")) {
+                filter[key] = { $in: value.split(",") };
+            } else {
+                // ❗ GIỮ NGUYÊN string, KHÔNG ép số
+                filter[key] = value;
+            }
+        }
     }
+
+    return filter;
+};
+
+const getStaffsUser = async (businessId, queryParams = {}) => {
+    const excludeFields = ["limit", "sort", "page", "fields"];
+    const queries = { ...queryParams };
+
+    excludeFields.forEach(el => delete queries[el]);
+
+    const filter = buildFilterUser(queries);
+
+    // Không cần override thêm username nữa
+    filter.business = businessId;
+    filter.role = "STAFF";
+
+    const limit = Number(queryParams.limit) || 20;
+    const sort = queryParams.sort || "-createdAt";
+    const page = Number(queryParams.page) || 1;
+    const skip = (page - 1) * limit;
+    const fields = queryParams.fields?.split(",").join(" ");
+
+    const [staffs, total] = await Promise.all([
+        useUser.findAll(filter)
+            .select(fields || "-refreshToken -password -resetpasswordOtp -resetpasswordOtpExpire")
+            .sort(sort)
+            .skip(skip)
+            .limit(limit),
+
+        useUser.countDocuments(filter)
+    ]);
+
     return {
         success: true,
-        data: Business,
+        data: staffs,
+        total,
+        totalPages: Math.ceil(total / limit),
+        currentPage: page
     };
-}
+};
+
 
 const getPostJobsBusiness = async (businessId) => {
     const Business = await usePostJobs.findAll({ business: businessId }).select("-refreshToken -password");
