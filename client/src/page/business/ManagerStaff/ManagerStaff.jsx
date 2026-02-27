@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import PaginationCustom from "../../../component/pagination/pagination";
-import { getStaffs } from "../../../api/business"
+import { getStaffs, deleteUser } from "../../../api/business"
+
 import { DeleteTwoTone, EditTwoTone, EditOutlined, SwapOutlined, PlusOutlined, SearchOutlined, RedoOutlined } from '@ant-design/icons';
 import { toast } from "react-toastify";
 
@@ -22,7 +23,7 @@ const ManagerStaff = () => {
     }
 
     const [currentPage, setCurrentPage] = useState(1);
-    const [limit, setLimit] = useState(3);
+    const [limit, setLimit] = useState(5);
     const [totalPages, setTotalPages] = useState(0);
     const [listJob, setListJob] = useState([]);
     const [inputValue, setInputValue] = useState("");
@@ -48,7 +49,7 @@ const ManagerStaff = () => {
     //     const newError = {};
 
     //     if (!inputValue.trim()) {
-    //         newError.inputValue = "Vui lòng nhập tên người dùng";
+    //         newError.inputValue = "Vui lòng nhập tên nhân viên";
     //     }
 
     //     setError(newError);
@@ -58,7 +59,7 @@ const ManagerStaff = () => {
     //             await createLevel({ nameLevel: inputValue });
     //             setInputValue("");
     //             setCurrentPage(1);
-    //             toast.success("Thêm người dùng thành công!")
+    //             toast.success("Thêm nhân viên thành công!")
     //             setLoaddata(!loaddata)
     //         } catch (error) {
     //             // toast.error("Lỗi khi tạo công việc");
@@ -69,10 +70,10 @@ const ManagerStaff = () => {
     // const hanleUpdateJob = async () => {
     //     const newError = {};
     //     if (!inputValue.trim()) {
-    //         newError.inputValue = "Vui lòng nhập tên người dùng";
+    //         newError.inputValue = "Vui lòng nhập tên nhân viên";
     //     }
     //     if (!currentIndex.trim()) {
-    //         newError.inputValue = "Vui lòng chọn người dùng muốn sửa!";
+    //         newError.inputValue = "Vui lòng chọn nhân viên muốn sửa!";
     //     }
     //     setError(newError);
     //     if (Object.keys(newError).length === 0) {
@@ -80,7 +81,7 @@ const ManagerStaff = () => {
     //             await updateLevel(currentIndex, { nameLevel: inputValue });
     //             setInputValue("");
     //             setCurrentPage(1);
-    //             toast.success("Sửa người dùng thành công!")
+    //             toast.success("Sửa nhân viên thành công!")
     //             setLoaddata(!loaddata)
     //         } catch (error) {
     //             // toast.error("Lỗi khi sửa công việc");
@@ -93,7 +94,7 @@ const ManagerStaff = () => {
             await deleteUser(id);
             setInputValue("");
             setCurrentPage(1);
-            toast.success("Xoá người dùng thành công!")
+            toast.success("Xoá nhân viên thành công!")
             setLoaddata(!loaddata)
         } catch (error) {
             // toast.error("Lỗi khi sửa công việc");
@@ -101,14 +102,12 @@ const ManagerStaff = () => {
     }
 
     const hanleSearch = async () => {
-        console.log("ruin")
         try {
             const response = await getStaffs({ page: currentPage, limit, username: inputValue });
             setListJob(response.data);
             setTotalPages(response.totalPages);
         } catch (error) {
         }
-
     }
 
     const hanleReset = async () => {
@@ -125,22 +124,11 @@ const ManagerStaff = () => {
         setInputValue("")
     }
 
-    const hanleChangeStatus = async (id) => {
-        try {
-            await changeStatusUser(id);
-            setCurrentPage(1);
-            toast.success("Cập nhật trạng thái người dùng thành công!")
-            setLoaddata(!loaddata)
-        } catch (error) {
-            // toast.error("Lỗi khi sửa công việc");
-        }
-    }
-
     return (
         <div style={styles.container}
         >
             <h1 style={{ marginTop: "10px", marginBottom: "20px", fontSize: "28px" }}>
-                Quản lí người dùng
+                Quản lí nhân viên
             </h1>
 
             <div
@@ -251,12 +239,11 @@ const ManagerStaff = () => {
                         <thead className="table-primary text-dark">
                             <tr>
                                 <th scope="col">STT</th>
-                                <th scope="col">Tên người dùng</th>
+                                <th scope="col">Tên nhân viên</th>
                                 <th scope="col">Email</th>
                                 <th scope="col">Điện thoại</th>
                                 <th scope="col">Vai trò</th>
                                 <th scope="col">Trạng thái</th>
-                                <th scope="col">Đổi TT</th>
                                 <th scope="col">Xóa</th>
                             </tr>
                         </thead>
@@ -268,9 +255,8 @@ const ManagerStaff = () => {
                                     <td >{job.username}</td>
                                     <td>{job.email}</td>
                                     <td>{job.phone}</td>
-                                    <td>{job.role == "STAFF" ? "nhanvientd" : job.role}</td>
+                                    <td>{job.role == "STAFF" ? "Nhân viên" : job.role}</td>
                                     <td>{job.status == "Active" ? "Hoạt động" : "Đã chặn"}</td>
-                                    <td onClick={() => { hanleChangeStatus(job._id) }}><SwapOutlined /></td>
                                     <td className="text-danger fs-5" onClick={() => { hanleDeleteJob(job._id) }} role="button">
                                         <DeleteTwoTone />
                                     </td>

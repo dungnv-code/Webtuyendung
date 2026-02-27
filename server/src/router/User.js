@@ -36,7 +36,7 @@ Route.post("/resetPassword",
 Route.post("/refreshToken", userController.refreshToken);
 Route.get("/getSingle", [VerifyToken], userController.getSingle);
 Route.get("/getAll", [VerifyToken, TokenIsAdmin], userController.getAll);
-Route.delete("/deletebyadmin/:idu", [VerifyToken, TokenIsAdmin], userController.deletebyadmin);
+Route.delete("/deletebyadmin/:idu", [VerifyToken, TokenIsNhaTuyenDung], userController.deletebyadmin);
 Route.put("/changeStatus/:idu", [VerifyToken, TokenIsAdmin], userController.changeStatus);
 Route.put("/update/:idu", [VerifyToken], uploadSingle("avatar"), userController.update);
 Route.post("/changePassword",

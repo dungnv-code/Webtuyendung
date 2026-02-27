@@ -93,7 +93,7 @@ class BusinessController {
 
     getInvoids = asyncHandler(async (req, res) => {
         const { businessId } = req.user;
-        const reponse = await BusinessSevicer.getInvoidsBusiness(businessId);
+        const reponse = await BusinessSevicer.getInvoidsBusiness(businessId, req.query);
         res.status(200).json(reponse);
     })
 }

@@ -1,7 +1,7 @@
 import axios from "../ultils/axios"
 
 const creatBusiness = async (data) => {
-    return axios.post("/business/create", data, {
+    return await axios.post("/business/create", data, {
         headers: {
             "Content-Type": "multipart/form-data",
         }
@@ -10,7 +10,7 @@ const creatBusiness = async (data) => {
 
 
 const updateBusiness = async (data) => {
-    return axios.put(`/business/update`, data, {
+    return await axios.put(`/business/update`, data, {
         headers: {
             "Content-Type": "multipart/form-data",
         }
@@ -18,11 +18,27 @@ const updateBusiness = async (data) => {
 };
 
 const getDetailByBusiness = async () => {
-    return axios.get(`/business/getDetailbyNTD`);
+    return await axios.get(`/business/getDetailbyNTD`);
 };
 
-const getStaffs = (params) => {
-    return axios.get(`/business/getStaffs`, { params })
+const getStaffs = async (params) => {
+    return await axios.get(`/business/getStaffs`, { params })
+}
+
+const deleteUser = async (id) => {
+    return await axios.delete(`/user/deletebyadmin/${id}`)
+}
+
+const createStaffBusiness = async (data) => {
+    return await axios.post("/user/createStaff", data)
+}
+
+const getInvoidBusiness = async (params) => {
+    return await axios.get(`/business/getInvoids`, { params })
+}
+
+const createInvoidBusiness = async (data) => {
+    return await axios.post("/invoid/create", data)
 }
 
 export {
@@ -30,4 +46,8 @@ export {
     updateBusiness,
     getDetailByBusiness,
     getStaffs,
+    deleteUser,
+    createStaffBusiness,
+    getInvoidBusiness,
+    createInvoidBusiness,
 }

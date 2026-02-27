@@ -167,9 +167,6 @@ const changeStatusPostjobs = (id) => {
     return axios.put(`/postjobs/changeStatus/${id}`)
 }
 
-// staff
-
-
 
 export {
     // Job

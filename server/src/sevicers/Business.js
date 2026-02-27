@@ -227,16 +227,33 @@ const getPostJobsBusiness = async (businessId) => {
     };
 }
 
-const getInvoidsBusiness = async (businessId) => {
-    const Business = await useInvoid.findAll({ business: businessId }).select("-refreshToken -password");
-    if (Business.length == 0) {
+const getInvoidsBusiness = async (businessId, params = {}) => {
+    const currentPage = Number(params.page) || 1;
+    const limit = Number(params.limit) || 10;
+    const skip = (currentPage - 1) * limit;
+
+    // Tổng số hóa đơn
+    const total = await useInvoid.countDocuments({ business: businessId });
+
+    if (total === 0) {
         throw new Error("Chưa có hoá đơn nào!");
     }
+
+    const invoices = await useInvoid
+        .findAll({ business: businessId })
+        .select("-refreshToken -password")
+        .skip(skip)
+        .limit(limit)
+        .sort({ createdAt: -1 });
+
     return {
         success: true,
-        data: Business,
+        total,
+        totalPages: Math.ceil(total / limit),
+        currentPage,
+        data: invoices,
     };
-}
+};
 
 const changeStatusBusiness = async (idb) => {
     // 1. Tìm business
