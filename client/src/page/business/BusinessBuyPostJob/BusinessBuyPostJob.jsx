@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 import { getAllPacketPost } from "../../../api/job";
 import { App } from "../../../component";
+
 const BusinessBuyPostJob = () => {
     const [packetList, setPacketList] = useState([]);
     const [errors, setErrors] = useState({});
+    const [isSuccess, setIsSuccess] = useState(false);
+
     const [formData, setFormData] = useState({
         typeInvoid: "",
         title: "",
@@ -13,69 +16,70 @@ const BusinessBuyPostJob = () => {
         totalPrice: 0,
     });
 
+    // Tách totalPrice ra khỏi payload
+    const { totalPrice, ...payloadToSend } = formData;
+
+    // Reset form sau thanh toán thành công
     useEffect(() => {
-        const fetchDataPacket = async () => {
-            const response = await getAllPacketPost();
-            setPacketList(response.data);
+        if (isSuccess) {
+            setFormData({
+                typeInvoid: "",
+                title: "",
+                value: 0,
+                price: 0,
+                amount: 1,
+                totalPrice: 0,
+            });
+
+            setErrors({});
+        }
+    }, [isSuccess]);
+
+    // Lấy danh sách gói đăng
+    useEffect(() => {
+        const fetchPacket = async () => {
+            const res = await getAllPacketPost({ status: "ACTIVE" });
+            setPacketList(res.data);
         };
-        fetchDataPacket();
+        fetchPacket();
     }, []);
 
-    // Validate Form
-    const validate = () => {
-        const newErr = {};
-
-        if (!formData.title.trim()) {
-            newErr.title = "Vui lòng chọn gói đăng!";
-        }
-        if (!formData.amount || Number(formData.amount) < 1) {
-            newErr.amount = "Số lượng mua phải lớn hơn 0!";
-        }
-
-        setErrors(newErr);
-        return Object.keys(newErr).length === 0;
-    };
-
-    // Khi chọn gói đăng
+    // Khi chọn gói
     const handleSelectPacket = (id) => {
-        const packet = packetList.find((item) => item._id === id);
+        const packet = packetList.find((p) => p._id === id);
         if (!packet) return;
 
         setFormData({
-            ...formData,
             typeInvoid: packet.typePostPackage,
             title: packet.namePostPackage,
             value: packet.valuePostPackage,
             price: packet.price,
             amount: 1,
-            totalPrice: packet.price * 1,
+            totalPrice: packet.price,
         });
 
         setErrors({});
     };
 
+    // Khi nhập số lượng mua
     const handleChange = (e) => {
         const { name, value } = e.target;
-        const updatedData = { ...formData, [name]: value };
+        const updated = { ...formData, [name]: value };
 
         if (name === "amount") {
-            updatedData.totalPrice = Number(value) * Number(formData.price);
+            updated.totalPrice = Number(value) * Number(formData.price);
         }
 
-        setFormData(updatedData);
+        setFormData(updated);
     };
 
-    // const handleSubmit = (e) => {
-    //     e.preventDefault();
-
-    //     if (!validate()) return;
-
-    //     console.log("Tạo hóa đơn:", formData);
-    // };
+    // Chưa chọn gói → không cho bấm PayPal
+    const isPacketSelected = formData.title.trim() !== "";
 
     return (
-        <div className="container mt-4">
+        <div className="container" style={{ margin: "30px 0px" }}>
             <div className="mx-auto p-4 shadow rounded-4" style={{ maxWidth: "600px", background: "#fff" }}>
+
                 <h3 className="fw-bold mb-4 text-primary text-center">
                     Tạo Hóa Đơn Mua Gói Đăng
                 </h3>
@@ -85,6 +89,7 @@ const BusinessBuyPostJob = () => {
                     <label className="form-label fw-semibold">Chọn gói đăng</label>
                     <select
                         className={`form-select ${errors.title ? "is-invalid" : ""}`}
+                        value={formData.title ? packetList.find(x => x.namePostPackage === formData.title)?._id : ""}
                         onChange={(e) => handleSelectPacket(e.target.value)}
                     >
                         <option value="">-- Chọn gói đăng --</option>
@@ -98,8 +103,7 @@ const BusinessBuyPostJob = () => {
                 </div>
 
                 {/* FORM */}
-                {/* onSubmit={handleSubmit} */}
-                <form >
+                <form>
                     <div className="row">
                         <div className="col-md-12 mb-3">
                             <label className="form-label">Title</label>
@@ -135,19 +139,21 @@ const BusinessBuyPostJob = () => {
                         </div>
 
                         <div className="col-md-12 mb-3">
-                            <label className="form-label fw-bold">Tổng tiền  ($)</label>
-                            <input
-                                type="number"
-                                className="form-control bg-light fw-bold"
-                                value={formData.totalPrice}
-                                disabled
-                            />
+                            <label className="form-label fw-bold">Tổng tiền ($)</label>
+                            <input type="number" className="form-control bg-light fw-bold" value={formData.totalPrice} disabled />
                         </div>
                     </div>
 
-                    <button className="btn btn-primary w-100 fw-bold py-2 rounded-3 mt-2">
-                        <App />
-                    </button>
+                    {/* PAYPAL BUTTON */}
+                    {
+                        isPacketSelected && <div className="mt-3">
+                            <App
+                                amount={totalPrice}
+                                payload={payloadToSend}
+                                setIsSuccess={setIsSuccess}
+                            />
+                        </div>
+                    }
                 </form>
             </div>
         </div>

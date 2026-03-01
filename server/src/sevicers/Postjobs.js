@@ -1,21 +1,54 @@
 const usePostJobs = require("../repository/PostJobs");
 const seedrandom = require("seedrandom");
 const useBusiness = require("../repository/Business");
-const createPostjobs = async (businessId, data) => {
+const useUser = require("../repository/User");
+const pdf = require("pdf-parse-fork");
+const cloudinary = require("cloudinary").v2;
+const Groq = require("groq-sdk");
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-    // 1. Kiểm tra bài đăng trùng
+cloudinary.config({
+    cloud_name: process.env.CLOUD_NAME,
+    api_key: process.env.CLOUD_API_KEY,
+    api_secret: process.env.CLOUD_API_SECRET,
+});
+
+const uploadToCloudinary = (fileBuffer) => {
+    return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+            {
+                resource_type: "raw",   // Để upload PDF
+                folder: "cv_pdf"
+            },
+            (err, result) => {
+                if (err) return reject(err);
+                resolve(result);
+            }
+        );
+        stream.end(fileBuffer);
+    });
+};
+
+const createPostjobs = async (businessId, id, data) => {
     const existPostJobs = await usePostJobs.findByOne({ title: data.title });
     if (existPostJobs) {
         throw new Error("Bài đăng công việc đã tồn tại");
     }
 
-    // 2. Kiểm tra doanh nghiệp tồn tại
+    const exitUser = await useUser.findByOne({ _id: id });
+    if (!exitUser) {
+        throw new Error("Không tìm thấy người dùng");
+    }
+
     const business = await useBusiness.findByOne({ _id: businessId });
     if (!business) {
         throw new Error("Doanh nghiệp không tồn tại");
     }
 
-    // 3. Kiểm tra lượt đăng
+    if (!business.statusBusiness) {
+        throw new Error("Doanh nghiệp chưa được kiểm duyệt!");
+    }
+
     if (data.postPackage == 0) {
         if (business.normalPosts <= 0) {
             throw new Error("Bạn đã hết lượt đăng bình thường");
@@ -28,19 +61,18 @@ const createPostjobs = async (businessId, data) => {
         }
     }
 
-    // 4. Gán doanh nghiệp cho bài đăng
     const convertDate = (str) => {
         const [day, month, year] = str.split("/");
         return new Date(`${year}-${month}-${day}`);
     };
 
     data.deadline = convertDate(data.deadline);
+    data.imageCover = business.imageCoverBusiness
     data.business = businessId;
+    data.userPost = exitUser.username;
 
-    // 5. Tạo bài đăng
     const PostJobs = await usePostJobs.create(data);
 
-    // 6. Trừ lượt đăng sau khi tạo thành công
     if (PostJobs) {
         if (data.postPackage == 0) {
             business.normalPosts -= 1;
@@ -50,7 +82,6 @@ const createPostjobs = async (businessId, data) => {
         await business.save();
     }
 
-    // 7. Trả về kết quả
     return {
         success: true,
         message: "Tạo bài đăng thành công",
@@ -59,11 +90,16 @@ const createPostjobs = async (businessId, data) => {
 };
 
 
-const updatePostjobs = async (idp, data) => {
+const updatePostjobs = async (idp, id, data) => {
     const existPostJobs = await usePostJobs.findByOne({ _id: idp });
     if (!existPostJobs) {
         throw new Error("Không tìm thấy bài đăng công việc");
     }
+    const existUser = await useUser.findByOne({ _id: id });
+    if (!existUser) {
+        throw new Error("Không tìm thấy người đăng bài!");
+    }
+    data.userPost = existUser.username
     const updatedPostJobs = await usePostJobs.updatebyOne({ _id: idp }, data);
     return {
         success: true,
@@ -99,7 +135,6 @@ const buildFilter = (queries) => {
 const detectOperator = (key) => {
     const match = key.match(/(.+)\[(gt|gte|lt|lte|eq|ne)\]$/);
     if (!match) return null;
-
     return {
         field: match[1],          // salaryRange_min
         op: `$${match[2]}`        // $gt
@@ -236,10 +271,8 @@ const getAllPostjobs = async (queryParams) => {
     const queries = { ...queryParams };
     excludeFields.forEach(el => delete queries[el]);
 
-    // Build filter MongoDB
     const filter = buildFilter(queries);
 
-    // Paging + sort
     const limit = Number(queryParams.limit) || 20;
     const sort = queryParams.sort || "-createdAt";
     const page = Number(queryParams.page) || 1;
@@ -247,7 +280,6 @@ const getAllPostjobs = async (queryParams) => {
     const fields = queryParams.fields?.split(",").join(" ");
     const flatten = queryParams.flatten === "true";
 
-    // Populate
     let populate = null;
     if (queryParams.populate) {
         populate = queryParams.populate.split(";").map(p => {
@@ -259,23 +291,18 @@ const getAllPostjobs = async (queryParams) => {
         });
     }
 
-    // Query DB
     let [jobs, total] = await Promise.all([
         usePostJobs.findAll(filter, { fields, sort, skip, limit, populate }),
         usePostJobs.countDocuments(filter)
     ]);
 
-    // Flatten + filter
     if (flatten && populate) {
         jobs = flattenPopulateArray(jobs, populate);
-
         const flatFilters = convertFlattenQuery(queryParams, populate);
-
         if (Object.keys(flatFilters).length > 0) {
             jobs = applyFlattenFilter(jobs, flatFilters);
         }
     }
-
     return {
         data: jobs,
         total,
@@ -285,7 +312,7 @@ const getAllPostjobs = async (queryParams) => {
 };
 
 const getDetailPostjobs = async (idp) => {
-    const detailPostJobs = await usePostJobs.findByOne({ _id: idp });
+    const detailPostJobs = await usePostJobs.updatebyOne({ _id: idp }, { $inc: { view: 1 } });
     return {
         success: true,
         data: detailPostJobs,
@@ -307,7 +334,7 @@ const deletePostjobs = async (idp) => {
 const changeStatusPostjobs = async (idp) => {
     const user = await usePostJobs.findByOne({ _id: idp });
     if (!user) {
-        throw new Error("Không tìm thấy user để xóa");
+        throw new Error("Không tìm thấy bài đăng !");
     }
     let status = "";
 
@@ -324,6 +351,169 @@ const changeStatusPostjobs = async (idp) => {
     };
 };
 
+const changeStatusPausePostjobs = async (idp) => {
+    // Tìm bài đăng theo ID
+    const post = await usePostJobs.findByOne({ _id: idp });
+
+    if (!post) {
+        throw new Error("Không tìm thấy bài đăng để cập nhật!");
+    }
+
+    // Toggle trạng thái
+    const statusPause = !post.statusPause;
+
+    // Cập nhật
+    await usePostJobs.updatebyOne({ _id: idp }, { statusPause });
+
+    return {
+        success: true,
+        mes: "Thay đổi trạng thái thành công!",
+    };
+};
+
+
+const matchCVWithJD = async (cvText, jdText) => {
+    try {
+        const chatCompletion = await groq.chat.completions.create({
+            model: "llama-3.3-70b-versatile",
+            temperature: 0.1,
+            response_format: { type: "json_object" },
+            messages: [
+                {
+                    role: "system",
+                    content: `Bạn là chuyên gia Technical Recruiter. Nhiệm vụ: Chấm điểm CV dựa trên JD.
+          QUY TẮC: 
+          1. Score = 0 nếu dữ liệu là báo cáo, danh sách hàng hóa hoặc không phải CV người thật.
+          2. Score 85-100: Khớp hoàn toàn kỹ năng (ReactJS, PHP, Ruby) & >5 năm kinh nghiệm.
+          3. Score 40-60: Thiếu 1 kỹ năng chính hoặc kinh nghiệm < 3 năm.
+          4. Trả về đúng định dạng JSON.`
+                },
+                {
+                    role: "user",
+                    content: `PHÂN TÍCH:
+          JD: ${jdText}
+          ---
+          CV: ${cvText}
+          ---
+          YÊU CẦU JSON:
+          {
+            "score": number,
+            "match_details": { "skills": "string", "exp": "string", "location": "string" },
+            "strengths": [],
+            "weaknesses": [],
+            "summary": "string"
+          }`
+                }
+            ]
+        });
+        const result = JSON.parse(chatCompletion.choices[0].message.content);
+        return result;
+    } catch (error) {
+        console.error("Lỗi Groq AI:", error.message);
+        return { score: 0, strengths: [], weaknesses: [], summary: "Lỗi hệ thống." };
+    }
+};
+
+const uploadCVPostjobs = async (idp, id, req) => {
+    if (!req.file) throw new Error("Không nhận được file!");
+
+    const post = await usePostJobs.findByOne({ _id: idp });
+    if (!post) throw new Error("Không tìm thấy bài đăng!");
+
+    const hasApplied = post.listCV.some(cv => cv.idUser.toString() === id.toString());
+
+    if (hasApplied) {
+        throw new Error("Bạn đã nộp CV cho công việc này rồi! Không thể nộp thêm.");
+    }
+
+    const cloud = await uploadToCloudinary(req.file.buffer);
+
+    let pdfText = "";
+    try {
+        const pdfData = await pdf(req.file.buffer);
+        pdfText = pdfData.text || "";
+    } catch (err) {
+        console.log("Lỗi parse PDF:", err.message);
+    }
+
+    const aiAnalysis = await matchCVWithJD(pdfText, post.description || "");
+    let evaluate = "";
+    if (aiAnalysis.score >= 90) {
+        evaluate = "Xuất sắc (Ưu tiên)";
+    } else if (aiAnalysis.score >= 75) {
+        evaluate = "Rất tốt (Phù hợp)";
+    } else if (aiAnalysis.score >= 50) {
+        evaluate = "Tiềm năng (Cần xem xét)";
+    } else if (aiAnalysis.score >= 25) {
+        evaluate = "Trung bình (Cân nhắc)";
+    } else if (aiAnalysis.score >= 10) {
+        evaluate = "Kém (Không khớp)";
+    } else {
+        evaluate = "Rất tệ / Dữ liệu rác";
+    }
+
+    const updatedPost = await usePostJobs.updatebyOne(
+        { _id: idp },
+        {
+            $push: {
+                listCV: {
+                    idUser: id,
+                    description: req.body.description || "",
+                    fileCV: cloud.secure_url,
+                    pdfText: pdfText,
+                    ratio: aiAnalysis.score,
+                    evaluate,
+                    createdAt: new Date()
+                }
+            }
+        }
+    );
+
+    return {
+        success: true,
+        mes: "Ứng tuyển thành công!",
+        aiScore: aiAnalysis?.score || 0 // Trả về điểm cho FE hiển thị
+    };
+};
+
+const getCVPostJobsPostjobs = async (idp, params = {}) => {
+
+    const post = await usePostJobs.findByOne({ _id: idp })
+        .populate({
+            path: 'listCV.idUser',
+            select: 'username email phone'
+        });
+
+    if (!post) {
+        throw new Error("Không tìm thấy bài đăng hoặc bài đăng đã bị xóa!");
+    }
+
+    // 2. Thiết lập thông số phân trang từ params
+    const page = parseInt(params.page) || 1;
+    const limit = parseInt(params.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    // 3. Xử lý danh sách: Sắp xếp theo ratio giảm dần
+    let candidates = post.listCV || [];
+    candidates.sort((a, b) => b.ratio - a.ratio);
+
+    // 4. Tính toán các chỉ số phân trang
+    const total = candidates.length;
+    const totalPages = Math.ceil(total / limit);
+
+    // 5. Cắt mảng (Pagination)
+    const paginatedData = candidates.slice(skip, skip + limit);
+
+    return {
+        success: true,
+        jobTitle: post.title,
+        total,
+        totalPages,
+        currentPage: page,
+        data: paginatedData
+    };
+};
+
 module.exports = {
     createPostjobs,
     updatePostjobs,
@@ -331,4 +521,7 @@ module.exports = {
     deletePostjobs,
     getDetailPostjobs,
     changeStatusPostjobs,
+    changeStatusPausePostjobs,
+    uploadCVPostjobs,
+    getCVPostJobsPostjobs,
 }

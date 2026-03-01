@@ -9,7 +9,6 @@ const createInvoid = async (businessId, data) => {
         throw new Error("Doanh nghiệp không tồn tại!");
     }
 
-    // Tính total tiền
     const total = data.price * data.amount;
     data.totalPrice = total;
     data.business = businessId; // gán businessId vào invoice
@@ -17,16 +16,14 @@ const createInvoid = async (businessId, data) => {
     // Tạo hoá đơn
     const invoice = await useInvoid.create(data);
 
-    // Cập nhật số lượng post cho doanh nghiệp
     if (invoice && data.typeInvoid === "BASIC") {
-        business.normalPosts += data.value * data.amount; // hoặc += data.amount tùy business rule
+        business.normalPosts += data.value * data.amount;
     }
 
     if (invoice && data.typeInvoid === "PREMIUM") {
         business.featuredPosts += data.value * data.amount;
     }
 
-    // Lưu lại business đã update
     await business.save();
 
     return {

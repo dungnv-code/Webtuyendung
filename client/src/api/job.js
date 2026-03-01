@@ -167,6 +167,11 @@ const changeStatusPostjobs = (id) => {
     return axios.put(`/postjobs/changeStatus/${id}`)
 }
 
+// invoid
+
+const getAllInvoidAdmin = (params) => {
+    return axios.get(`/invoid/getAll`, { params })
+}
 
 export {
     // Job
@@ -217,4 +222,6 @@ export {
     getAllPostjobs,
     changeStatusPostjobs,
     getDetailPostjobs,
+    // invoid 
+    getAllInvoidAdmin,
 }

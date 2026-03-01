@@ -216,17 +216,50 @@ const getStaffsUser = async (businessId, queryParams = {}) => {
 };
 
 
-const getPostJobsBusiness = async (businessId) => {
-    const Business = await usePostJobs.findAll({ business: businessId }).select("-refreshToken -password");
-    if (Business.length == 0) {
-        throw new Error("Chưa có bài viết nào!");
+const getPostJobsBusiness = async (businessId, query) => {
+    const { page = 1, limit = 10, title } = query;
+
+    // Tạo filter
+    let filter = { business: businessId };
+
+    // Nếu có tìm kiếm theo title
+    if (title) {
+        filter.title = { $regex: title, $options: "i" }; // không phân biệt hoa thường
     }
+
+    // Đếm tổng số bài viết
+    const total = await usePostJobs.countDocuments(filter);
+
+    // Tính skip
+    const skip = (page - 1) * limit;
+
+    // Truy vấn phân trang
+    const Business = await usePostJobs
+        .findAll(filter)
+        .select("-refreshToken -password")
+        .skip(skip)
+        .limit(Number(limit))
+        .sort({ createdAt: -1 });
+
+    // Nếu không có bài đăng nào
+    if (Business.length === 0) {
+        return {
+            success: true,
+            total: 0,
+            totalPages: 0,
+            currentPage: Number(page),
+            data: []
+        };
+    }
+
     return {
         success: true,
-        data: Business,
+        total,
+        totalPages: Math.ceil(total / limit),
+        currentPage: Number(page),
+        data: Business
     };
-}
-
+};
 const getInvoidsBusiness = async (businessId, params = {}) => {
     const currentPage = Number(params.page) || 1;
     const limit = Number(params.limit) || 10;
@@ -235,9 +268,6 @@ const getInvoidsBusiness = async (businessId, params = {}) => {
     // Tổng số hóa đơn
     const total = await useInvoid.countDocuments({ business: businessId });
 
-    if (total === 0) {
-        throw new Error("Chưa có hoá đơn nào!");
-    }
 
     const invoices = await useInvoid
         .findAll({ business: businessId })

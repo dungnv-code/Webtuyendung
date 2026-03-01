@@ -79,16 +79,16 @@ const createStaff = () => {
     return (
         <div className="container mt-4">
             {loading && <Loading />}
-            <h3 className="fw-bold mb-3">Thêm ứng viên</h3>
+            <h3 className="fw-bold mb-3" style={{ textAlign: "center" }}>Thêm nhân viên</h3>
             <form onSubmit={handleSubmit} className="row g-3">
                 {/* Username */}
                 <div className="col-md-12">
-                    <label className="form-label fw-semibold">Tên ứng viên</label>
+                    <label className="form-label fw-semibold">Tên nhân viên</label>
                     <input
                         type="text"
                         className="form-control"
                         name="username"
-                        placeholder="Nhập tên ứng viên..."
+                        placeholder="Nhập tên nhân viên..."
                         value={inputValue.username}
                         onChange={handleChange}
                     />
@@ -128,7 +128,7 @@ const createStaff = () => {
                 {/* Submit */}
                 <div className="col-12 mt-2">
                     <button className="btn btn-primary px-4" type="submit">
-                        Thêm ứng viên
+                        Thêm nhân viên
                     </button>
                 </div>
             </form>

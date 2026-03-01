@@ -21,6 +21,10 @@ const path = {
     MANAGERSTAFF: "/business/managerstaff",
     MANAGERINFOBUSI: "/business/managerinfobusiness",
     CREATESTAFF: "/business/createstaff",
+    MANAGERPOSTJOB: "/business/managerpostjob",
+    UPDATEPOSTJOB: "/business/managerpostjob/:idp",
+    CVPOSTJOB: "/business/cvpostjob",
+    CVPOSTJOBMAIN: "/business/cvpostjob/:idp",
     // admin
     ADMIN: "/admin",
     DASHBOARDADMIN: "/admin/dashboard",

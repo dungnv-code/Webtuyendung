@@ -4,7 +4,7 @@ const Schema = mongoose.Schema;
 const BusinessSchema = new Schema({
     nameBusiness: { type: String, required: true },
     taxiCodeBusiness: { type: String, required: true },
-    descriptionBusiness: { type: String, required: true },
+    descriptionBusiness: { type: String },
     addressBusiness: { type: String, required: true },
     FieldBusiness: { type: String, required: true },
     phoneBusiness: { type: String, required: true },

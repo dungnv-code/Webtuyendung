@@ -5,14 +5,16 @@ import {
     getAllLevel,
     getAllSalaryrange,
     getAllSkill,
-    getAllStyleJob
+    getAllStyleJob,
+    getDetailPostjobs
 } from "../../../api/job";
 import { Editor } from '@tinymce/tinymce-react';
 import Select from "react-select";
 import Loading from "../../../component/loading/Loading"
-import { createPostJobdBusiness, getDetailByBusiness } from "../../../api/business"
+import { updatePostJob, getDetailPost } from "../../../api/business"
 import Swal from "sweetalert2"
-const BusinessPostJob = () => {
+import { useParams } from "react-router-dom"
+const UpdatePostJob = () => {
     const [exp, setExp] = useState([]);
     const [job, setJob] = useState([]);
     const [level, setLevel] = useState([]);
@@ -23,26 +25,12 @@ const BusinessPostJob = () => {
     const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(false)
 
-    const [dataBusiness, setDataBusiness] = useState({})
+    const { idp } = useParams();
 
     // ===== deadline mặc định +4 tuần =====
     const defaultDeadline = new Date();
     defaultDeadline.setDate(defaultDeadline.getDate() + 4 * 7);
     const formatDate = defaultDeadline.toISOString().split("T")[0];
-
-    useEffect(() => {
-        const fetchBusiness = async () => {
-            try {
-                const repo = await getDetailByBusiness();
-                console.log(repo.data);
-                setDataBusiness(repo.data);
-            } catch (err) {
-                console.error("Lỗi load thông tin doanh nghiệp:", err);
-            }
-        };
-
-        fetchBusiness();
-    }, []);
 
     const [formData, setFormData] = useState({
         title: "",
@@ -55,8 +43,6 @@ const BusinessPostJob = () => {
         location: "",
         skills: [],
         quantity: "",
-        postPackage: 0,
-        deadline: formatDate
     });
 
     useEffect(() => {
@@ -128,35 +114,51 @@ const BusinessPostJob = () => {
         return Object.keys(newErrors).length === 0;
     };
 
+    useEffect(() => {
+        const fetchPostJob = async () => {
+            try {
+                const res = await getDetailPost(idp);
+                setFormData({
+                    title: res.data.title,
+                    description: res.data.description,
+                    jobs: res.data.jobs,
+                    experience: res.data.experience,
+                    salaryRange: res.data.salaryRange,
+                    joblevel: res.data.joblevel,
+                    workType: res.data.workType,
+                    location: res.data.location,
+                    skills: res.data.skills,
+                    quantity: res.data.quantity,
+                })
+                const respon = await getAllSkill({
+                    populate: "job:title,slug",
+                    flatten: true,
+                    job_title: res.data.jobs
+                });
+                setSkill(respon.data);
+            } catch (error) {
+                console.error("Lỗi tải tỉnh thành:", error);
+            }
+        };
+        fetchPostJob();
+    }, [])
+
     const hanleSumitForm = async () => {
         if (!validateForm()) return;
 
         setLoading(true);
 
         try {
-            const response = await createPostJobdBusiness(formData);
+            const response = await updatePostJob(idp, formData);
 
             if (response?.success) {
                 Swal.fire({
                     icon: "success",
-                    title: "Tạo tin tuyển dụng thành công!",
+                    title: "Cập tin tuyển dụng thành công!",
                     timer: 2000,
                     showConfirmButton: false
                 });
-                setFormData({
-                    title: "",
-                    description: "",
-                    jobs: "",
-                    experience: "",
-                    salaryRange: "",
-                    joblevel: "",
-                    workType: "",
-                    location: "",
-                    skills: [],
-                    quantity: "",
-                    postPackage: 0,
-                    deadline: formatDate
-                });
+
             } else {
                 Swal.fire({
                     icon: "error",
@@ -178,12 +180,9 @@ const BusinessPostJob = () => {
 
     return (
         <div className="container mt-4">
-            <p>Số lượt đăng bình thường: {dataBusiness.normalPosts}</p>
-            <p>Số lượt đăng nổi bật: {dataBusiness.featuredPosts}</p>
             {loading && <Loading />}
             <div className="card shadow border-0 rounded-4 p-4">
-
-                <h3 className="fw-bold mb-4 text-center">Tạo bài tuyển dụng</h3>
+                <h3 className="fw-bold mb-4 text-center">Cập nhật bài tuyển dụng</h3>
                 <div className="row g-4">
                     <div className="col-12">
                         <label className="form-label fw-semibold">Tên bài tuyển dụng</label>
@@ -250,7 +249,6 @@ const BusinessPostJob = () => {
                         {errors.salaryRange && <p className="text-danger">{errors.salaryRange}</p>}
                     </div>
 
-                    {/* LEVEL */}
                     <div className="col-md-6">
                         <label className="form-label fw-semibold">Cấp bậc</label>
                         <select
@@ -267,7 +265,6 @@ const BusinessPostJob = () => {
                         {errors.joblevel && <p className="text-danger">{errors.joblevel}</p>}
                     </div>
 
-                    {/* WORK TYPE */}
                     <div className="col-md-6">
                         <label className="form-label fw-semibold">Hình thức làm việc</label>
                         <select
@@ -294,14 +291,13 @@ const BusinessPostJob = () => {
                                 value: sk.nameskill,
                                 label: sk.nameskill
                             }))}
+                            value={formData.skills.map(s => ({ value: s, label: s }))}
                             onChange={(selected) =>
                                 setFormData(prev => ({
                                     ...prev,
                                     skills: selected.map(s => s.value)
                                 }))
                             }
-                            className="basic-multi-select"
-                            classNamePrefix="select"
                         />
                     </div>
 
@@ -336,33 +332,6 @@ const BusinessPostJob = () => {
                         {errors.location && <p className="text-danger">{errors.location}</p>}
                     </div>
 
-                    {/* POST PACKAGE */}
-                    <div className="col-md-6">
-                        <label className="form-label fw-semibold">Gói đăng bài</label>
-                        <select
-                            name="postPackage"
-                            className="form-select form-select-lg"
-                            value={formData.postPackage}
-                            onChange={handleChange}
-                        >
-                            <option value={0}>Bình thường</option>
-                            <option value={1}>Nổi bật</option>
-                        </select>
-                    </div>
-
-                    {/* DEADLINE */}
-                    <div className="col-md-6">
-                        <label className="form-label fw-semibold">Hạn nộp hồ sơ</label>
-                        <input
-                            type="date"
-                            name="deadline"
-                            className="form-control form-control-lg"
-                            value={formData.deadline}
-                            onChange={handleChange}
-                        />
-                    </div>
-
-                    {/* DESCRIPTION */}
                     <div className="col-12">
                         <label className="form-label fw-semibold">Mô tả công việc</label>
                         <div className="border rounded p-2">
@@ -394,7 +363,7 @@ const BusinessPostJob = () => {
 
                 <div className="text-center mt-4">
                     <button className="btn btn-primary btn-lg" onClick={hanleSumitForm}>
-                        Tạo bài đăng
+                        Cập nhật bài đăng
                     </button>
                 </div>
             </div>
@@ -433,4 +402,4 @@ label {
     );
 };
 
-export default BusinessPostJob;
+export default UpdatePostJob

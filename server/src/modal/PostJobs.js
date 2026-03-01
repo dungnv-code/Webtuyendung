@@ -1,6 +1,12 @@
 const mongoose = require("mongoose");
 
 const PostJobSchema = new mongoose.Schema({
+
+    imageCover: {
+        type: String,
+        required: true,
+    },
+
     title: {
         type: String,
         required: true,
@@ -45,9 +51,8 @@ const PostJobSchema = new mongoose.Schema({
     },
 
     location: {
-        city: { type: String },
-        district: { type: String },
-        address: { type: String }
+        type: String,
+        required: true
     },
 
     postPackage: {
@@ -77,11 +82,46 @@ const PostJobSchema = new mongoose.Schema({
         required: true
     },
 
+    view: {
+        type: Number,
+        default: 0
+    },
+
     status: {
         type: String,
         enum: ["pendding", "active"],
         default: "pendding"
-    }
+    },
+
+    userPost: {
+        type: String,
+    },
+
+    statusPause: {
+        type: Boolean,
+        default: false,
+    },
+
+    listCV: [
+        {
+            idUser: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "User",
+            },
+            ratio: {
+                type: Number,
+            },
+            description: {
+                type: String,
+            },
+            evaluate: {
+                type: String,
+            },
+            fileCV: {
+                type: String,
+            }
+        }
+    ]
 
 }, { timestamps: true });
 

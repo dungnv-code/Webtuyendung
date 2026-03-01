@@ -141,7 +141,6 @@ const Businesssibar = () => {
                     </li>
                 }
 
-
                 {
                     datatoken?.role === "nhatuyendung" && datatoken?.businessId != null &&
                     <>
@@ -230,21 +229,39 @@ const Businesssibar = () => {
                 {
                     (datatoken?.role === "nhatuyendung" || datatoken?.role === "STAFF") &&
                     datatoken?.businessId != null &&
-                    <li style={sidebarStyle.li}>
-                        <NavLink
-                            to={path.BUSINESSPOSTJOB}
-                            style={({ isActive }) => ({
-                                ...sidebarStyle.link,
-                                ...(hoverIndex === 5 ? sidebarStyle.hover : {}),
-                                ...(isActive ? sidebarStyle.active : {}),
-                            })}
-                            onMouseEnter={() => setHoverIndex(5)}
-                            onMouseLeave={() => setHoverIndex(null)}
-                        >
-                            <ScheduleOutlined />
-                            Quản lí bài đăng
-                        </NavLink>
-                    </li>
+                    <>
+                        <li style={sidebarStyle.li}>
+                            <NavLink
+                                to={path.BUSINESSPOSTJOB}
+                                style={({ isActive }) => ({
+                                    ...sidebarStyle.link,
+                                    ...(hoverIndex === 5 ? sidebarStyle.hover : {}),
+                                    ...(isActive ? sidebarStyle.active : {}),
+                                })}
+                                onMouseEnter={() => setHoverIndex(5)}
+                                onMouseLeave={() => setHoverIndex(null)}
+                            >
+                                <ScheduleOutlined />
+                                Tạo bài đăng
+                            </NavLink>
+                        </li>
+
+                        <li style={sidebarStyle.li}>
+                            <NavLink
+                                to={path.MANAGERPOSTJOB}
+                                style={({ isActive }) => ({
+                                    ...sidebarStyle.link,
+                                    ...(hoverIndex === 9 ? sidebarStyle.hover : {}),
+                                    ...(isActive ? sidebarStyle.active : {}),
+                                })}
+                                onMouseEnter={() => setHoverIndex(9)}
+                                onMouseLeave={() => setHoverIndex(null)}
+                            >
+                                <ScheduleOutlined />
+                                Quản lí bài đăng
+                            </NavLink>
+                        </li>
+                    </>
                 }
 
                 <li style={sidebarStyle.li}>

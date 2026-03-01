@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import PaginationCustom from "../../../component/pagination/pagination";
-import { getStaffs, deleteUser } from "../../../api/business"
+import { getPostJobBusiness, changeStatusPausePostJobBusiness } from "../../../api/business"
 
-import { DeleteTwoTone, EditTwoTone, EditOutlined, SwapOutlined, PlusOutlined, SearchOutlined, RedoOutlined } from '@ant-design/icons';
+import { DeleteTwoTone, EditTwoTone, EditOutlined, FundViewOutlined, SwapOutlined, PlusOutlined, SearchOutlined, RedoOutlined } from '@ant-design/icons';
 import { toast } from "react-toastify";
-
-const ManagerStaff = () => {
+import { Link } from "react-router-dom"
+import path from "../../../ultils/path"
+const ManagerPostJob = () => {
     const styles = {
         container: {
             width: "100%",
@@ -23,7 +24,7 @@ const ManagerStaff = () => {
     }
 
     const [currentPage, setCurrentPage] = useState(1);
-    const [limit, setLimit] = useState(5);
+    const [limit, setLimit] = useState(10);
     const [totalPages, setTotalPages] = useState(0);
     const [listJob, setListJob] = useState([]);
     const [inputValue, setInputValue] = useState("");
@@ -34,8 +35,7 @@ const ManagerStaff = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await getStaffs({ page: currentPage, limit });
-                console.log(response.data)
+                const response = await getPostJobBusiness({ page: currentPage, limit });
                 setListJob(response.data);
                 setTotalPages(response.totalPages);
             } catch (error) {
@@ -45,65 +45,22 @@ const ManagerStaff = () => {
         fetchData();
     }, [currentPage, limit, loaddata]);
 
-    // const hanleCreateJob = async () => {
-    //     const newError = {};
 
-    //     if (!inputValue.trim()) {
-    //         newError.inputValue = "Vui lòng nhập tên nhân viên";
-    //     }
-
-    //     setError(newError);
-
-    //     if (Object.keys(newError).length === 0) {
-    //         try {
-    //             await createLevel({ nameLevel: inputValue });
-    //             setInputValue("");
-    //             setCurrentPage(1);
-    //             toast.success("Thêm nhân viên thành công!")
-    //             setLoaddata(!loaddata)
-    //         } catch (error) {
-    //             // toast.error("Lỗi khi tạo công việc");
-    //         }
-    //     }
-    // };
-
-    // const hanleUpdateJob = async () => {
-    //     const newError = {};
-    //     if (!inputValue.trim()) {
-    //         newError.inputValue = "Vui lòng nhập tên nhân viên";
-    //     }
-    //     if (!currentIndex.trim()) {
-    //         newError.inputValue = "Vui lòng chọn nhân viên muốn sửa!";
-    //     }
-    //     setError(newError);
-    //     if (Object.keys(newError).length === 0) {
-    //         try {
-    //             await updateLevel(currentIndex, { nameLevel: inputValue });
-    //             setInputValue("");
-    //             setCurrentPage(1);
-    //             toast.success("Sửa nhân viên thành công!")
-    //             setLoaddata(!loaddata)
-    //         } catch (error) {
-    //             // toast.error("Lỗi khi sửa công việc");
-    //         }
-    //     }
-    // }
-
-    const hanleDeleteJob = async (id) => {
+    const hanleChangeStatus = async (id) => {
         try {
-            await deleteUser(id);
-            setInputValue("");
-            setCurrentPage(1);
-            toast.success("Xoá nhân viên thành công!")
-            setLoaddata(!loaddata)
-        } catch (error) {
-            // toast.error("Lỗi khi sửa công việc");
+            const reponse = await changeStatusPausePostJobBusiness(id)
+            if (reponse?.success) {
+                setLoaddata(!loaddata)
+                toast.success("Thay đổi trạng thái thành công")
+            }
+        } catch (err) {
+
         }
     }
 
     const hanleSearch = async () => {
         try {
-            const response = await getStaffs({ page: currentPage, limit, username: inputValue });
+            const response = await getPostJobBusiness({ page: currentPage, limit, title: inputValue });
             setListJob(response.data);
             setTotalPages(response.totalPages);
         } catch (error) {
@@ -113,7 +70,7 @@ const ManagerStaff = () => {
     const hanleReset = async () => {
         const fetchData = async () => {
             try {
-                const response = await getStaffs({ page: currentPage, limit });
+                const response = await getPostJobBusiness({ page: currentPage, limit });
                 setListJob(response.data);
                 setTotalPages(response.totalPages);
             } catch (error) {
@@ -128,7 +85,7 @@ const ManagerStaff = () => {
         <div style={styles.container}
         >
             <h1 style={{ marginTop: "10px", marginBottom: "20px", fontSize: "28px" }}>
-                Quản lí nhân viên
+                Quản lí bài đăng
             </h1>
 
             <div
@@ -239,12 +196,15 @@ const ManagerStaff = () => {
                         <thead className="table-primary text-dark">
                             <tr>
                                 <th scope="col">STT</th>
-                                <th scope="col">Tên nhân viên</th>
-                                <th scope="col">Email</th>
-                                <th scope="col">Điện thoại</th>
-                                <th scope="col">Vai trò</th>
+                                <th scope="col">Tên bài đăng</th>
+                                <th scope="col">Lĩnh vực</th>
+                                <th scope="col">Người thêm</th>
+                                <th scope="col">Ngày cập nhật</th>
                                 <th scope="col">Trạng thái</th>
-                                <th scope="col">Xóa</th>
+                                <th scope="col">Tạm ẩn</th>
+                                <th scope="col">Đổi tạm ẩn</th>
+                                <th scope="col">Danh sách cv</th>
+                                <th scope="col">Cập nhật</th>
                             </tr>
                         </thead>
 
@@ -252,20 +212,21 @@ const ManagerStaff = () => {
                             {listJob?.map((job, index) => (
                                 <tr key={job._id}>
                                     <td>{(currentPage - 1) * limit + (index + 1)}</td>
-                                    <td >{job.username}</td>
-                                    <td>{job.email}</td>
-                                    <td>{job.phone}</td>
-                                    <td>{job.role == "STAFF" ? "Nhân viên" : job.role}</td>
-                                    <td>{job.status == "Active" ? "Hoạt động" : "Đã chặn"}</td>
-                                    <td className="text-danger fs-5" onClick={() => { hanleDeleteJob(job._id) }} role="button">
-                                        <DeleteTwoTone />
+                                    <td >{job.title}</td>
+                                    <td>{job.jobs}</td>
+                                    <td>{job.userPost}</td>
+                                    <td>{job.updatedAt}</td>
+                                    <td>{job.status == "pendding" ? "Chờ kiểm duyệt" : "Đã kiểm duyệt"}</td>
+                                    <td>{job.statusPause ? "Đang tạm ẩn" : "Tạm ẩn"}</td>
+                                    <td onClick={() => { hanleChangeStatus(job._id) }}><SwapOutlined /></td>
+                                    <td><Link to={`${path.CVPOSTJOB}/${job._id}`} ><FundViewOutlined /></Link></td>
+                                    <td className="text-danger fs-5" role="button">
+                                        <Link to={`${path.MANAGERPOSTJOB}/${job._id}`} > <EditOutlined /></Link>
                                     </td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
-
-
                 </div>
                 <div className="d-flex justify-content-center">
                     <PaginationCustom
@@ -276,9 +237,8 @@ const ManagerStaff = () => {
                     />
                 </div>
             </div>
-
         </div>
     );
 };
 
-export default ManagerStaff;
+export default ManagerPostJob

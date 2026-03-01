@@ -41,6 +41,30 @@ const createInvoidBusiness = async (data) => {
     return await axios.post("/invoid/create", data)
 }
 
+const createPostJobdBusiness = async (data) => {
+    return await axios.post("/postjobs/create", data)
+}
+
+const getPostJobBusiness = async (params) => {
+    return await axios.get("/business/getPostJobs", { params })
+}
+
+const changeStatusPausePostJobBusiness = async (id) => {
+    return await axios.put(`/postjobs/changeStatusPause/${id}`,)
+}
+
+const getDetailPost = async (id) => {
+    return await axios.get(`/postjobs/getDetail/${id}`)
+}
+
+const updatePostJob = async (id, data) => {
+    return await axios.put(`/postjobs/update/${id}`, data)
+}
+
+const detailPostJobCV = async (id, params) => {
+    return await axios.get(`/postjobs/getCVPostJobs/${id}`, { params })
+}
+
 export {
     creatBusiness,
     updateBusiness,
@@ -50,4 +74,10 @@ export {
     createStaffBusiness,
     getInvoidBusiness,
     createInvoidBusiness,
+    createPostJobdBusiness,
+    getPostJobBusiness,
+    changeStatusPausePostJobBusiness,
+    getDetailPost,
+    updatePostJob,
+    detailPostJobCV,
 }

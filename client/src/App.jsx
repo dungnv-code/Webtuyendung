@@ -3,7 +3,8 @@ import { Route, Routes } from 'react-router-dom';
 import { Home, Login, DefaultLayout, Register, Job, Introduction, Company, Forgotpassword } from './page/public';
 import {
   BusinessLayout, DashboardBusiness, CreateBusiness, BusinessBuyPostJob,
-  BusinessPostJob, HistoryBuy, ManagerStaff, ManagerInfoBusi, CreateStaff
+  BusinessPostJob, HistoryBuy, ManagerStaff, ManagerInfoBusi, CreateStaff,
+  ManagerPostJob, UpdatePostJob, DetailCV
 } from './page/business';
 import {
   Adminlayout, DashboardAdmin, ManagerJob, ManagerLevel, ManagerPacketPost, ManagerSalaryRange
@@ -36,6 +37,9 @@ function App() {
           <Route path={path.MANAGERSTAFF} element={<ManagerStaff />} />
           <Route path={path.MANAGERINFOBUSI} element={<ManagerInfoBusi />} />
           <Route path={path.CREATESTAFF} element={<CreateStaff />} />
+          <Route path={path.MANAGERPOSTJOB} element={<ManagerPostJob />} />
+          <Route path={path.UPDATEPOSTJOB} element={<UpdatePostJob />} />
+          <Route path={path.CVPOSTJOBMAIN} element={<DetailCV />} />
         </Route>
         <Route path={path.ADMIN} element={<Adminlayout />} >
           <Route path={path.DASHBOARDADMIN} element={<DashboardAdmin />} />
@@ -52,6 +56,7 @@ function App() {
           <Route path={path.COMPANYADMINDETAIL} element={<ManagerCompanyDetail />} />
           <Route path={path.POSTADMIN} element={<PostAdmin />} />
           <Route path={path.POSTADMINDETAIL} element={<ManagerPostDetail />} />
+
         </Route>
       </Routes>
       <ToastContainer

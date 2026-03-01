@@ -87,7 +87,7 @@ class BusinessController {
 
     getPostJobs = asyncHandler(async (req, res) => {
         const { businessId } = req.user;
-        const reponse = await BusinessSevicer.getPostJobsBusiness(businessId);
+        const reponse = await BusinessSevicer.getPostJobsBusiness(businessId, req.query);
         res.status(200).json(reponse);
     })
 

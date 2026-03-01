@@ -1,7 +1,7 @@
 const Router = require("express").Router();
 const { BusinessController } = require("../controller/index");
 const { body } = require("express-validator");
-const { VerifyToken, TokenIsAdmin, TokenIsNhaTuyenDung } = require('../middleware/verifyToken');
+const { VerifyToken, TokenIsAdmin, TokenIsNhaTuyenDung, TokenIsNhaTuyenDungOrStaff } = require('../middleware/verifyToken');
 const { uploadBusiness } = require("../config/uploadCloudinary");
 
 Router.post("/create", [VerifyToken, TokenIsNhaTuyenDung],
@@ -18,9 +18,9 @@ Router.put("/update", uploadBusiness, [VerifyToken, TokenIsNhaTuyenDung],
 Router.get("/getAll", BusinessController.getAll);
 Router.delete("/delete/:idb", [VerifyToken, TokenIsNhaTuyenDung], BusinessController.delete);
 Router.get("/getDetail/:idb", [VerifyToken], BusinessController.getDetail);
-Router.get("/getDetailbyNTD", [VerifyToken, TokenIsNhaTuyenDung], BusinessController.getDetailbyNTD);
+Router.get("/getDetailbyNTD", [VerifyToken, TokenIsNhaTuyenDungOrStaff], BusinessController.getDetailbyNTD);
 Router.get("/getStaffs", [VerifyToken, TokenIsNhaTuyenDung], BusinessController.getStaffs);
-Router.get("/getPostJobs", [VerifyToken, TokenIsNhaTuyenDung], BusinessController.getPostJobs);
+Router.get("/getPostJobs", [VerifyToken, TokenIsNhaTuyenDungOrStaff], BusinessController.getPostJobs);
 Router.get("/getInvoids", [VerifyToken, TokenIsNhaTuyenDung], BusinessController.getInvoids);
 Router.put("/changeStatus/:idb", [VerifyToken, TokenIsAdmin], BusinessController.changeStatus)
 
