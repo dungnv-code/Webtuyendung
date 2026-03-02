@@ -17,6 +17,10 @@ class InvoidController {
         res.status(200).json(reponse);
     });
 
+    statistic = asyncHandler(async (req, res) => {
+        const reponse = await InvoidSevicer.statisticAll(req.query);
+        res.status(200).json(reponse);
+    });
 }
 
 module.exports = new InvoidController();

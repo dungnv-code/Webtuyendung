@@ -1,8 +1,9 @@
 import { useSelector, useDispatch } from "react-redux";
-import { Navigate, Outlet } from "react-router-dom";
+import { useNavigate, Outlet } from "react-router-dom";
 import path from "../../../ultils/path";
 import { useEffect } from "react";
 import { Adminsibar } from "../../../component";
+
 const AdminLayout = () => {
 
     return (

@@ -9,8 +9,15 @@ const path = {
     REGISTER: "/register",
     INTRODUCTION: "/introduction",
     JOB: "/job",
+    DETAILJOB: "/job/:idp",
     COMPANY: "/company",
+    DETAILCOMPANY: "/company/:idb",
     FORGOT_PASSWORD: "/forgot-password",
+
+    CHANGEPASSWORD: "/changepassword",
+    CVLIST: "/listcv",
+    USERINFO: "/userinfo",
+
     // business
     BUSINESS: "/business",
     DASHBOARDBUSINESS: "/business/dashboard",

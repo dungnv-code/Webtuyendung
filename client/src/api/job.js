@@ -173,6 +173,10 @@ const getAllInvoidAdmin = (params) => {
     return axios.get(`/invoid/getAll`, { params })
 }
 
+const statisticAll = (params) => {
+    return axios.get(`/invoid/statistic`, { params })
+}
+
 export {
     // Job
     getAllJob,
@@ -224,4 +228,5 @@ export {
     getDetailPostjobs,
     // invoid 
     getAllInvoidAdmin,
+    statisticAll,
 }

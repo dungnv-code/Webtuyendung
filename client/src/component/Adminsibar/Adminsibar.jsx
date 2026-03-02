@@ -1,14 +1,14 @@
 import path from "../../ultils/path";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
     HomeOutlined, AreaChartOutlined, UserOutlined, ProjectOutlined, ScheduleOutlined, RiseOutlined
     , DollarOutlined, FieldTimeOutlined, CodeSandboxOutlined, LoginOutlined, ContainerOutlined, AccountBookTwoTone
 
 } from '@ant-design/icons';
-
+import { useEffect } from "react";
 import { LogOut } from "../../redux/userUser/userSlice"
-import { logout } from "../../api/user";
-import { useDispatch } from "react-redux";
+import { logout, getUserSingle } from "../../api/user";
+import { useDispatch, useSelector } from "react-redux";
 const sidebarStyle = {
     container: {
         background: "rgba(15, 23, 42, 0.85)",
@@ -91,6 +91,30 @@ import { useState } from "react";
 const Adminsibar = () => {
     const [hoverIndex, setHoverIndex] = useState(null);
     const dispatch = useDispatch();
+    const user = useSelector(state => state.user)
+    const navigate = useNavigate();
+    useEffect(() => {
+        if (!user.isLogIn) {
+            console.log("1")
+            navigate(path.LOGIN)
+        }
+    }, [])
+
+    useEffect(() => {
+        const fetchGetUser = async () => {
+            try {
+                const reponse = await getUserSingle();
+                if (reponse.data.role != "ADMIN") {
+                    console.log("2")
+                    navigate(path.LOGIN)
+                }
+            } catch (err) {
+
+            }
+        }
+        fetchGetUser()
+    }, [user.isLogIn])
+
 
     const handleClickLogout = async () => {
         try {

@@ -1,16 +1,16 @@
 import path from "../../ultils/path";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
     HomeOutlined, AreaChartOutlined, UserOutlined, ProjectOutlined,
     ScheduleOutlined, RiseOutlined, LoginOutlined
 } from '@ant-design/icons';
 
 import { LogOut } from "../../redux/userUser/userSlice"
-import { logout } from "../../api/user";
+
+import { logout, getUserSingle } from "../../api/user";
 import { useDispatch, useSelector } from "react-redux";
 import { jwtDecode } from "jwt-decode";
 import { useEffect, useState } from "react";
-
 const sidebarStyle = {
     container: {
         background: "rgba(15, 23, 42, 0.85)",
@@ -86,6 +86,28 @@ const Businesssibar = () => {
     const dispatch = useDispatch();
     const user = useSelector(state => state.user);
     const [datatoken, setDatatoken] = useState();
+
+    const navigate = useNavigate();
+    useEffect(() => {
+        if (!user.isLogIn) {
+            navigate(path.LOGIN)
+        }
+    }, [])
+
+    useEffect(() => {
+        const fetchGetUser = async () => {
+            try {
+                const reponse = await getUserSingle();
+                if (reponse.data.role != "nhatuyendung" || reponse.data.role != "STAFF") {
+                    navigate(path.LOGIN)
+                }
+            } catch (err) {
+            }
+        }
+        fetchGetUser()
+    }, [user.isLogIn])
+
+
     const handleClickLogout = async () => {
         try {
             dispatch(LogOut());

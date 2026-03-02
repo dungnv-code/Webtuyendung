@@ -60,11 +60,8 @@ const buildFilter = (queries) => {
 const getAllBusiness = async (queryParams) => {
     const excludeFields = ["limit", "sort", "page", "fields", "random", "seed"];
     const queries = { ...queryParams };
-
     excludeFields.forEach(el => delete queries[el]);
-
     const filter = buildFilter(queries);
-
     const limit = Number(queryParams.limit) || 20;
     const sort = queryParams.sort || "-createdAt";
     const page = Number(queryParams.page) || 1;
@@ -72,9 +69,6 @@ const getAllBusiness = async (queryParams) => {
     const fields = queryParams.fields?.split(",").join(" ");
     const isRandom = queryParams.random === "true";
     const seed = queryParams.seed || "default-seed";
-
-    // Job populate ví dụ
-    // const populate = { path: "business", select: "name logo" };
 
     if (isRandom) {
         const rng = seedrandom(seed);

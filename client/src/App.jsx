@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import { Route, Routes } from 'react-router-dom';
-import { Home, Login, DefaultLayout, Register, Job, Introduction, Company, Forgotpassword } from './page/public';
+import {
+  Home, Login, DefaultLayout, Register, Job, Introduction, Company, Forgotpassword,
+  UserInfo, DetailPostJob, DetailBusiness, ChangePassword, CVList
+} from './page/public';
 import {
   BusinessLayout, DashboardBusiness, CreateBusiness, BusinessBuyPostJob,
   BusinessPostJob, HistoryBuy, ManagerStaff, ManagerInfoBusi, CreateStaff,
@@ -27,6 +30,12 @@ function App() {
           <Route path={path.JOB} element={<Job />} />
           <Route path={path.COMPANY} element={<Company />} />
           <Route path={path.FORGOT_PASSWORD} element={<Forgotpassword />} />
+
+          <Route path={path.CVLIST} element={<CVList />} />
+          <Route path={path.CHANGEPASSWORD} element={<ChangePassword />} />
+          <Route path={path.USERINFO} element={<UserInfo />} />
+          <Route path={path.DETAILCOMPANY} element={<DetailBusiness />} />
+          <Route path={path.DETAILJOB} element={<DetailPostJob />} />
         </Route>
         <Route path={path.BUSINESS} element={<BusinessLayout />} >
           <Route path={path.DASHBOARDBUSINESS} element={<DashboardBusiness />} />
@@ -56,7 +65,6 @@ function App() {
           <Route path={path.COMPANYADMINDETAIL} element={<ManagerCompanyDetail />} />
           <Route path={path.POSTADMIN} element={<PostAdmin />} />
           <Route path={path.POSTADMINDETAIL} element={<ManagerPostDetail />} />
-
         </Route>
       </Routes>
       <ToastContainer

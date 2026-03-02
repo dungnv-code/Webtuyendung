@@ -1,6 +1,15 @@
 const useInvoid = require("../repository/Invoid");
 const useBusiness = require("../repository/Business")
 const seedrandom = require("seedrandom");
+const usePostJobs = require("../repository/PostJobs")
+const useUser = require("../repository/User")
+
+const useJobs = require("../repository/Jobs")
+const useLevel = require("../repository/Level")
+const useSalaryRange = require("../repository/SalaryRange")
+const useSkills = require("../repository/Skills")
+const useWorkType = require("../repository/WorkType")
+const usePostpackage = require("../repository/Postpackage")
 
 const createInvoid = async (businessId, data) => {
     // Kiểm tra doanh nghiệp có tồn tại không
@@ -109,8 +118,37 @@ const getAllInvoid = async (queryParams) => {
     };
 };
 
+const statisticAll = async (params = {}) => {
+    const postjob = await usePostJobs.findAll({}).select("jobs")
+    const invoid = await useInvoid.findAll({}).select("-createdAt -updatedAt -business")
+    const user = await useUser.findAll({}).select("username")
+
+    const jobs = await useJobs.findAll({}).select("title")
+    const level = await useLevel.findAll({}).select("nameLevel")
+    const salaryRange = await useSalaryRange.findAll({}).select("salaryRange")
+    const skills = await useSkills.findAll({}).select("nameskill")
+    const worktype = await useWorkType.findAll({}).select("workType")
+    const postpackage = await usePostpackage.findAll({}).select("namePostPackage")
+
+
+
+    return {
+        success: true,
+        postjob,
+        invoid,
+        user,
+        jobs,
+        level,
+        salaryRange,
+        skills,
+        worktype,
+        postpackage,
+    }
+}
+
 
 module.exports = {
     createInvoid,
     getAllInvoid,
+    statisticAll,
 };

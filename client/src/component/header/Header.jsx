@@ -12,6 +12,8 @@ const Header = () => {
     const User = useSelector(state => state.user);
     const dispatch = useDispatch();
     const navigate = useNavigate();
+
+
     const [isChecking, setIsChecking] = useState(true);
 
     useEffect(() => {
@@ -24,9 +26,11 @@ const Header = () => {
                 const decode = jwtDecode(User.token);
                 // Điều hướng theo role
                 if (decode.role === "ADMIN") {
-                    navigate(path.DASHBOARDADMIN);
+                    await logout();
+                    dispatch(LogOut());
                 } else if (decode.role === "nhatuyendung" || decode.role === "STAFF") {
-                    navigate(path.DASHBOARDBUSINESS);
+                    await logout();
+                    dispatch(LogOut());
                 } else {
                     await dispatch(getCurrent());
                 }
@@ -43,6 +47,7 @@ const Header = () => {
 
     if (isChecking) return null;
 
+
     const hanleClickLogout = async () => {
         try {
             await logout();
@@ -52,7 +57,6 @@ const Header = () => {
             console.error(error);
         }
     };
-
     return (
         <>
             <nav className="navbar navbar-expand-lg navbar-light bg-light">
@@ -105,8 +109,9 @@ const Header = () => {
                                     </button>
 
                                     <ul className="dropdown-menu dropdown-menu-end shadow">
-                                        <li><button className="dropdown-item">Thông tin cá nhân</button></li>
-                                        <li><button className="dropdown-item">Đổi mật khẩu</button></li>
+                                        <li><button className="dropdown-item"><Link to={path.USERINFO}>Thông tin cá nhân</Link></button></li>
+                                        <li><button className="dropdown-item"><Link to={path.CVLIST}>CV đã nộp</Link></button></li>
+                                        <li><button className="dropdown-item"><Link to={path.CHANGEPASSWORD}>Đổi mật khẩu</Link></button></li>
                                         <li><hr className="dropdown-divider" /></li>
                                         <li>
                                             <button

@@ -488,22 +488,17 @@ const getCVPostJobsPostjobs = async (idp, params = {}) => {
         throw new Error("Không tìm thấy bài đăng hoặc bài đăng đã bị xóa!");
     }
 
-    // 2. Thiết lập thông số phân trang từ params
     const page = parseInt(params.page) || 1;
     const limit = parseInt(params.limit) || 10;
     const skip = (page - 1) * limit;
 
-    // 3. Xử lý danh sách: Sắp xếp theo ratio giảm dần
     let candidates = post.listCV || [];
     candidates.sort((a, b) => b.ratio - a.ratio);
 
-    // 4. Tính toán các chỉ số phân trang
     const total = candidates.length;
     const totalPages = Math.ceil(total / limit);
 
-    // 5. Cắt mảng (Pagination)
     const paginatedData = candidates.slice(skip, skip + limit);
-
     return {
         success: true,
         jobTitle: post.title,

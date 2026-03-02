@@ -122,13 +122,10 @@ class ControllerUser {
 
     update = asyncHandler(async (req, res) => {
         const { id } = req.user;
-
         const updateData = { ...req.body };
-
         if (req.file) {
             updateData.avatar = req.file.path;
         } else {
-            // Chỉ xóa nếu client gửi avatar rỗng
             if ("avatar" in updateData) {
                 delete updateData.avatar;
             }

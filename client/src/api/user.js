@@ -24,15 +24,21 @@ const forgotPassword = (email) => {
     return axios.post("/user/forgotPassword", { email });
 }
 
-const resetPassword = (data) => {
-    console.log("Data sent to API:", data); // Debug log to check the data being sent
-    return axios.post("/user/resetPassword", data);
+const resetPassword = async (data) => {
+    return await axios.post("/user/resetPassword", data);
 }
 
-const getUserSingle = () => {
-    return axios.get("/user/getSingle");
+const getUserSingle = async () => {
+    return await axios.get("/user/getSingle");
 }
 
+const updateUser = async (id, data) => {
+    return await axios.put(`/user/update/${id}`, data);
+}
+
+const changePasswordUser = async (data) => {
+    return await axios.post(`/user/changePassword`, data);
+}
 
 export {
     login,
@@ -43,4 +49,6 @@ export {
     forgotPassword,
     resetPassword,
     getUserSingle,
+    updateUser,
+    changePasswordUser,
 }

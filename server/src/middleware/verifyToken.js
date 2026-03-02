@@ -27,7 +27,7 @@ const TokenIsAdmin = asyncHandler((req, res, next) => {
 
     return res.status(401).json({
         success: false,
-        mes: 'Bạn không có quyền truy cập tài nguyên này'
+        mes: 'Chỉ có ADMIN hệ thống mới có quyền truy cập tài nguyên này'
     });
 
 })
@@ -42,7 +42,7 @@ const TokenIsNhaTuyenDung = asyncHandler((req, res, next) => {
 
     return res.status(401).json({
         success: false,
-        mes: 'Bạn không có quyền truy cập tài nguyên này'
+        mes: 'Chỉ có Nhà tuyển dụng mới có quyền truy cập tài nguyên này'
     });
 
 })
@@ -57,9 +57,24 @@ const TokenIsNhaTuyenDungOrStaff = asyncHandler((req, res, next) => {
 
     return res.status(401).json({
         success: false,
-        mes: 'Bạn không có quyền truy cập tài nguyên này'
+        mes: 'Chỉ có Nhà tuyển dụng và nhân viên tuyển dụng mới có quyền truy cập tài nguyên này'
     });
 
 })
 
-module.exports = { VerifyToken, TokenIsAdmin, TokenIsNhaTuyenDung, TokenIsNhaTuyenDungOrStaff };
+const TokenIsAll = asyncHandler((req, res, next) => {
+
+    const { role } = req.user;
+
+    if (role === "nhatuyendung" || role === "STAFF" || role == "ADMIN") {
+        return next();
+    }
+
+    return res.status(401).json({
+        success: false,
+        mes: 'Ứng viên không được phép truy cập tài nguyên này'
+    });
+
+})
+
+module.exports = { VerifyToken, TokenIsAdmin, TokenIsNhaTuyenDung, TokenIsNhaTuyenDungOrStaff, TokenIsAll };
