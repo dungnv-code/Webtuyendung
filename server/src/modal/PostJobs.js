@@ -87,6 +87,11 @@ const PostJobSchema = new mongoose.Schema({
         default: 0
     },
 
+    numberUpload: {
+        type: Number,
+        default: 0
+    },
+
     status: {
         type: String,
         enum: ["pendding", "active"],
@@ -112,14 +117,16 @@ const PostJobSchema = new mongoose.Schema({
             ratio: {
                 type: Number,
             },
-            description: {
-                type: String,
-            },
             evaluate: {
                 type: String,
             },
             fileCV: {
                 type: String,
+            },
+            status: {
+                type: String,
+                enum: ["unactive", "pendding", "active"],
+                default: "pendding"
             }
         }
     ]

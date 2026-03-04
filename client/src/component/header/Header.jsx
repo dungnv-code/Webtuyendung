@@ -111,6 +111,8 @@ const Header = () => {
                                     <ul className="dropdown-menu dropdown-menu-end shadow">
                                         <li><button className="dropdown-item"><Link to={path.USERINFO}>Thông tin cá nhân</Link></button></li>
                                         <li><button className="dropdown-item"><Link to={path.CVLIST}>CV đã nộp</Link></button></li>
+                                        <li><button className="dropdown-item"><Link to={path.WISHLISTJOB}>Danh sách công việc yêu thích</Link></button></li>
+                                        <li><button className="dropdown-item"><Link to={path.WISHLISTBUSINESS}>Danh sách doanh nghiệp yêu thích</Link></button></li>
                                         <li><button className="dropdown-item"><Link to={path.CHANGEPASSWORD}>Đổi mật khẩu</Link></button></li>
                                         <li><hr className="dropdown-divider" /></li>
                                         <li>

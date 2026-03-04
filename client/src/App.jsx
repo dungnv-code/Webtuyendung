@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { Route, Routes } from 'react-router-dom';
 import {
   Home, Login, DefaultLayout, Register, Job, Introduction, Company, Forgotpassword,
-  UserInfo, DetailPostJob, DetailBusiness, ChangePassword, CVList
+  UserInfo, DetailPostJob, DetailBusiness, ChangePassword, CVList, WishlistBusiness,
+  Wishlistjob
 } from './page/public';
 import {
   BusinessLayout, DashboardBusiness, CreateBusiness, BusinessBuyPostJob,
@@ -32,6 +33,8 @@ function App() {
           <Route path={path.FORGOT_PASSWORD} element={<Forgotpassword />} />
 
           <Route path={path.CVLIST} element={<CVList />} />
+          <Route path={path.WISHLISTJOB} element={<Wishlistjob />} />
+          <Route path={path.WISHLISTBUSINESS} element={<WishlistBusiness />} />
           <Route path={path.CHANGEPASSWORD} element={<ChangePassword />} />
           <Route path={path.USERINFO} element={<UserInfo />} />
           <Route path={path.DETAILCOMPANY} element={<DetailBusiness />} />

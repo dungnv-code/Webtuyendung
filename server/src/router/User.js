@@ -53,5 +53,6 @@ Route.get("/checkWishlistJob/:idj", [VerifyToken], userController.checkWishlistJ
 Route.get("/checkWishlistBusiness/:idb", [VerifyToken], userController.checkWishlistBusiness)
 Route.get("/wishlistjob", [VerifyToken], userController.wishlistjob)
 Route.get("/wishlistbusiness", [VerifyToken], userController.wishlistbusiness)
+Route.get("/listCVupload", [VerifyToken], userController.listCVupload)
 
 module.exports = Route;

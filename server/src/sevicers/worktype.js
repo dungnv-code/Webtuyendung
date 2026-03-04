@@ -1,5 +1,6 @@
 const useWorkType = require("../repository/WorkType");
 const seedrandom = require("seedrandom");
+
 const createWorktype = async (data) => {
     const existWorktype = await useWorkType.findByOne({ workType: data.workType });
     if (existWorktype) {
@@ -26,10 +27,8 @@ const updateWorktype = async (idw, data) => {
 
 const buildFilter = (queries) => {
     const filter = {};
-
     for (const key in queries) {
         const match = key.match(/^(\w+)\[(gte|gt|lte|lt)\]$/);
-
         if (match) {
             const [, field, op] = match;
             filter[field] = filter[field] || {};
@@ -40,7 +39,6 @@ const buildFilter = (queries) => {
         }
         else {
             const value = queries[key];
-
             if (typeof value === "string" && value.includes(",")) {
                 filter[key] = { $in: value.split(",") };
             } else {
@@ -66,9 +64,6 @@ const getAllWorktype = async (queryParams) => {
     const fields = queryParams.fields?.split(",").join(" ");
     const isRandom = queryParams.random === "true";
     const seed = queryParams.seed || "default-seed";
-
-    // Job populate ví dụ
-    // const populate = { path: "business", select: "name logo" };
 
     if (isRandom) {
         const rng = seedrandom(seed);

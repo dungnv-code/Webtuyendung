@@ -207,6 +207,12 @@ class ControllerUser {
         const reponse = await userSevicer.wishlistbusinessUser(id);
         res.status(200).json(reponse);
     })
+
+    listCVupload = asyncHandler(async (req, res) => {
+        const { id } = req.user;
+        const reponse = await userSevicer.listCVuploadUser(id);
+        res.status(200).json(reponse);
+    })
 }
 
 module.exports = new ControllerUser();

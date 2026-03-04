@@ -13,3 +13,6 @@ export { default as DetailBusiness } from "./DetailBusiness/DetailBusiness";
 export { default as ChangePassword } from "./ChangePassword/ChangePassword";
 export { default as CVList } from "./CVList/CVList";
 
+export { default as Wishlistjob } from "./wishlistjob/wishlistjob";
+export { default as WishlistBusiness } from "./WishlistBusiness/WishlistBusiness";
+

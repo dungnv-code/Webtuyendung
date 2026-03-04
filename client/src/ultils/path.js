@@ -17,6 +17,8 @@ const path = {
     CHANGEPASSWORD: "/changepassword",
     CVLIST: "/listcv",
     USERINFO: "/userinfo",
+    WISHLISTJOB: "/wishlistjob",
+    WISHLISTBUSINESS: "/wishlistbusiness",
 
     // business
     BUSINESS: "/business",

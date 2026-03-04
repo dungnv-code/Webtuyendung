@@ -1,0 +1,55 @@
+/* Card tổng */
+.wishlist-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    transition: 0.2s ease;
+    background: #fff;
+}
+
+.wishlist-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transform: translateY(-3px);
+}
+
+/* Avatar hình ảnh */
+.wishlist-img {
+    width: 100%;
+    height: 60px;
+    object-fit: contain;
+}
+
+/* Tiêu đề job */
+.wishlist-title {
+    font-size: 1.05rem;
+    color: #1a1a1a;
+}
+
+.wishlist-title:hover {
+    color: #0d6efd;
+}
+
+/* Icon text */
+.wishlist-info i {
+    color: #6c757d;
+}
+
+/* Deadline */
+.wishlist-deadline {
+    font-size: 0.9rem;
+}
+
+/* Tag loại việc */
+.wishlist-tag {
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.wishlist-title {
+    font-size: 1.05rem;
+    color: #1a1a1a;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    /* Giới hạn 2 dòng */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}

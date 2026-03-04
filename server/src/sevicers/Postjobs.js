@@ -470,7 +470,7 @@ const uploadCVPostjobs = async (idp, id, req) => {
     }
 
     const cloud = await uploadToCloudinary(req.file.buffer);
-
+    const numberUploadNext = (post.numberUpload || 0) + 1;
     let pdfText = "";
     try {
         const pdfData = await pdf(req.file.buffer);
@@ -508,6 +508,9 @@ const uploadCVPostjobs = async (idp, id, req) => {
                     evaluate,
                     createdAt: new Date()
                 }
+            },
+            $set: {
+                numberUpload: numberUploadNext
             }
         }
     );

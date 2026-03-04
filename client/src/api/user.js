@@ -56,6 +56,18 @@ const checkWishlistBusiness = async (id) => {
     return await axios.get(`/user/checkWishlistBusiness/${id}`);
 }
 
+const wishlistjob = async () => {
+    return await axios.get(`/user/wishlistjob`);
+}
+
+const wishlistbusiness = async () => {
+    return await axios.get(`/user/wishlistbusiness`);
+}
+
+const listCVupload = async () => {
+    return await axios.get(`/user/listCVupload`);
+}
+
 export {
     login,
     refreshToken,
@@ -71,4 +83,7 @@ export {
     createWishListJob,
     checkWishlistJob,
     checkWishlistBusiness,
+    wishlistjob,
+    wishlistbusiness,
+    listCVupload,
 }

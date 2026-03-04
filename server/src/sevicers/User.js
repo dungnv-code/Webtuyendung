@@ -1,5 +1,6 @@
 const bcrypt = require("bcrypt");
 const userRepository = require("../repository/User")
+const userPostJobs = require("../repository/PostJobs")
 const jwt = require("jsonwebtoken");
 const makeNumberToken = require("../ulti/makeToken");
 const sendMail = require("../ulti/sendMail");
@@ -510,7 +511,6 @@ const wishlistjobUser = async (idUser) => {
         success: true,
         data: user.wishlistJob
     };
-
 }
 
 const wishlistbusinessUser = async (idUser) => {
@@ -522,8 +522,54 @@ const wishlistbusinessUser = async (idUser) => {
         success: true,
         data: user.wishlistJBusiness
     };
-
 }
+
+const listCVuploadUser = async (idUser) => {
+    try {
+        const jobs = await userPostJobs.findAll(
+            { listCV: { $elemMatch: { idUser } } },   // lọc job có CV của user
+            {
+                imageCover: 1,
+                title: 1,
+                salaryRange: 1,
+                joblevel: 1,
+                workType: 1,
+                location: 1,
+                business: 1,
+                deadline: 1,
+                createdAt: 1,
+                listCV: 1
+            }
+        )
+            .populate("business", "nameBusiness addressBusiness imageAvatarBusiness")
+            .lean();
+
+        if (!jobs || jobs.length === 0) {
+            return {
+                success: true,
+                data: []
+            };
+        }
+
+        const result = jobs.map(job => ({
+            ...job,
+            listCV: job.listCV.filter(
+                cv => cv.idUser.toString() === idUser.toString()
+            )
+        }));
+
+        return {
+            success: true,
+            data: result
+        };
+
+    } catch (error) {
+        return {
+            success: false,
+            message: error.message
+        };
+    }
+};
 
 module.exports = {
     RegisterUser,
@@ -547,4 +593,5 @@ module.exports = {
     checkWishlistBusinessUser,
     wishlistjobUser,
     wishlistbusinessUser,
+    listCVuploadUser,
 };
