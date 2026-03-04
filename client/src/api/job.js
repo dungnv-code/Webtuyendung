@@ -167,6 +167,10 @@ const changeStatusPostjobs = (id) => {
     return axios.put(`/postjobs/changeStatus/${id}`)
 }
 
+const uploadCVPostjobs = (id, data) => {
+    return axios.put(`/postjobs/uploadCV/${id}`, data)
+}
+
 // invoid
 
 const getAllInvoidAdmin = (params) => {
@@ -229,4 +233,5 @@ export {
     // invoid 
     getAllInvoidAdmin,
     statisticAll,
+    uploadCVPostjobs
 }

@@ -30,8 +30,16 @@ class PostJobController {
     });
 
     getAll = asyncHandler(async (req, res) => {
-        const reponse = await PostjobsSevicer.getAllPostjobs(req.query);
-        res.status(200).json(reponse);
+        let query = { ...req.query };
+        if (query.statusPause === "true") {
+            query.statusPause = true;
+        } else if (query.statusPause === "false") {
+            query.statusPause = false;
+        } else {
+            delete query.statusPause;
+        }
+        const response = await PostjobsSevicer.getAllPostjobs(query);
+        res.status(200).json(response);
     });
 
     getDetail = asyncHandler(async (req, res) => {

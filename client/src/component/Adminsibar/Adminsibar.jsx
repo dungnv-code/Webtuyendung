@@ -95,7 +95,6 @@ const Adminsibar = () => {
     const navigate = useNavigate();
     useEffect(() => {
         if (!user.isLogIn) {
-            console.log("1")
             navigate(path.LOGIN)
         }
     }, [])
@@ -105,7 +104,6 @@ const Adminsibar = () => {
             try {
                 const reponse = await getUserSingle();
                 if (reponse.data.role != "ADMIN") {
-                    console.log("2")
                     navigate(path.LOGIN)
                 }
             } catch (err) {

@@ -98,15 +98,14 @@ const Businesssibar = () => {
         const fetchGetUser = async () => {
             try {
                 const reponse = await getUserSingle();
-                if (reponse.data.role != "nhatuyendung" || reponse.data.role != "STAFF") {
-                    navigate(path.LOGIN)
+                if (!["nhatuyendung", "STAFF"].includes(reponse.data.role)) {
+                    navigate(path.LOGIN);
                 }
             } catch (err) {
             }
         }
         fetchGetUser()
     }, [user.isLogIn])
-
 
     const handleClickLogout = async () => {
         try {

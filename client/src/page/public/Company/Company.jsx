@@ -2,7 +2,10 @@ import { useState, useEffect } from "react";
 import PaginationCustom from "../../../component/pagination/pagination";
 import { getAllBusiness } from "../../../api/job";
 import { RedoOutlined, SearchOutlined } from '@ant-design/icons';
-
+import ReactMarkdown from "react-markdown";
+import rehypeRaw from "rehype-raw";
+import { Link } from "react-router-dom"
+import path from "../../../ultils/path"
 const Company = () => {
 
     const [currentPage, setCurrentPage] = useState(1);
@@ -81,13 +84,11 @@ const Company = () => {
                 </div>
             </div>
 
-            {/* BOX GRID */}
             <div className="row mt-4 g-4">
                 {listBusiness?.map((item, index) => (
                     <div className="col-md-4 col-sm-6" key={item._id}>
                         <div className="card shadow-sm h-100 border-0">
 
-                            {/* Cover */}
                             <div className="position-relative">
                                 <img
                                     src={item.imageCoverBusiness}
@@ -113,13 +114,13 @@ const Company = () => {
                             </div>
 
                             <div className="card-body mt-4 text-center">
-                                <h5 className="fw-bold">{item.nameBusiness}</h5>
-
+                                <Link to={`${path.COMPANY}/${item._id}`}><h5 className="fw-bold">{item.nameBusiness}</h5></Link>
                                 <p className="text-muted small">{item.addressBusiness}</p>
-
-                                <p className="text-secondary small">
-                                    {item.descriptionBusiness?.slice(0, 90)}...
-                                </p>
+                                <div className="text-secondary small">
+                                    <ReactMarkdown rehypePlugins={[rehypeRaw]}>
+                                        {(item.descriptionBusiness || "").slice(0, 90) + "..."}
+                                    </ReactMarkdown>
+                                </div>
                             </div>
                         </div>
                     </div>

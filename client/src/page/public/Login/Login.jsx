@@ -1,14 +1,15 @@
 import { useState, useEffect } from "react";
 import imglogin from "../../../assets/login.jpg";
 import path from "../../../ultils/path";
-import { Link } from "react-router-dom";
+
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { login, forgotPassword, getUserSingle } from "../../../api/user";
 import { useDispatch, useSelector } from "react-redux";
 import { LogIn } from "../../../redux/userUser/userSlice";
 import { getCurrent } from "../../../redux/userUser/asyncActionUser";
 import Swal from "sweetalert2";
 import Loading from "../../../component/loading/Loading";
-import { useNavigate } from "react-router-dom";
+
 import { jwtDecode } from "jwt-decode";
 const styles = {
     container: {
@@ -95,7 +96,7 @@ const styles = {
 const Login = () => {
 
     const dispatch = useDispatch();
-
+    const [searchParams] = useSearchParams();
     const [loading, setLoading] = useState(false);
 
     const navigate = useNavigate();
@@ -173,7 +174,13 @@ const Login = () => {
                     setTimeout(() => {
                         dispatch(getCurrent())
                     }, 100);
-                    navigate(path.HOME);
+                    const redirectPath = localStorage.getItem("redirectAfterLogin");
+                    if (redirectPath) {
+                        localStorage.removeItem("redirectAfterLogin");
+                        navigate(redirectPath); // 🔥 Trở về trang trước đó
+                    } else {
+                        navigate(path.HOME);
+                    }
                 }
             })
             .catch(err => {

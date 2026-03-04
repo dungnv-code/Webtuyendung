@@ -1,6 +1,5 @@
 import axios from "axios";
 import Swal from "sweetalert2";
-// import { loadingController } from "./loadingController";
 
 const instance = axios.create({ baseURL: import.meta.env.VITE_API_SERVER });
 
@@ -23,17 +22,34 @@ instance.interceptors.request.use((config) => {
 });
 
 instance.interceptors.response.use(
-    (response) => {
-        return response.data;
-    },
+    (response) => response.data,
     (error) => {
         const errData = error.response?.data || { mes: "Lỗi kết nối server" };
         const status = error.response?.status;
+        const message = errData.mes;
+
+        if (message === "Vui lòng đăng nhập để tiếp tục!!!" || status === 401) {
+            const currentPath = window.location.pathname + window.location.search;
+            localStorage.setItem("redirectAfterLogin", currentPath);
+
+            Swal.fire({
+                icon: "warning",
+                title: "Bạn chưa đăng nhập",
+                text: "Nhấn OK để chuyển đến trang đăng nhập",
+                confirmButtonText: "OK",
+                allowOutsideClick: false,
+                allowEscapeKey: false
+            }).then(() => {
+                window.location.href = "/login";
+            });
+
+            return Promise.reject(errData);
+        }
 
         Swal.fire({
             icon: "error",
             title: status ? `Lỗi ${status}` : "Lỗi kết nối",
-            text: errData.mes || "Đã xảy ra lỗi",
+            text: message || "Đã xảy ra lỗi",
             confirmButtonText: "OK",
         });
 

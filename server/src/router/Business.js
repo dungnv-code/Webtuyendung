@@ -17,7 +17,7 @@ Router.put("/update", uploadBusiness, [VerifyToken, TokenIsNhaTuyenDung],
     BusinessController.update);
 Router.get("/getAll", BusinessController.getAll);
 Router.delete("/delete/:idb", [VerifyToken, TokenIsNhaTuyenDung], BusinessController.delete);
-Router.get("/getDetail/:idb", [VerifyToken], BusinessController.getDetail);
+Router.get("/getDetail/:idb", BusinessController.getDetail);
 Router.get("/getDetailbyNTD", [VerifyToken, TokenIsNhaTuyenDungOrStaff], BusinessController.getDetailbyNTD);
 Router.get("/getStaffs", [VerifyToken, TokenIsNhaTuyenDung], BusinessController.getStaffs);
 Router.get("/getPostJobs", [VerifyToken, TokenIsNhaTuyenDungOrStaff], BusinessController.getPostJobs);

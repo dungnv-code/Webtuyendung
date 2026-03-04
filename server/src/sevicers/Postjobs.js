@@ -6,7 +6,7 @@ const pdf = require("pdf-parse-fork");
 const cloudinary = require("cloudinary").v2;
 const Groq = require("groq-sdk");
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-
+const PostJob = require("../modal/PostJobs")
 cloudinary.config({
     cloud_name: process.env.CLOUD_NAME,
     api_key: process.env.CLOUD_API_KEY,
@@ -110,27 +110,64 @@ const updatePostjobs = async (idp, id, data) => {
 
 const buildFilter = (queries) => {
     const filter = {};
-    for (const key in queries) {
 
-        if (key.includes("_") || key.includes(".")) continue;
+    // Các field FE gửi dạng array (checkbox)
+    const arrayFields = ["experience", "joblevel", "workType"];
 
-        const value = queries[key];
+    // 1️⃣ Lấy schema thật từ Mongoose
+    const schema = PostJob.schema.paths;
 
-        if (typeof value === "object" && !Array.isArray(value)) {
-            filter[key] = {};
-            for (const op in value) {
-                const mongoOp = `$${op}`;
-                filter[key][mongoOp] = isNaN(value[op]) ? value[op] : Number(value[op]);
+    for (const rawKey in queries) {
+        let key = rawKey.replace("[]", ""); // normalize
+        let value = queries[rawKey];
+
+        // Skip null/empty
+        if (value === "" || value === null || value === undefined) continue;
+
+        // Normalize list
+        const list = Array.isArray(value)
+            ? value
+            : String(value).includes(",")
+                ? value.split(",")
+                : [value];
+
+        // ====================================================
+        //  CASE 1: FIELDS ARRAY — FE gửi experience[]
+        // ====================================================
+        if (arrayFields.includes(key)) {
+            const schemaType = schema[key].instance; // "String" hoặc "Array"
+
+            if (schemaType === "Array") {
+                // DB field là: experience: [String]
+                filter[key] = { $in: list };  // ✔️ Hợp lệ
+            } else {
+                // DB field là: experience: String
+                filter.$or = list.map(v => ({ [key]: v })); // ✔️ Không còn Cast String lỗi
             }
-        } else {
-            // Tag thường → regex search
-            filter[key] = { $regex: value, $options: "i" };
+
+            continue;
         }
+
+        // ====================================================
+        //  CASE 2: Operator field[gte]
+        // ====================================================
+        if (rawKey.includes("[")) {
+            const field = rawKey.split("[")[0];
+            const op = rawKey.split("[")[1].replace("]", "");
+
+            if (!filter[field]) filter[field] = {};
+            filter[field][`$${op}`] = isNaN(value) ? value : Number(value);
+            continue;
+        }
+        PostJob
+        // ====================================================
+        // Default
+        // ====================================================
+        filter[key] = value;
     }
 
     return filter;
 };
-
 
 const detectOperator = (key) => {
     const match = key.match(/(.+)\[(gt|gte|lt|lte|eq|ne)\]$/);
@@ -312,12 +349,18 @@ const getAllPostjobs = async (queryParams) => {
 };
 
 const getDetailPostjobs = async (idp) => {
-    const detailPostJobs = await usePostJobs.updatebyOne({ _id: idp }, { $inc: { view: 1 } });
+    const detailPostJobs = await usePostJobs.findByOne(
+        { _id: idp },
+        { $inc: { view: 1 } },
+        { new: true } // trả về bản ghi sau khi update
+    )
+        .populate("business salaryRange");
+
     return {
         success: true,
         data: detailPostJobs,
     };
-}
+};
 
 const deletePostjobs = async (idp) => {
     const existPostJobs = await usePostJobs.findByOne({ _id: idp });
