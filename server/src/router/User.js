@@ -47,5 +47,11 @@ Route.post("/changePassword",
     userController.changePassword);
 Route.get("/getDetailBusiness", [VerifyToken, TokenIsNhaTuyenDung], userController.getDetailBusiness);
 Route.post("/createStaff", [VerifyToken, TokenIsNhaTuyenDung], userController.createStaff)
+Route.post("/createWishListJob/:idj", [VerifyToken], userController.createWishListJob)
+Route.post("/createWishListBusiness/:idb", [VerifyToken], userController.createWishListBusiness)
+Route.get("/checkWishlistJob/:idj", [VerifyToken], userController.checkWishlistJob)
+Route.get("/checkWishlistBusiness/:idb", [VerifyToken], userController.checkWishlistBusiness)
+Route.get("/wishlistjob", [VerifyToken], userController.wishlistjob)
+Route.get("/wishlistbusiness", [VerifyToken], userController.wishlistbusiness)
 
 module.exports = Route;

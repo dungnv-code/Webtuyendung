@@ -49,6 +49,10 @@ const getPostJobBusiness = async (params) => {
     return await axios.get("/business/getPostJobs", { params })
 }
 
+const getPostJobUserBusiness = async (idb, params) => {
+    return await axios.get(`/business/getPostJobsUser/${idb}`, { params })
+}
+
 const changeStatusPausePostJobBusiness = async (id) => {
     return await axios.put(`/postjobs/changeStatusPause/${id}`,)
 }
@@ -76,6 +80,7 @@ export {
     createInvoidBusiness,
     createPostJobdBusiness,
     getPostJobBusiness,
+    getPostJobUserBusiness,
     changeStatusPausePostJobBusiness,
     getDetailPost,
     updatePostJob,

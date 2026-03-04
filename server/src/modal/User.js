@@ -12,7 +12,9 @@ const UserSchema = new Schema({
     status: { type: String, enum: ["Block", "Active"], default: "Active" },
     resetpasswordOtp: { type: String, default: null },
     resetpasswordOtpExpire: { type: Date, default: null },
-    business: { type: Schema.Types.ObjectId, ref: "Business", default: null }
+    business: { type: Schema.Types.ObjectId, ref: "Business", default: null },
+    wishlistJob: [{ type: Schema.Types.ObjectId, ref: "PostJob", default: [] }],
+    wishlistJBusiness: [{ type: Schema.Types.ObjectId, ref: "Business", default: [] }]
 }, { timestamps: true })
 
 module.exports = mongoose.model("User", UserSchema);

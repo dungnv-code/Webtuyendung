@@ -161,6 +161,52 @@ class ControllerUser {
         const reponse = await userSevicer.createStaffUser(businessId, req.body);
         res.status(200).json(reponse);
     })
+
+    createWishListJob = asyncHandler(async (req, res) => {
+        const { idj } = req.params;
+        const { id } = req.user
+        const reponse = await userSevicer.createWishListJobUser(id, idj);
+        res.status(200).json(reponse);
+    })
+
+    createWishListBusiness = asyncHandler(async (req, res) => {
+        const { idb } = req.params;
+        const { id } = req.user;
+        const reponse = await userSevicer.createWishListBusinessUser(id, idb);
+        res.status(200).json(reponse);
+    })
+
+    checkWishlistJob = asyncHandler(async (req, res) => {
+        const { idj } = req.params;
+        const { id } = req.user;
+        const reponse = await userSevicer.checkWishlistJobUser(id, idj);
+        res.status(200).json(reponse);
+    })
+
+    checkWishlistBusiness = asyncHandler(async (req, res) => {
+        const { idb } = req.params;
+        const { id } = req.user;
+        const reponse = await userSevicer.checkWishlistBusinessUser(id, idb);
+        res.status(200).json(reponse);
+    })
+
+    getwishlistjob = asyncHandler(async (req, res) => {
+        const { id } = req.user;
+        const reponse = await userSevicer.checkWishlistBusinessUser(id);
+        res.status(200).json(reponse);
+    })
+
+    wishlistjob = asyncHandler(async (req, res) => {
+        const { id } = req.user;
+        const reponse = await userSevicer.wishlistjobUser(id);
+        res.status(200).json(reponse);
+    })
+
+    wishlistbusiness = asyncHandler(async (req, res) => {
+        const { id } = req.user;
+        const reponse = await userSevicer.wishlistbusinessUser(id);
+        res.status(200).json(reponse);
+    })
 }
 
 module.exports = new ControllerUser();

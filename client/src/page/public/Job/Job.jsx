@@ -59,7 +59,6 @@ const Job = () => {
 
                 setData(response.data || []);
                 setTotalPages(response.totalPages || 0);
-
             } catch (err) {
                 console.log(err);
             }

@@ -21,6 +21,7 @@ Router.get("/getDetail/:idb", BusinessController.getDetail);
 Router.get("/getDetailbyNTD", [VerifyToken, TokenIsNhaTuyenDungOrStaff], BusinessController.getDetailbyNTD);
 Router.get("/getStaffs", [VerifyToken, TokenIsNhaTuyenDung], BusinessController.getStaffs);
 Router.get("/getPostJobs", [VerifyToken, TokenIsNhaTuyenDungOrStaff], BusinessController.getPostJobs);
+Router.get("/getPostJobsUser/:idb", BusinessController.getPostJobsUser);
 Router.get("/getInvoids", [VerifyToken, TokenIsNhaTuyenDung], BusinessController.getInvoids);
 Router.put("/changeStatus/:idb", [VerifyToken, TokenIsAdmin], BusinessController.changeStatus)
 

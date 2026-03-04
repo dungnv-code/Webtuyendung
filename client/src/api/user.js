@@ -40,6 +40,22 @@ const changePasswordUser = async (data) => {
     return await axios.post(`/user/changePassword`, data);
 }
 
+const createWishListJob = async (id) => {
+    return await axios.post(`/user/createWishListJob/${id}`);
+}
+
+const createWishListBusiness = async (id) => {
+    return await axios.post(`/user/createWishListBusiness/${id}`);
+}
+
+const checkWishlistJob = async (id) => {
+    return await axios.get(`/user/checkWishlistJob/${id}`);
+}
+
+const checkWishlistBusiness = async (id) => {
+    return await axios.get(`/user/checkWishlistBusiness/${id}`);
+}
+
 export {
     login,
     refreshToken,
@@ -51,4 +67,8 @@ export {
     getUserSingle,
     updateUser,
     changePasswordUser,
+    createWishListBusiness,
+    createWishListJob,
+    checkWishlistJob,
+    checkWishlistBusiness,
 }

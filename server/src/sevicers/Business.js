@@ -254,6 +254,50 @@ const getPostJobsBusiness = async (businessId, query) => {
         data: Business
     };
 };
+
+const getPostJobsUserBusiness = async (businessId, query) => {
+    const { page = 1, limit = 10, title } = query;
+
+    let filter = { business: businessId };
+
+
+    if (title) {
+        filter.title = { $regex: title, $options: "i" };
+    }
+
+
+    const total = await usePostJobs.countDocuments(filter);
+
+
+    const skip = (page - 1) * limit;
+
+
+    const Business = await usePostJobs
+        .findAll(filter)
+        .select("-refreshToken -password")
+        .skip(skip)
+        .limit(Number(limit))
+        .sort({ createdAt: -1 });
+
+    if (Business.length === 0) {
+        return {
+            success: true,
+            total: 0,
+            totalPages: 0,
+            currentPage: Number(page),
+            data: []
+        };
+    }
+
+    return {
+        success: true,
+        total,
+        totalPages: Math.ceil(total / limit),
+        currentPage: Number(page),
+        data: Business
+    };
+};
+
 const getInvoidsBusiness = async (businessId, params = {}) => {
     const currentPage = Number(params.page) || 1;
     const limit = Number(params.limit) || 10;
@@ -313,4 +357,5 @@ module.exports = {
     getPostJobsBusiness,
     getInvoidsBusiness,
     changeStatusBusiness,
+    getPostJobsUserBusiness,
 };

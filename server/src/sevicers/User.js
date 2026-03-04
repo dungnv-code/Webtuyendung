@@ -424,6 +424,107 @@ const createStaffUser = async (businessId, data) => {
     };
 };
 
+const createWishListJobUser = async (idUser, idJob) => {
+
+    const user = await userRepository.findByOne({ _id: idUser });
+    if (!user) throw new Error("Không tìm thấy user!");
+
+    const index = user.wishlistJob.indexOf(idJob);
+
+    if (index === -1) {
+
+        user.wishlistJob.push(idJob);
+        await user.save();
+
+        return {
+            success: true,
+            message: "Đã thêm vào danh sách yêu thích",
+        };
+    } else {
+
+        user.wishlistJob.splice(index, 1);
+        await user.save();
+
+        return {
+            success: true,
+            message: "Đã xoá khỏi danh sách yêu thích",
+            isLiked: false
+        };
+    }
+};
+
+const createWishListBusinessUser = async (idUser, idJob) => {
+
+    const user = await userRepository.findByOne({ _id: idUser });
+    if (!user) throw new Error("Không tìm thấy user!");
+
+    const index = user.wishlistJBusiness.indexOf(idJob);
+
+    if (index === -1) {
+
+        user.wishlistJBusiness.push(idJob);
+        await user.save();
+
+        return {
+            success: true,
+            message: "Đã thêm vào danh sách yêu thích",
+        };
+    } else {
+
+        user.wishlistJBusiness.splice(index, 1);
+        await user.save();
+
+        return {
+            success: true,
+            message: "Đã xoá khỏi danh sách yêu thích",
+            isLiked: false
+        };
+    }
+};
+
+const checkWishlistJobUser = async (idUser, idJob) => {
+    const user = await userRepository.findByOne({ _id: idUser });
+
+    const isLiked = user.wishlistJob.includes(idJob);
+
+    return {
+        success: true,
+        isLiked
+    };
+}
+
+const checkWishlistBusinessUser = async (idUser, idJob) => {
+    const user = await userRepository.findByOne({ _id: idUser });
+    const isLiked = user.wishlistJBusiness.includes(idJob);
+    return {
+        success: true,
+        isLiked
+    };
+}
+
+const wishlistjobUser = async (idUser) => {
+    const user = await userRepository.findByOne({ _id: idUser })
+        .populate("wishlistJob");
+    if (!user) throw new Error("User not found");
+    return {
+        success: true,
+        data: user.wishlistJob
+    };
+
+}
+
+const wishlistbusinessUser = async (idUser) => {
+    const user = await userRepository.findByOne({ _id: idUser })
+        .populate("wishlistJBusiness");
+    if (!user) throw new Error("User not found");
+
+    return {
+        success: true,
+        data: user.wishlistJBusiness
+    };
+
+}
+
 module.exports = {
     RegisterUser,
     LoginUser,
@@ -439,5 +540,11 @@ module.exports = {
     updateUser,
     changePasswordUser,
     getDetailBusinessUser,
-    createStaffUser
+    createStaffUser,
+    createWishListJobUser,
+    createWishListBusinessUser,
+    checkWishlistJobUser,
+    checkWishlistBusinessUser,
+    wishlistjobUser,
+    wishlistbusinessUser,
 };

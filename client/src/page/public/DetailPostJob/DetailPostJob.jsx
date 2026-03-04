@@ -1,17 +1,21 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getDetailPostjobs, getAllPostjobs, uploadCVPostjobs } from "../../../api/job";
+import { createWishListJob, checkWishlistJob } from "../../../api/user";
 import bg_detail_job from "../../../assets/bg-hoa-mai-job-detail.png";
 import Loading from "../../../component/loading/Loading";
 import { Link } from "react-router-dom";
 import path from "../../../ultils/path";
 import { toast } from "react-toastify"
+import { useSelector } from "react-redux"
 const DetailPostJob = () => {
     const { idp } = useParams();
     const [detail, setDetail] = useState(null);
     const [loading, setLoading] = useState(false);
     const [listsuggest, setListsuggest] = useState([])
+    const [isLiked, setIsLiked] = useState(false);
 
+    const isLogIn = useSelector(state => state.user.isLogIn)
     useEffect(() => {
         const fetchDetail = async () => {
             try {
@@ -45,7 +49,6 @@ const DetailPostJob = () => {
 
     useEffect(() => {
         if (!detail?.jobs) return;
-
         const fetchDetail = async () => {
             try {
                 const res = await getAllPostjobs({
@@ -60,6 +63,7 @@ const DetailPostJob = () => {
 
         fetchDetail();
     }, [detail?.jobs]);
+
 
     const [fileCV, setFileCV] = useState(null);
 
@@ -81,10 +85,8 @@ const DetailPostJob = () => {
             toast.error("Vui lòng chọn file PDF trước!");
             return;
         }
-
         try {
             setLoading(true);
-
             const formData = new FormData();
             formData.append("fileCV", fileCV);
             const res = await uploadCVPostjobs(idp, formData);
@@ -104,9 +106,11 @@ const DetailPostJob = () => {
 
     if (!detail) return <div className="text-center text-danger">Không tìm thấy bài đăng!</div>;
 
+
+
+
     const getDaysRemaining = (date) => {
         if (!date) return "Không có hạn";
-
         const end = new Date(date);
         if (isNaN(end.getTime())) return "Ngày không hợp lệ";
         const now = new Date();
@@ -114,6 +118,31 @@ const DetailPostJob = () => {
 
         return diff <= 0 ? "Đã hết hạn" : `${diff} ngày`;
     };
+
+    const checkLike = async () => {
+        try {
+            const res = await checkWishlistJob(idp);
+            setIsLiked(res.isLiked);
+        } catch (err) {
+            console.log(err);
+        }
+    };
+
+    const hanleCreateWishlistJob = async () => {
+        try {
+            const repo = await createWishListJob(idp);
+            if (repo.success) {
+                toast.success(repo.message)
+                checkLike()
+            }
+        }
+        catch (err) {
+        }
+    }
+
+    if (isLogIn) {
+        checkLike();
+    }
 
     return (
         <div className="container py-4" style={{ position: "relative" }}>
@@ -195,8 +224,17 @@ const DetailPostJob = () => {
                             <button onClick={showModal} className="btn btn-light px-4 py-2 fw-semibold text-success">
                                 Ứng tuyển ngay
                             </button>
-                            <button className="btn btn-outline-light px-4 py-2 fw-semibold">
-                                <i className="fa-regular fa-heart"></i> Lưu tin
+                            <button
+                                onClick={hanleCreateWishlistJob}
+                                className="btn btn-outline-light px-4 py-2 fw-semibold"
+                            >
+                                {isLiked ? (
+                                    <i className="fa-solid fa-heart text-danger"></i>
+                                ) : (
+                                    <i className="fa-regular fa-heart"></i>
+                                )}
+                                {" "}
+                                {isLiked ? "Đã lưu" : "Lưu tin"}
                             </button>
                         </div>
                     </div>
@@ -231,8 +269,17 @@ const DetailPostJob = () => {
                                 <button onClick={showModal} className="btn btn-success px-4 py-2 fw-semibold text-white">
                                     Ứng tuyển ngay
                                 </button>
-                                <button className="btn btn-outline-light btn-primary px-4 py-2 fw-semibold">
-                                    <i className="fa-regular fa-heart"></i> Lưu tin
+                                <button
+                                    onClick={hanleCreateWishlistJob}
+                                    className="btn btn-outline-light px-4 py-2 fw-semibold"
+                                >
+                                    {isLiked ? (
+                                        <i className="fa-solid fa-heart text-danger"></i>
+                                    ) : (
+                                        <i className="fa-regular fa-heart"></i>
+                                    )}
+                                    {" "}
+                                    {isLiked ? "Đã lưu" : "Lưu tin"}
                                 </button>
                             </div>
                             <div class="alert alert-danger" role="alert">
