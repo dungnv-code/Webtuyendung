@@ -54,5 +54,6 @@ Route.get("/checkWishlistBusiness/:idb", [VerifyToken], userController.checkWish
 Route.get("/wishlistjob", [VerifyToken], userController.wishlistjob)
 Route.get("/wishlistbusiness", [VerifyToken], userController.wishlistbusiness)
 Route.get("/listCVupload", [VerifyToken], userController.listCVupload)
+Route.post("/chatbox", userController.chatbox)
 
 module.exports = Route;

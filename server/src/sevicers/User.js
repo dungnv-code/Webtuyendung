@@ -7,6 +7,9 @@ const sendMail = require("../ulti/sendMail");
 const crypto = require("crypto");
 const seedrandom = require("seedrandom");
 
+const Groq = require("groq-sdk");
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+
 const genateAccessToken = (payload) => {
     return jwt.sign(payload, process.env.JWT_SECRET_KEY, { expiresIn: "7h" });
 }
@@ -571,6 +574,243 @@ const listCVuploadUser = async (idUser) => {
     }
 };
 
+const chatboxUser = async (data) => {
+    try {
+
+        const { message } = data;
+
+        if (!message || message.trim().length < 2) {
+            return {
+                success: true,
+                reply: "Bạn hãy nhập rõ hơn ví dụ: 'việc React tại Hà Nội'",
+                jobs: []
+            };
+        }
+
+        const messageLower = message.toLowerCase().replace(/[?.,!]/g, "");
+        const now = new Date();
+
+        // synonym
+        const synonyms = {
+            cntt: "công nghệ thông tin",
+            it: "công nghệ thông tin",
+            hcm: "hồ chí minh",
+            sg: "hồ chí minh",
+            dn: "đà nẵng",
+            hn: "hà nội"
+        };
+
+        // keyword check (tránh hỏi linh tinh)
+        const jobKeywords = [
+            "việc",
+            "job",
+            "tuyển",
+            "react",
+            "node",
+            "java",
+            "frontend",
+            "backend",
+            "kế toán",
+            "marketing",
+            "developer",
+            "engineer"
+        ];
+
+        const isJobQuestion = jobKeywords.some(k => messageLower.includes(k));
+
+        if (!isJobQuestion) {
+            return {
+                success: true,
+                reply: "Tôi chỉ hỗ trợ tìm kiếm việc làm. Ví dụ: 'việc React tại Hà Nội'.",
+                jobs: []
+            };
+        }
+
+        // query base
+        let query = {
+            status: "active",
+            statusPause: false,
+            deadline: { $gte: now }
+        };
+
+        let sortOption = { createdAt: -1 };
+        let limitCount = 5;
+
+        // số lượng job
+        const numberMatch = messageLower.match(/\d+/);
+        if (numberMatch) {
+            limitCount = parseInt(numberMatch[0]);
+        }
+
+        // location filter
+        if (messageLower.includes("hà nội") || messageLower.includes(" hn")) {
+            query.location = { $regex: "Hà Nội", $options: "i" };
+        }
+
+        if (messageLower.includes("đà nẵng") || messageLower.includes(" dn")) {
+            query.location = { $regex: "Đà Nẵng", $options: "i" };
+        }
+
+        if (
+            messageLower.includes("hồ chí minh") ||
+            messageLower.includes("hcm") ||
+            messageLower.includes(" sài gòn")
+        ) {
+            query.location = { $regex: "Hồ Chí Minh", $options: "i" };
+        }
+
+        // sort
+        if (messageLower.includes("view cao") || messageLower.includes("xem nhiều")) {
+            sortOption = { view: -1 };
+        }
+
+        if (messageLower.includes("nộp nhiều") || messageLower.includes("ứng tuyển nhiều")) {
+            sortOption = { numberUpload: -1 };
+        }
+
+        // stop words
+        const stopWords = [
+            "các",
+            "job",
+            "jobs",
+            "việc",
+            "làm",
+            "mới",
+            "nhất",
+            "tại",
+            "tìm",
+            "cần",
+            "tuyển"
+        ];
+
+        let rawKeywords = messageLower
+            .split(/\s+/)
+            .filter(k => k.length >= 2 && !stopWords.includes(k));
+
+        const processedKeywords = rawKeywords.map(k => synonyms[k] || k);
+
+        // search keyword
+        if (processedKeywords.length > 0) {
+
+            query.$or = [];
+
+            processedKeywords.forEach(k => {
+
+                query.$or.push(
+                    { title: { $regex: k, $options: "i" } },
+                    { jobs: { $regex: k, $options: "i" } },
+                    { skills: { $regex: k, $options: "i" } },
+                    { description: { $regex: k, $options: "i" } }
+                );
+
+            });
+
+        }
+
+        // find job
+        let jobs = await userPostJobs.findAll(query)
+            .sort(sortOption)
+            .limit(limitCount)
+            .select("title jobs location salaryRange view numberUpload deadline");
+
+        // fallback
+        if (jobs.length === 0) {
+
+            delete query.$or;
+
+            jobs = await userPostJobs
+                .findAll(query)
+                .sort({ createdAt: -1 })
+                .limit(3);
+
+        }
+
+        // nếu vẫn không có job
+        if (jobs.length === 0) {
+
+            return {
+                success: true,
+                reply: "Hiện chưa tìm thấy công việc phù hợp. Bạn có thể thử tìm: React, Marketing, Kế toán...",
+                jobs: []
+            };
+
+        }
+
+        // context cho AI
+        const context = jobs.map((j, i) => {
+
+            const salary = j.salaryRange ? j.salaryRange.toString() : "Thỏa thuận";
+
+            return `
+Job ${i + 1}
+Tiêu đề: ${j.title}
+Ngành: ${j.jobs}
+Địa điểm: ${j.location}
+Lương: ${salary}
+Lượt xem: ${j.view}
+`;
+
+        }).join("\n");
+
+        let reply = "Tôi đã tìm thấy một số công việc phù hợp cho bạn.";
+
+        try {
+
+            const chatCompletion = await groq.chat.completions.create({
+                model: "llama-3.3-70b-versatile",
+                temperature: 0.4,
+                messages: [
+                    {
+                        role: "system",
+                        content: `
+Bạn là chatbot của website tuyển dụng.
+
+QUY TẮC:
+- Chỉ trả lời về việc làm
+- Chỉ dựa vào danh sách job
+- Không bịa thông tin
+- Trả lời tối đa 3 câu
+- Giọng thân thiện
+`
+                    },
+                    {
+                        role: "user",
+                        content: `
+Câu hỏi: ${message}
+
+Danh sách job:
+${context}
+`
+                    }
+                ]
+            });
+
+            reply = chatCompletion.choices[0].message.content;
+
+        } catch (aiError) {
+
+            console.log("AI error:", aiError.message);
+
+        }
+
+        return {
+            success: true,
+            reply,
+            jobs
+        };
+
+    } catch (error) {
+
+        console.log("Chatbox error:", error);
+
+        return {
+            success: false,
+            message: error.message
+        };
+
+    }
+};
+
 module.exports = {
     RegisterUser,
     LoginUser,
@@ -594,4 +834,5 @@ module.exports = {
     wishlistjobUser,
     wishlistbusinessUser,
     listCVuploadUser,
+    chatboxUser,
 };

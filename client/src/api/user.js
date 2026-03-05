@@ -68,6 +68,10 @@ const listCVupload = async () => {
     return await axios.get(`/user/listCVupload`);
 }
 
+const chatboxUser = async (data) => {
+    return await axios.post(`/user/chatbox`, data);
+}
+
 export {
     login,
     refreshToken,
@@ -86,4 +90,5 @@ export {
     wishlistjob,
     wishlistbusiness,
     listCVupload,
+    chatboxUser,
 }

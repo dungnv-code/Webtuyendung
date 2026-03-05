@@ -10,6 +10,7 @@ import {
 import PaginationCustom from "../../../component/pagination/pagination";
 import { Link } from "react-router-dom"
 import path from "../../../ultils/path"
+import useDebounce from "../../../ultils/useDebone"
 const Job = () => {
 
     // DATA
@@ -17,6 +18,7 @@ const Job = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [limit, setLimit] = useState(3);
     const [totalPages, setTotalPages] = useState(0);
+    const [loadInput, setLoadInput] = useState(false)
 
     // FILTER LIST OPTIONS
     const [jobs, setJobs] = useState([]);
@@ -26,15 +28,15 @@ const Job = () => {
     const [cities, setCities] = useState([]);
     const [levels, setLevels] = useState([]);
 
+    const [inputValue, setInputValue] = useState("")
     // FILTER SELECTED VALUES
     const [filterJob, setFilterJob] = useState("");
     const [filterTypes, setFilterTypes] = useState([]);
-    const [filterCitys, setFilterCitys] = useState("");       // ✔ FIX: MUST BE STRING
+    const [filterCitys, setFilterCitys] = useState("");
     const [filterExp, setFilterExp] = useState([]);
     const [filterSalary, setFilterSalary] = useState("");
     const [filterLevel, setFilterLevel] = useState([]);
 
-    // 🔥 Load bài đăng theo filter
     useEffect(() => {
         const fetchPostjobs = async () => {
             try {
@@ -43,12 +45,12 @@ const Job = () => {
                     limit,
                     flatten: true,
                     populate: "salaryRange:salaryRange,min,max",
-                    sort: "-postPackage -view",
+                    sort: "-postPackage -numberUpload -view",
                     status: "active",
                     "deadline[gte]": new Date().toISOString(),
                     statusPause: false,
 
-                    // FILTERS
+                    title: inputValue || undefined,
                     jobs: filterJob || undefined,
                     workType: filterTypes.length > 0 ? filterTypes : undefined,
                     location: filterCitys || undefined,
@@ -73,10 +75,11 @@ const Job = () => {
         filterCitys,
         filterExp,
         filterSalary,
-        filterLevel
+        filterLevel,
+        loadInput,
     ]);
 
-    // 🔥 Load tỉnh thành
+
     useEffect(() => {
         const fetchCities = async () => {
             try {
@@ -90,7 +93,6 @@ const Job = () => {
         fetchCities();
     }, []);
 
-    // 🔥 Load toàn bộ filters
     useEffect(() => {
         const fetchAllFilters = async () => {
             try {
@@ -115,7 +117,7 @@ const Job = () => {
         fetchAllFilters();
     }, []);
 
-    // HANDLES
+
     const handleTypeChange = (type) => {
         setFilterTypes(prev =>
             prev.includes(type)
@@ -153,8 +155,6 @@ const Job = () => {
         return `Còn ${days} ngày`;
     };
 
-
-
     return (
         <div className="row gap-2" style={{ margin: "0 60px" }}>
 
@@ -164,7 +164,6 @@ const Job = () => {
                     <i className="fa-solid fa-filter me-1"></i> Lọc công việc
                 </h6>
 
-                {/* Ngành nghề */}
                 <div className="mb-3">
                     <label className="form-label fw-semibold">Ngành nghề</label>
                     <select
@@ -184,7 +183,6 @@ const Job = () => {
                     </select>
                 </div>
 
-                {/* Hình thức làm việc */}
                 <div className="mb-3">
                     <label className="form-label fw-semibold">Hình thức làm việc</label>
                     {typesjobs.map(item => (
@@ -200,7 +198,6 @@ const Job = () => {
                     ))}
                 </div>
 
-                {/* Vị trí */}
                 <div className="mb-3">
                     <label className="form-label fw-semibold">Vị trí</label>
                     <select
@@ -220,7 +217,6 @@ const Job = () => {
                     </select>
                 </div>
 
-                {/* Kinh nghiệm */}
                 <div className="mb-3">
                     <label className="form-label fw-semibold">Kinh nghiệm</label>
                     {exp.map(item => (
@@ -238,7 +234,6 @@ const Job = () => {
                     ))}
                 </div>
 
-                {/* Mức lương */}
                 <div className="mb-3">
                     <label className="form-label fw-semibold">Mức lương</label>
                     <select
@@ -258,7 +253,6 @@ const Job = () => {
                     </select>
                 </div>
 
-                {/* Cấp bậc */}
                 <div className="mb-3">
                     <label className="form-label fw-semibold">Cấp bậc</label>
                     <div className="row">
@@ -281,6 +275,18 @@ const Job = () => {
 
             <div className="col-8">
                 <div>{data.length} công việc được tìm thấy</div>
+                <div className="input-group input-group-sm" style={{ margin: "10px 0" }}>
+                    <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Tìm kiếm..."
+                        value={inputValue}
+                        onChange={(e) => { setInputValue(e.target.value) }}
+                    />
+                    <button className="btn btn-primary" onClick={() => { setLoadInput(!loadInput) }} >
+                        Tìm
+                    </button>
+                </div>
                 {data.map(job => (
                     <div className="card mb-3" key={job._id}>
                         <div className="card-body">

@@ -22,7 +22,7 @@ const ManagerUser = () => {
     }
 
     const [currentPage, setCurrentPage] = useState(1);
-    const [limit, setLimit] = useState(3);
+    const [limit, setLimit] = useState(10);
     const [totalPages, setTotalPages] = useState(0);
     const [listJob, setListJob] = useState([]);
     const [inputValue, setInputValue] = useState("");
@@ -285,14 +285,15 @@ const ManagerUser = () => {
                         </tbody>
                     </table>
 
-                    <div className="d-flex justify-content-center">
-                        <PaginationCustom
-                            currentPage={currentPage}
-                            setCurrentPage={setCurrentPage}
-                            limit={limit}
-                            totalPages={totalPages}
-                        />
-                    </div>
+
+                </div>
+                <div className="d-flex justify-content-center mt-3">
+                    <PaginationCustom
+                        currentPage={currentPage}
+                        setCurrentPage={setCurrentPage}
+                        limit={limit}
+                        totalPages={totalPages}
+                    />
                 </div>
             </div>
 

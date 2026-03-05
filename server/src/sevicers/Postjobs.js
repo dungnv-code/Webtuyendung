@@ -109,61 +109,77 @@ const updatePostjobs = async (idp, id, data) => {
 
 
 const buildFilter = (queries) => {
+
     const filter = {};
 
-    // Các field FE gửi dạng array (checkbox)
     const arrayFields = ["experience", "joblevel", "workType"];
 
-    // 1️⃣ Lấy schema thật từ Mongoose
     const schema = PostJob.schema.paths;
 
     for (const rawKey in queries) {
-        let key = rawKey.replace("[]", ""); // normalize
+
+        let key = rawKey.replace("[]", "");
         let value = queries[rawKey];
 
-        // Skip null/empty
         if (value === "" || value === null || value === undefined) continue;
 
-        // Normalize list
         const list = Array.isArray(value)
             ? value
             : String(value).includes(",")
                 ? value.split(",")
                 : [value];
 
-        // ====================================================
-        //  CASE 1: FIELDS ARRAY — FE gửi experience[]
-        // ====================================================
+        // ==============================
+        // ARRAY FIELD
+        // ==============================
         if (arrayFields.includes(key)) {
-            const schemaType = schema[key].instance; // "String" hoặc "Array"
+
+            const schemaType = schema[key].instance;
 
             if (schemaType === "Array") {
-                // DB field là: experience: [String]
-                filter[key] = { $in: list };  // ✔️ Hợp lệ
+                filter[key] = { $in: list };
             } else {
-                // DB field là: experience: String
-                filter.$or = list.map(v => ({ [key]: v })); // ✔️ Không còn Cast String lỗi
+                filter.$or = list.map(v => ({ [key]: v }));
             }
 
             continue;
         }
 
-        // ====================================================
-        //  CASE 2: Operator field[gte]
-        // ====================================================
+        // ==============================
+        // OPERATOR FIELD
+        // ==============================
         if (rawKey.includes("[")) {
+
             const field = rawKey.split("[")[0];
             const op = rawKey.split("[")[1].replace("]", "");
 
             if (!filter[field]) filter[field] = {};
+
             filter[field][`$${op}`] = isNaN(value) ? value : Number(value);
+
             continue;
         }
-        PostJob
-        // ====================================================
-        // Default
-        // ====================================================
+
+        // ==============================
+        // SEARCH TITLE (partial search)
+        // ==============================
+        if (key === "title") {
+
+            const keyword = value.trim();
+
+            filter[key] = {
+                $regex: keyword,
+                $options: "i"
+            };
+
+            continue;
+        }
+
+        // ==============================
+        // DEFAULT
+        // ==============================
         filter[key] = value;
+
     }
 
     return filter;
@@ -349,12 +365,12 @@ const getAllPostjobs = async (queryParams) => {
 };
 
 const getDetailPostjobs = async (idp) => {
-    const detailPostJobs = await usePostJobs.findByOne(
+
+    const detailPostJobs = await usePostJobs.updatebyOne(
         { _id: idp },
         { $inc: { view: 1 } },
-        { new: true } // trả về bản ghi sau khi update
-    )
-        .populate("business salaryRange");
+        { new: true }
+    ).populate("business salaryRange");
 
     return {
         success: true,
@@ -469,6 +485,11 @@ const uploadCVPostjobs = async (idp, id, req) => {
         throw new Error("Bạn đã nộp CV cho công việc này rồi! Không thể nộp thêm.");
     }
 
+    const now = new Date();
+    if (post.deadline && new Date(post.deadline) < now) {
+        throw new Error("Công việc này đã hết hạn nộp CV!");
+    }
+
     const cloud = await uploadToCloudinary(req.file.buffer);
     const numberUploadNext = (post.numberUpload || 0) + 1;
     let pdfText = "";
@@ -555,6 +576,22 @@ const getCVPostJobsPostjobs = async (idp, params = {}) => {
     };
 };
 
+const ChangeStatusCVPostjobs = async (idp, idcv, data) => {
+    const { status } = data
+    const update = await usePostJobs.updatebyOne(
+        { _id: idp, "listCV._id": idcv },
+        {
+            $set: { "listCV.$.status": status }
+        }
+    );
+
+    return {
+        success: true,
+        message: "Cập nhật trạng thái CV thành công",
+        data: update
+    };
+}
+
 module.exports = {
     createPostjobs,
     updatePostjobs,
@@ -565,4 +602,5 @@ module.exports = {
     changeStatusPausePostjobs,
     uploadCVPostjobs,
     getCVPostJobsPostjobs,
+    ChangeStatusCVPostjobs,
 }

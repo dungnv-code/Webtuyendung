@@ -15,5 +15,5 @@ Router.put("/changeStatus/:idp", [VerifyToken, TokenIsAdmin], PostJobController.
 Router.put("/changeStatusPause/:idp", [VerifyToken, TokenIsNhaTuyenDung], PostJobController.changeStatusPause);
 Router.get("/getCVPostJobs/:idp", [VerifyToken, TokenIsNhaTuyenDungOrStaff], PostJobController.getCVPostJobs);
 Router.put("/uploadCV/:idp", [VerifyToken], uploadPDF.single("fileCV"), PostJobController.uploadCV);
-
+Router.put("/ChangeStatusCV/:idp/:idcv", [VerifyToken, TokenIsNhaTuyenDungOrStaff], PostJobController.ChangeStatusCV);
 module.exports = Router;

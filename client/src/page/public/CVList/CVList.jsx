@@ -34,14 +34,12 @@ const CVList = () => {
                         <div className="card shadow-sm h-100">
 
                             <div className="card-body">
-                                {/* Title job */}
                                 <Link to={`${path.JOB}/${job._id}`}>
                                     <h5 className="fw-semibold text-truncate">
                                         {job.title}
                                     </h5>
                                 </Link>
 
-                                {/* Business only name */}
                                 <Link to={`${path.COMPANY}/${job.business._id}`}>
                                     <p className="text-secondary mb-1">
                                         <i className="fa-solid fa-building me-2"></i>
@@ -49,13 +47,11 @@ const CVList = () => {
                                     </p>
                                 </Link>
 
-                                {/* Location */}
                                 <p className="small mb-1">
                                     <i className="fa-solid fa-location-dot me-2"></i>
                                     {job.location}
                                 </p>
 
-                                {/* Deadline */}
                                 <p className="small mb-1">
                                     <i className="fa-solid fa-clock me-2"></i>
                                     Hạn nộp: {new Date(job.deadline).toLocaleDateString("vi-VN")}

@@ -78,6 +78,12 @@ class PostJobController {
         const response = await PostjobsSevicer.getCVPostJobsPostjobs(idp, req.query);
         res.status(200).json(response);
     });
+
+    ChangeStatusCV = asyncHandler(async (req, res) => {
+        const { idcv, idp } = req.params;
+        const response = await PostjobsSevicer.ChangeStatusCVPostjobs(idp, idcv, req.body);
+        res.status(200).json(response);
+    });
 }
 
 module.exports = new PostJobController();

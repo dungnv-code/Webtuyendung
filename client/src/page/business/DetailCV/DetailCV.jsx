@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import PaginationCustom from "../../../component/pagination/pagination";
 import { detailPostJobCV } from "../../../api/business";
+import { ChangeStatusCVPostjobs } from "../../../api/job";
 import { toast } from "react-toastify";
 import { ReadPDF } from "../../../component";
 import { useParams } from "react-router-dom";
@@ -34,6 +35,18 @@ const DetailCV = () => {
         fetchData();
     }, [currentPage, limit, loaddata]);
 
+    const handleChangeStatus = async (idp, idcv, status) => {
+        try {
+            const repo = await ChangeStatusCVPostjobs(idp, idcv, { status })
+            if (repo.success) {
+                toast.success(repo.message || "cập nhật trạng thái thành công")
+                setLoaddata(!loaddata)
+            }
+        } catch (err) {
+
+        }
+    }
+
     return (
         <div className="container py-5">
 
@@ -52,6 +65,8 @@ const DetailCV = () => {
                                     <th scope="col">Điện thoại</th>
                                     <th scope="col">Phù hợp</th>
                                     <th scope="col">Đánh giá</th>
+                                    <th scope="col">Trạng thái</th>
+                                    <th scope="col">Cập nhật</th>
                                     <th scope="col">Xem CV</th>
                                 </tr>
                             </thead>
@@ -65,7 +80,26 @@ const DetailCV = () => {
                                         <td>{job.idUser.phone}</td>
                                         <td>{job.ratio}%</td>
                                         <td>{job.evaluate}</td>
+                                        <td>
+                                            {job.status === "active"
+                                                ? "Đã duyệt"
+                                                : job.status === "pendding"
+                                                    ? "Đang chờ duyệt"
+                                                    : job.status === "unactive"
+                                                        ? "Từ chối"
+                                                        : "Không xác định"}
+                                        </td>
+                                        <td>
+                                            <select
+                                                value={job.status}
+                                                onChange={(e) => handleChangeStatus(idp, job._id, e.target.value)}
+                                            >
+                                                <option value="pendding">Đang chờ</option>
+                                                <option value="active">Duyệt</option>
+                                                <option value="unactive">Từ chối</option>
 
+                                            </select>
+                                        </td>
                                         <td>
                                             <button
                                                 className="btn btn-outline-primary btn-sm"

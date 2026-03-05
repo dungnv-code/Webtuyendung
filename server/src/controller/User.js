@@ -213,6 +213,11 @@ class ControllerUser {
         const reponse = await userSevicer.listCVuploadUser(id);
         res.status(200).json(reponse);
     })
+
+    chatbox = asyncHandler(async (req, res) => {
+        const reponse = await userSevicer.chatboxUser(req.body);
+        res.status(200).json(reponse);
+    })
 }
 
 module.exports = new ControllerUser();

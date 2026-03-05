@@ -13,7 +13,6 @@ const Header = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-
     const [isChecking, setIsChecking] = useState(true);
 
     useEffect(() => {
