@@ -17,7 +17,7 @@ const uploadToCloudinary = (fileBuffer) => {
     return new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
             {
-                resource_type: "raw",   // Để upload PDF
+                resource_type: "raw",
                 folder: "cv_pdf"
             },
             (err, result) => {
@@ -67,7 +67,7 @@ const createPostjobs = async (businessId, id, data) => {
     };
 
     data.deadline = convertDate(data.deadline);
-    data.imageCover = business.imageCoverBusiness
+    data.imageCover = business.imageAvatarBusiness
     data.business = businessId;
     data.userPost = exitUser.username;
 
@@ -129,9 +129,6 @@ const buildFilter = (queries) => {
                 ? value.split(",")
                 : [value];
 
-        // ==============================
-        // ARRAY FIELD
-        // ==============================
         if (arrayFields.includes(key)) {
 
             const schemaType = schema[key].instance;
@@ -144,10 +141,6 @@ const buildFilter = (queries) => {
 
             continue;
         }
-
-        // ==============================
-        // OPERATOR FIELD
-        // ==============================
         if (rawKey.includes("[")) {
 
             const field = rawKey.split("[")[0];
@@ -160,9 +153,6 @@ const buildFilter = (queries) => {
             continue;
         }
 
-        // ==============================
-        // SEARCH TITLE (partial search)
-        // ==============================
         if (key === "title") {
 
             const keyword = value.trim();
@@ -175,9 +165,6 @@ const buildFilter = (queries) => {
             continue;
         }
 
-        // ==============================
-        // DEFAULT
-        // ==============================
         filter[key] = value;
 
     }
@@ -189,8 +176,8 @@ const detectOperator = (key) => {
     const match = key.match(/(.+)\[(gt|gte|lt|lte|eq|ne)\]$/);
     if (!match) return null;
     return {
-        field: match[1],          // salaryRange_min
-        op: `$${match[2]}`        // $gt
+        field: match[1],
+        op: `$${match[2]}`
     };
 };
 

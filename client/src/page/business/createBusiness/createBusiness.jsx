@@ -289,8 +289,8 @@ const CreateBusiness = () => {
                         }
                         value={form?.descriptionBusiness}
                         apiKey={import.meta.env.VITE_API_MAKE_DOWN}
-                        // onInit={(_evt, editor) => editorRef.current = editor}
-                        initialValue="<p>This is the initial content of the editor.</p>"
+
+                        initialValue="<p>Mô tả về công ty của bạn.</p>"
                         init={{
                             height: 500,
                             menubar: true,

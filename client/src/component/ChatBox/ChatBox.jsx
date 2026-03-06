@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { chatboxUser } from "../../api/user";
-import path from "../../ultils/path"
-import { Link } from "react-router-dom"
+import path from "../../ultils/path";
+import { Link } from "react-router-dom";
+
 const ChatBox = () => {
 
     const [open, setOpen] = useState(false);
@@ -25,12 +26,12 @@ const ChatBox = () => {
         };
 
         setMessages(prev => [...prev, userMessage]);
-
         setLoading(true);
 
         try {
 
             const res = await chatboxUser({ message });
+
             const newMessages = [
                 {
                     role: "bot",
@@ -62,35 +63,22 @@ const ChatBox = () => {
 
         setLoading(false);
         setMessage("");
+
     };
 
     return (
         <>
 
             {/* BUTTON */}
-            <div
-                style={{
-                    position: "fixed",
-                    bottom: "5%",
-                    right: "5%",
-                    zIndex: 1000
-                }}
-            >
-                <div
-                    className="bg-info"
+
+            <div className="position-fixed bottom-0 end-0 m-4" style={{ zIndex: 1000 }}>
+                <button
+                    className="btn btn-info rounded-circle shadow"
+                    style={{ width: "60px", height: "60px" }}
                     onClick={() => setOpen(!open)}
-                    style={{
-                        width: "60px",
-                        height: "60px",
-                        borderRadius: "50%",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        cursor: "pointer"
-                    }}
                 >
-                    <i className="fa-solid fa-robot" style={{ fontSize: "28px" }}></i>
-                </div>
+                    <i className="fa-solid fa-robot fs-4"></i>
+                </button>
             </div>
 
             {/* CHATBOX */}
@@ -98,82 +86,59 @@ const ChatBox = () => {
             {open && (
 
                 <div
+                    className="card shadow-lg position-fixed bottom-0 end-0 m-4"
                     style={{
-                        position: "fixed",
-                        bottom: "100px",
-                        right: "5%",
-                        width: "360px",
-                        height: "470px",
-                        background: "#fff",
-                        borderRadius: "10px",
-                        boxShadow: "0 0 15px rgba(0,0,0,0.2)",
-                        display: "flex",
-                        flexDirection: "column",
+                        width: "380px",
+                        height: "500px",
                         zIndex: 1000
                     }}
                 >
+                    <div className="card-header bg-info text-white d-flex justify-content-between align-items-center">
 
-                    {/* HEADER */}
+                        <span className="d-flex align-items-center gap-2">
+                            <i class="fa-brands fa-bots" style={{ fontSize: "45px" }}></i> tìm Việc
+                        </span>
 
-                    <div
-                        style={{
-                            background: "#0dcaf0",
-                            color: "#fff",
-                            padding: "10px",
-                            fontWeight: "bold"
-                        }}
-                    >
-                        🤖 AI Tìm Việc
+                        <button
+                            className="btn btn-sm btn-light"
+                            onClick={() => setOpen(false)}
+                        >
+                            ✕
+                        </button>
+
                     </div>
 
-                    {/* MESSAGES */}
 
                     <div
-                        style={{
-                            flex: 1,
-                            padding: "10px",
-                            overflowY: "auto"
-                        }}
+                        className="card-body overflow-auto"
+                        style={{ background: "#f8f9fa" }}
                     >
 
                         {messages.map((msg, index) => {
 
-                            // USER
-
                             if (msg.role === "user") {
 
                                 return (
-                                    <div key={index} style={{ textAlign: "right", marginBottom: "10px" }}>
-                                        <span
-                                            style={{
-                                                background: "#0dcaf0",
-                                                color: "#fff",
-                                                padding: "6px 10px",
-                                                borderRadius: "10px"
-                                            }}
-                                        >
+                                    <div key={index} className="d-flex justify-content-end mb-2">
+
+                                        <div className="bg-info text-white px-3 py-2 rounded">
                                             {msg.text}
-                                        </span>
+                                        </div>
+
                                     </div>
                                 );
 
                             }
 
-                            // BOT
-
                             if (msg.role === "bot") {
 
                                 return (
-                                    <div key={index} style={{ marginBottom: "10px" }}>
-                                        <span
-                                            style={{
-                                                background: "#eee",
-                                                padding: "6px 10px",
-                                                borderRadius: "10px"
-                                            }}
-                                        >
+                                    <div key={index} className="d-flex mb-2">
+
+                                        <div className="bg-white border px-3 py-2 rounded shadow-sm">
                                             {msg.text}
-                                        </span>
+                                        </div>
+
                                     </div>
                                 );
 
@@ -184,28 +149,36 @@ const ChatBox = () => {
                                 const job = msg.data;
 
                                 return (
-                                    <div
-                                        key={index}
-                                        style={{
-                                            border: "1px solid #ddd",
-                                            borderRadius: "8px",
-                                            padding: "10px",
-                                            marginBottom: "10px",
-                                            background: "#f8f9fa"
-                                        }}
-                                    >
 
-                                        <Link to={`${path.JOB}/${job._id}`}><b>{job.title}</b></Link>
+                                    <div key={index} className="card mb-2 border-0 shadow-sm">
 
-                                        <p>📍 {job.location}</p>
+                                        <div className="card-body p-2">
 
-                                        <p>👀 {job.view} lượt xem</p>
+                                            <Link
+                                                to={`${path.JOB}/${job._id}`}
+                                                className="fw-bold text-decoration-none"
+                                            >
+                                                {job.title}
+                                            </Link>
 
-                                        <p>
-                                            📅 {new Date(job.deadline).toLocaleDateString()}
-                                        </p>
+                                            <div className="small text-muted">
+
+                                                <div>📍 {job.location}</div>
+
+                                                <div>
+                                                    👔 {job.joblevel}
+                                                </div>
+
+                                                <div>
+                                                    📅 {new Date(job.deadline).toLocaleDateString()}
+                                                </div>
+
+                                            </div>
+
+                                        </div>
 
                                     </div>
+
                                 );
 
                             }
@@ -215,48 +188,37 @@ const ChatBox = () => {
                         })}
 
                         {loading && (
-                            <p>🤖 AI đang trả lời...</p>
+                            <div className="text-muted small d-flex align-items-center gap-3">
+                                <i class="fa-brands fa-bots" style={{ fontSize: "35px" }}></i> đang trả lời...
+                            </div>
                         )}
 
                         <div ref={bottomRef}></div>
 
                     </div>
 
-                    {/* INPUT */}
+                    <div className="card-footer">
 
-                    <div
-                        style={{
-                            display: "flex",
-                            borderTop: "1px solid #ddd"
-                        }}
-                    >
+                        <div className="input-group">
+                            <input
+                                type="text"
+                                className="form-control"
+                                placeholder="Hỏi về việc làm..."
+                                value={message}
+                                onChange={(e) => setMessage(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter") sendMessage();
+                                }}
+                            />
 
-                        <input
-                            type="text"
-                            value={message}
-                            onChange={(e) => setMessage(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === "Enter") sendMessage();
-                            }}
-                            placeholder="Nhập câu hỏi..."
-                            style={{
-                                flex: 1,
-                                border: "none",
-                                padding: "10px"
-                            }}
-                        />
+                            <button
+                                className="btn btn-info text-white"
+                                onClick={sendMessage}
+                            >
+                                Gửi
+                            </button>
 
-                        <button
-                            onClick={sendMessage}
-                            style={{
-                                border: "none",
-                                background: "#0dcaf0",
-                                color: "#fff",
-                                padding: "10px 15px"
-                            }}
-                        >
-                            Gửi
-                        </button>
+                        </div>
 
                     </div>
 

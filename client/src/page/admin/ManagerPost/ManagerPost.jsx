@@ -24,7 +24,7 @@ const ManagerPost = () => {
     }
 
     const [currentPage, setCurrentPage] = useState(1);
-    const [limit, setLimit] = useState(3);
+    const [limit, setLimit] = useState(10);
     const [totalPages, setTotalPages] = useState(0);
     const [listJob, setListJob] = useState([]);
     const [inputValue, setInputValue] = useState("");

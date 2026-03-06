@@ -25,65 +25,115 @@ const updateSkill = async (ids, data) => {
     };
 }
 
-// ---------------------- BUILD FILTER ----------------------
-const buildFilter = (queries) => {
+
+const buildFilter = (queries = {}, populate = []) => {
+
     const filter = {};
 
     for (const key in queries) {
 
-        // Bỏ qua filter dạng flatten (job_title, job.title)
-        if (key.includes("_") || key.includes(".")) continue;
+        const value = queries[key];
 
-        filter[key] = { $regex: queries[key], $options: "i" };
+        if (!value) continue;
+
+        // ignore populate filter (job.title)
+        if (key.includes(".") || key.includes("_")) {
+
+            const [path] = key.split(/[._]/);
+
+            const isPopulate = populate?.some(p => p.path === path);
+
+            if (isPopulate) continue;
+        }
+
+        // _id filter
+        if (key === "_id") {
+
+            if (mongoose.Types.ObjectId.isValid(value)) {
+                filter._id = new mongoose.Types.ObjectId(value);
+            }
+
+            continue;
+        }
+
+        // normal regex filter
+        filter[key] = {
+            $regex: value,
+            $options: "i"
+        };
     }
 
     return filter;
 };
 
 
-// ---------------------- FLATTEN HELPERS ----------------------
+
+// ---------------------- FLATTEN POPULATE ----------------------
 const flattenPopulate = (item, populations = []) => {
+
+    const newItem = { ...item };
+
     populations.forEach(pop => {
+
         const path = pop.path;
 
-        if (item[path] && typeof item[path] === "object") {
-            for (const key in item[path]) {
+        if (newItem[path] && typeof newItem[path] === "object") {
+
+            const obj = newItem[path];
+
+            for (const key in obj) {
+
                 const newKey = `${path}_${key}`;
-                item[newKey] = item[path][key];
+
+                newItem[newKey] = obj[key];
             }
-            delete item[path];
+
+            delete newItem[path];
         }
+
     });
 
-    return item;
+    return newItem;
 };
 
+
+
+// ---------------------- FLATTEN ARRAY ----------------------
 const flattenPopulateArray = (items, populations = []) => {
+
     if (!Array.isArray(items)) return items;
+
     return items.map(item => flattenPopulate(item, populations));
 };
 
 
-// ---------------------- FLATTEN QUERY PARSER ----------------------
+
+// ---------------------- PARSE FLATTEN QUERY ----------------------
 const convertFlattenQuery = (queryParams, populate = []) => {
+
     const flatFilters = {};
 
     for (const key in queryParams) {
 
-        // Case 1: job.title
+        // case job.title
         if (key.includes(".")) {
+
             const [path, field] = key.split(".");
+
             const isPopulated = populate?.some(p => p.path === path);
 
             if (isPopulated) {
                 flatFilters[`${path}_${field}`] = queryParams[key];
             }
+
             continue;
         }
 
-        // Case 2: job_title
+        // case job_title
         if (key.includes("_")) {
+
             const [path] = key.split("_");
+
             const isPopulated = populate?.some(p => p.path === path);
 
             if (isPopulated) {
@@ -96,15 +146,23 @@ const convertFlattenQuery = (queryParams, populate = []) => {
 };
 
 
+
 // ---------------------- APPLY FLATTEN FILTER ----------------------
 const applyFlattenFilter = (items, flatFilters = {}) => {
+
     return items.filter(item => {
 
         for (const key in flatFilters) {
-            const expected = String(flatFilters[key]).toLowerCase().normalize("NFC");
-            const actual = String(item[key] ?? "").toLowerCase().normalize("NFC");
 
-            if (actual !== expected) return false;
+            const expected = String(flatFilters[key])
+                .toLowerCase()
+                .normalize("NFC");
+
+            const actual = String(item[key] ?? "")
+                .toLowerCase()
+                .normalize("NFC");
+
+            if (!actual.includes(expected)) return false;
         }
 
         return true;
@@ -112,38 +170,73 @@ const applyFlattenFilter = (items, flatFilters = {}) => {
 };
 
 
-// ---------------------- MAIN FUNCTION ----------------------
 const getAllSkill = async (queryParams) => {
-    const excludeFields = ["limit", "sort", "page", "fields", "random", "seed", "populate", "flatten"];
+
+    const excludeFields = [
+        "limit",
+        "sort",
+        "page",
+        "fields",
+        "random",
+        "seed",
+        "populate",
+        "flatten"
+    ];
+
     const queries = { ...queryParams };
 
     excludeFields.forEach(el => delete queries[el]);
 
-    const filter = buildFilter(queries);
 
-    const limit = Number(queryParams.limit) || 20;
-    const sort = queryParams.sort || "-createdAt";
-    const page = Number(queryParams.page) || 1;
-    const skip = (page - 1) * limit;
-    const fields = queryParams.fields?.split(",").join(" ");
-    const flatten = queryParams.flatten === "true";
 
+    // ---------------------- PARSE POPULATE ----------------------
     let populate = null;
+
     if (queryParams.populate) {
+
         populate = queryParams.populate.split(";").map(p => {
+
             const [path, select] = p.split(":");
+
             return {
                 path: path.trim(),
                 select: select ? select.replace(/,/g, " ") : undefined
             };
+
         });
     }
 
-    let [jobs, total] = await Promise.all([
-        useSkill.findAll(filter, { fields, sort, skip, limit, populate }),
-        useSkill.countDocuments(filter)
-    ]);
 
+
+    // ---------------------- BUILD FILTER ----------------------
+    const filter = buildFilter(queries, populate);
+
+
+
+    // ---------------------- PAGINATION ----------------------
+    const limit = Number(queryParams.limit) || 20;
+    const sort = queryParams.sort || "-createdAt";
+    const page = Number(queryParams.page) || 1;
+    const skip = (page - 1) * limit;
+
+    const fields = queryParams.fields?.split(",").join(" ");
+
+    const flatten =
+        queryParams.flatten === true ||
+        queryParams.flatten === "true";
+
+
+
+    // ---------------------- FETCH DATA ----------------------
+    let jobs = await useSkill.findAll(filter, {
+        fields,
+        sort,
+        populate
+    });
+
+
+
+    // ---------------------- FLATTEN PROCESS ----------------------
     if (flatten && populate) {
 
         jobs = flattenPopulateArray(jobs, populate);
@@ -151,12 +244,23 @@ const getAllSkill = async (queryParams) => {
         const flatFilters = convertFlattenQuery(queryParams, populate);
 
         if (Object.keys(flatFilters).length > 0) {
+
             jobs = applyFlattenFilter(jobs, flatFilters);
+
         }
     }
 
+
+
+    // ---------------------- PAGINATION AFTER FILTER ----------------------
+    const total = jobs.length;
+
+    const paginatedJobs = jobs.slice(skip, skip + limit);
+
+
+
     return {
-        data: jobs,
+        data: paginatedJobs,
         total,
         totalPages: Math.ceil(total / limit),
         currentPage: page

@@ -188,10 +188,10 @@ const DetailBusiness = () => {
                                 </div>
 
                                 <div className="text-secondary small mt-4">
-                                    {data?.description ? (
+                                    {data?.descriptionBusiness ? (
                                         <div
                                             className="job-description"
-                                            dangerouslySetInnerHTML={{ __html: data.description }}
+                                            dangerouslySetInnerHTML={{ __html: data.descriptionBusiness }}
                                         ></div>
                                     ) : (
                                         <p className="text-muted fst-italic">

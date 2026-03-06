@@ -1,136 +1,312 @@
-import { Link } from 'react-router-dom';
-import banner from '../../../assets/banner.png';
-import path from '../../../ultils/path';
+import { Link } from "react-router-dom";
+import banner from "../../../assets/banner.png";
+import path from "../../../ultils/path";
 
-import { useEffect } from 'react';
-import { useDispatch } from 'react-redux';
 const Home = () => {
 
     return (
         <div className="home">
-            <div>
-                <img src={banner} alt="Banner" width="100%" height="400" />
-            </div>
 
-            <div style={{ marginTop: "50px", textAlign: "center" }}>
-                <div>
-                    <p>Lĩnh công việc nổi bật</p>
-                    <h1>Danh mục ngành nghề</h1>
-                </div>
+            {/* BANNER */}
 
-                <div style={{ display: "flex", gap: "20px", marginTop: "40px" }}>
-                    <div style={{ flex: 1, backgroundColor: "#f0f0f0", padding: "20px", borderRadius: "8px" }}>
-                        <h2>Ngành IT</h2>
-                        <p>Phát triển phần mềm, quản trị mạng, an ninh mạng...</p>
-                    </div>
-                    <div style={{ flex: 1, backgroundColor: "#f0f0f0", padding: "20px", borderRadius: "8px" }}>
-                        <h2>Ngành Marketing</h2>
-                        <p>Quảng cáo, truyền thông, nghiên cứu thị trường...</p>
-                    </div>
-                    <div style={{ flex: 1, backgroundColor: "#f0f0f0", padding: "20px", borderRadius: "8px" }}>
-                        <h2>Ngành Tài chính</h2>
-                        <p>Kế toán, phân tích tài chính, ngân hàng...</p>
-                    </div>
-                    <div style={{ flex: 1, backgroundColor: "#f0f0f0", padding: "20px", borderRadius: "8px" }}>
-                        <h2>Ngành Sản xuất</h2>
-                        <p>Quản lý sản xuất, kỹ thuật, vận hành...</p>
-                    </div>
-                </div>
-            </div>
+            <div className="position-relative">
+                <img
+                    src={banner}
+                    className="w-100"
+                    style={{ height: "420px", objectFit: "cover" }}
+                    alt="banner"
+                />
 
-            {/* Banner */}
-            <div style={{ marginTop: "50px", textAlign: "center" }}>
-                <div style={{ position: "relative" }}>
-                    <img
-                        src="https://cdn-new.topcv.vn/unsafe/https://static.topcv.vn/company_covers/yb1I4bHCyIFi2WrPAdyN.jpg"
-                        alt="Banner"
-                        style={{ width: "100%", height: "400px", objectFit: "cover" }}
-                    />
-                    <div
-                        style={{
-                            position: "absolute",
-                            top: 0,
-                            left: 0,
-                            width: "100%",
-                            height: "100%",
-                            backgroundColor: "rgba(0,0,0,0.4)"
-                        }}
-                    ></div>
+                <div className="position-absolute top-50 start-50 translate-middle text-center text-white">
 
-                    <div
-                        style={{
-                            position: "absolute",
-                            top: "30%",
-                            left: "50%",
-                            transform: "translateX(-50%)",
-                            color: "white",
-                            textAlign: "center"
-                        }}
+                    <h1 className="fw-bold">Tìm việc làm mơ ước</h1>
+
+                    <p className="mb-4">
+                        Hơn 10.000 cơ hội việc làm đang chờ bạn
+                    </p>
+
+                    <Link
+                        to={path.JOB}
+                        className="btn btn-success btn-lg"
                     >
-                        <h1>Top công ty tuyển dụng</h1>
-                        <p>Cơ hội làm việc tại các công ty hàng đầu</p>
+                        Tìm việc ngay
+                    </Link>
 
-                        <button
-                            style={{
-                                marginTop: "40px",
-                                padding: "10px 20px",
-                                backgroundColor: "#007bff",
-                                color: "#fff",
-                                border: "none",
-                                borderRadius: "4px"
-                            }}
-                        >
-                            <Link to={path.JOB} style={{ color: "#fff", textDecoration: "none" }}>
-                                Tìm việc ngay
-                            </Link>
-                        </button>
-                    </div>
                 </div>
             </div>
 
-            {/* Công việc mới */}
-            <div style={{ marginTop: "50px", textAlign: "center" }}>
-                <p>Công việc mới nhất</p>
-                <h1>Việc làm mới nhất</h1>
 
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "40px", marginTop: "40px" }}>
-                    <div style={{ backgroundColor: "#f0f0f0", width: "80%", padding: "10px", borderRadius: "8px" }}>
-                        <h2>Chuyên viên Marketing</h2>
-                        <p>Công ty ABC - Hà Nội</p>
+            {/* DANH MỤC NGÀNH NGHỀ */}
+
+            <div className="container py-5 text-center">
+
+                <p className="text-success fw-bold">Lĩnh vực nổi bật</p>
+
+                <h2 className="fw-bold mb-5 text-success">
+                    Danh mục ngành nghề
+                </h2>
+
+                <div className="row g-4 mt-5">
+                    <div className="col-md-3">
+                        <div className="card border-0 shadow h-100">
+                            <div className="card-body">
+                                <i className="fa-solid fa-laptop-code text-success fs-1"></i>
+                                <h5 className="mt-3 fw-bold">Ngành IT</h5>
+                                <p className="text-muted">
+                                    Phát triển phần mềm, an ninh mạng, DevOps...
+                                </p>
+                            </div>
+                        </div>
                     </div>
-                    <div style={{ backgroundColor: "#f0f0f0", width: "80%", padding: "10px", borderRadius: "8px" }}>
-                        <h2>Kỹ sư phần mềm</h2>
-                        <p>Công ty XYZ - Hồ Chí Minh</p>
+
+                    <div className="col-md-3">
+                        <div className="card border-0 shadow h-100">
+                            <div className="card-body">
+                                <i className="fa-solid fa-bullhorn text-success fs-1"></i>
+                                <h5 className="mt-3 fw-bold">Marketing</h5>
+                                <p className="text-muted">
+                                    Quảng cáo, truyền thông, digital marketing
+                                </p>
+                            </div>
+                        </div>
                     </div>
-                    <div style={{ backgroundColor: "#f0f0f0", width: "80%", padding: "10px", borderRadius: "8px" }}>
-                        <h2>Kế toán viên</h2>
-                        <p>Công ty DEF - Đà Nẵng</p>
+
+                    <div className="col-md-3">
+                        <div className="card border-0 shadow h-100">
+                            <div className="card-body">
+                                <i className="fa-solid fa-coins text-success fs-1"></i>
+                                <h5 className="mt-3 fw-bold">Tài chính</h5>
+                                <p className="text-muted">
+                                    Kế toán, ngân hàng, phân tích tài chính
+                                </p>
+                            </div>
+                        </div>
                     </div>
+
+                    <div className="col-md-3">
+                        <div className="card border-0 shadow h-100">
+                            <div className="card-body">
+                                <i className="fa-solid fa-industry text-success fs-1"></i>
+                                <h5 className="mt-3 fw-bold">Sản xuất</h5>
+                                <p className="text-muted">
+                                    Quản lý sản xuất, vận hành nhà máy
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
+
             </div>
 
-            {/* Quy trình ứng tuyển */}
-            <div style={{ marginTop: "50px", textAlign: "center", backgroundColor: "#f9f9f9", padding: "40px 20px" }}>
-                <p>Quy trình ứng tuyển đơn giản</p>
-                <h1>Ứng tuyển dễ dàng chỉ với 3 bước</h1>
 
-                <div style={{ display: "flex", gap: "80px", marginTop: "40px", justifyContent: "center" }}>
-                    <div style={{ backgroundColor: "#f0f0f0", padding: "20px", borderRadius: "8px", width: "200px" }}>
-                        <h2>Bước 1</h2>
-                        <p>Tìm kiếm công việc</p>
-                    </div>
-                    <div style={{ backgroundColor: "#f0f0f0", padding: "20px", borderRadius: "8px", width: "200px" }}>
-                        <h2>Bước 2</h2>
-                        <p>Ứng tuyển công việc</p>
-                    </div>
-                    <div style={{ backgroundColor: "#f0f0f0", padding: "20px", borderRadius: "8px", width: "200px" }}>
-                        <h2>Bước 3</h2>
-                        <p>Nhận công việc</p>
-                    </div>
+            {/* BANNER CÔNG TY */}
+
+            <div className="position-relative mt-5">
+
+                <img
+                    src="https://cdn-new.topcv.vn/unsafe/https://static.topcv.vn/company_covers/yb1I4bHCyIFi2WrPAdyN.jpg"
+                    className="w-100"
+                    style={{ height: "400px", objectFit: "cover" }}
+                    alt=""
+                />
+
+                <div
+                    className="position-absolute top-0 start-0 w-100 h-100"
+                    style={{ background: "rgba(0,0,0,0.5)" }}
+                ></div>
+
+                <div className="position-absolute top-50 start-50 translate-middle text-center text-white">
+
+                    <h2 className="fw-bold ">Top công ty tuyển dụng</h2>
+
+                    <p>Cơ hội làm việc tại các doanh nghiệp hàng đầu</p>
+
+                    <Link
+                        to={path.JOB}
+                        className="btn btn-success mt-3"
+                    >
+                        Xem công việc
+                    </Link>
+
                 </div>
+
             </div>
+
+
+            {/* VIỆC MỚI NHẤT */}
+
+            <div className="container py-5 text-center">
+
+                <p className="text-success fw-bold">Công việc mới</p>
+
+                <h2 className="fw-bold mb-5 text-success">
+                    Việc làm mới nhất
+                </h2>
+
+                <div className="row g-4">
+
+                    <div className="col-md-4">
+
+                        <div className="card shadow border-0 h-100">
+
+                            <div className="card-body">
+
+                                <h5 className="fw-bold">
+                                    Chuyên viên Marketing
+                                </h5>
+
+                                <p className="text-muted">
+                                    Công ty ABC - Hà Nội
+                                </p>
+
+                                <span className="badge bg-success">
+                                    10 - 15 triệu
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div className="col-md-4">
+
+                        <div className="card shadow border-0 h-100">
+
+                            <div className="card-body">
+
+                                <h5 className="fw-bold">
+                                    Kỹ sư phần mềm
+                                </h5>
+
+                                <p className="text-muted">
+                                    Công ty XYZ - Hồ Chí Minh
+                                </p>
+
+                                <span className="badge bg-success">
+                                    20 - 30 triệu
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div className="col-md-4">
+
+                        <div className="card shadow border-0 h-100">
+
+                            <div className="card-body">
+
+                                <h5 className="fw-bold">
+                                    Kế toán viên
+                                </h5>
+
+                                <p className="text-muted">
+                                    Công ty DEF - Đà Nẵng
+                                </p>
+
+                                <span className="badge bg-success">
+                                    12 - 18 triệu
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            {/* QUY TRÌNH */}
+
+            <div className="bg-light py-5">
+
+                <div className="container text-center">
+
+                    <p className="text-success fw-bold">
+                        Quy trình ứng tuyển
+                    </p>
+
+                    <h2 className="fw-bold mb-5 text-success">
+                        Ứng tuyển dễ dàng chỉ với 3 bước
+                    </h2>
+
+                    <div className="row g-4">
+
+                        <div className="col-md-4">
+
+                            <div className="card border-0 shadow h-100">
+
+                                <div className="card-body">
+
+                                    <div className="fs-1 text-success">
+                                        1
+                                    </div>
+
+                                    <h5 className="fw-bold">
+                                        Tìm kiếm công việc
+                                    </h5>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div className="col-md-4">
+
+                            <div className="card border-0 shadow h-100">
+
+                                <div className="card-body">
+
+                                    <div className="fs-1 text-success">
+                                        2
+                                    </div>
+
+                                    <h5 className="fw-bold">
+                                        Ứng tuyển công việc
+                                    </h5>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div className="col-md-4">
+
+                            <div className="card border-0 shadow h-100">
+
+                                <div className="card-body">
+
+                                    <div className="fs-1 text-success">
+                                        3
+                                    </div>
+
+                                    <h5 className="fw-bold">
+                                        Nhận công việc
+                                    </h5>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
         </div>
     );
-}
+};
 
 export default Home;

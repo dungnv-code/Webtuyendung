@@ -4,21 +4,7 @@ import { Header, Footer, ChatBox } from '../../../component';
 const DefaultPublic = () => {
     return <>
         <div style={{ position: "relative" }}>
-            <div style={{ position: "fixed", bottom: "5%", right: "5%", zIndex: 1000 }}>
-                <div
-                    className="bg-info"
-                    style={{
-                        width: "60px",
-                        height: "60px",
-                        borderRadius: "50%",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                    }}
-                >
-                    <ChatBox />
-                </div>
-            </div>
+            <ChatBox />
             <div>
                 <Header />
             </div>

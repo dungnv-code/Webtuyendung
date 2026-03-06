@@ -590,7 +590,7 @@ const chatboxUser = async (data) => {
         const messageLower = message.toLowerCase().replace(/[?.,!]/g, "");
         const now = new Date();
 
-        // synonym
+        // synonym từ viết tắt
         const synonyms = {
             cntt: "công nghệ thông tin",
             it: "công nghệ thông tin",
@@ -600,7 +600,7 @@ const chatboxUser = async (data) => {
             hn: "hà nội"
         };
 
-        // keyword check (tránh hỏi linh tinh)
+        // keyword tìm việc
         const jobKeywords = [
             "việc",
             "job",
@@ -616,17 +616,88 @@ const chatboxUser = async (data) => {
             "engineer"
         ];
 
-        const isJobQuestion = jobKeywords.some(k => messageLower.includes(k));
+        // keyword tư vấn nghề
+        const careerKeywords = [
+            "nghề",
+            "ngành",
+            "tư vấn",
+            "chọn nghề",
+            "nên học",
+            "ngành hot",
+            "ngành nào",
+            "tương lai",
+            "lương cao",
+            "dễ xin việc",
+            "nghề gì",
+            "career"
+        ];
 
-        if (!isJobQuestion) {
+        const isJobQuestion = jobKeywords.some(k => messageLower.includes(k));
+        const isCareerQuestion = careerKeywords.some(k => messageLower.includes(k));
+
+        if (!isJobQuestion && !isCareerQuestion) {
             return {
                 success: true,
-                reply: "Tôi chỉ hỗ trợ tìm kiếm việc làm. Ví dụ: 'việc React tại Hà Nội'.",
+                reply: "Tôi có thể giúp tìm việc hoặc tư vấn nghề nghiệp. Ví dụ: 'việc React Hà Nội' hoặc 'ngành nào đang hot'.",
                 jobs: []
             };
         }
 
-        // query base
+        // =============================
+        // TƯ VẤN NGHỀ NGHIỆP (AI)
+        // =============================
+
+        if (isCareerQuestion && !isJobQuestion) {
+
+            try {
+
+                const chatCompletion = await groq.chat.completions.create({
+                    model: "llama-3.3-70b-versatile",
+                    temperature: 0.6,
+                    messages: [
+                        {
+                            role: "system",
+                            content: `
+Bạn là chuyên gia tư vấn nghề nghiệp cho website tuyển dụng.
+
+Quy tắc:
+- Trả lời ngắn gọn
+- Tối đa 4 câu
+- Nội dung thực tế
+- Có thể gợi ý ngành đang tuyển nhiều
+`
+                        },
+                        {
+                            role: "user",
+                            content: message
+                        }
+                    ]
+                });
+
+                return {
+                    success: true,
+                    reply: chatCompletion.choices[0].message.content,
+                    jobs: []
+                };
+
+            } catch (aiError) {
+
+                console.log("AI error:", aiError.message);
+
+                return {
+                    success: true,
+                    reply: "Hiện nay các ngành hot gồm Công nghệ thông tin, Digital Marketing, Thương mại điện tử và Data Analyst.",
+                    jobs: []
+                };
+
+            }
+
+        }
+
+        // =============================
+        // TÌM JOB TRONG DATABASE
+        // =============================
+
         let query = {
             status: "active",
             statusPause: false,
@@ -643,6 +714,7 @@ const chatboxUser = async (data) => {
         }
 
         // location filter
+
         if (messageLower.includes("hà nội") || messageLower.includes(" hn")) {
             query.location = { $regex: "Hà Nội", $options: "i" };
         }
@@ -654,12 +726,13 @@ const chatboxUser = async (data) => {
         if (
             messageLower.includes("hồ chí minh") ||
             messageLower.includes("hcm") ||
-            messageLower.includes(" sài gòn")
+            messageLower.includes("sài gòn")
         ) {
             query.location = { $regex: "Hồ Chí Minh", $options: "i" };
         }
 
         // sort
+
         if (messageLower.includes("view cao") || messageLower.includes("xem nhiều")) {
             sortOption = { view: -1 };
         }
@@ -669,6 +742,7 @@ const chatboxUser = async (data) => {
         }
 
         // stop words
+
         const stopWords = [
             "các",
             "job",
@@ -689,7 +763,6 @@ const chatboxUser = async (data) => {
 
         const processedKeywords = rawKeywords.map(k => synonyms[k] || k);
 
-        // search keyword
         if (processedKeywords.length > 0) {
 
             query.$or = [];
@@ -707,13 +780,15 @@ const chatboxUser = async (data) => {
 
         }
 
-        // find job
+        // =============================
+        // QUERY DATABASE
+        // =============================
+
         let jobs = await userPostJobs.findAll(query)
             .sort(sortOption)
             .limit(limitCount)
-            .select("title jobs location salaryRange view numberUpload deadline");
+            .select("title jobs location joblevel numberUpload deadline");
 
-        // fallback
         if (jobs.length === 0) {
 
             delete query.$or;
@@ -725,7 +800,6 @@ const chatboxUser = async (data) => {
 
         }
 
-        // nếu vẫn không có job
         if (jobs.length === 0) {
 
             return {
@@ -736,18 +810,15 @@ const chatboxUser = async (data) => {
 
         }
 
-        // context cho AI
         const context = jobs.map((j, i) => {
 
             const salary = j.salaryRange ? j.salaryRange.toString() : "Thỏa thuận";
-
             return `
 Job ${i + 1}
 Tiêu đề: ${j.title}
 Ngành: ${j.jobs}
 Địa điểm: ${j.location}
-Lương: ${salary}
-Lượt xem: ${j.view}
+Lượt xem: ${j.joblevel}
 `;
 
         }).join("\n");
@@ -765,7 +836,7 @@ Lượt xem: ${j.view}
                         content: `
 Bạn là chatbot của website tuyển dụng.
 
-QUY TẮC:
+Quy tắc:
 - Chỉ trả lời về việc làm
 - Chỉ dựa vào danh sách job
 - Không bịa thông tin
@@ -807,7 +878,6 @@ ${context}
             success: false,
             message: error.message
         };
-
     }
 };
 
