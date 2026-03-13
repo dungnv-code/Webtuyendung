@@ -134,7 +134,7 @@ const UserInfo = () => {
 
                     {/* Username */}
                     <div className="mb-3">
-                        <label className="form-label fw-semibold text-primary">Username</label>
+                        <label className="form-label fw-semibold text-primary">Tên người dùng</label>
                         <input
                             type="text"
                             name="username"

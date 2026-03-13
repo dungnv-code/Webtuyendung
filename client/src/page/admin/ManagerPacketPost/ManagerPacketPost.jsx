@@ -308,7 +308,7 @@ const ManagerPacketPost = () => {
                                         background: "rgba(255,255,255,0.3)",
                                         color: "black",
                                         fontWeight: "500",
-                                        boxShadow: "0 4px 14px rgba(59,130,246,0.4)",
+                                        boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                                         transition: "0.25s ease",
                                     }}
                                     value={inputValue.valuePostPackage}
@@ -334,7 +334,6 @@ const ManagerPacketPost = () => {
                                 )}
                             </div>
 
-                            {/* Ô Nhóm Select */}
                             <div className="col-md-6">
                                 <label className="form-label fw-semibold" style={{ color: "#0ea5e9", }}>Giá gói bài đăng($)</label>
                                 <input
@@ -348,7 +347,7 @@ const ManagerPacketPost = () => {
                                         background: "rgba(255,255,255,0.3)",
                                         color: "black",
                                         fontWeight: "500",
-                                        boxShadow: "0 4px 14px rgba(59,130,246,0.4)",
+                                        boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                                         transition: "0.25s ease",
                                     }}
                                     value={inputValue.price}
@@ -388,9 +387,10 @@ const ManagerPacketPost = () => {
                                     border: "1px solid rgba(255,255,255,0.3)",
                                     background: "rgba(255,255,255,0.3)",
                                     color: "black",
+                                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                                     fontWeight: "500",
                                     transition: "0.25s ease",
-                                    boxShadow: "0 4px 14px rgba(59,130,246,0.4)",
+
                                 }}
                                 value={inputValue.typePostPackage}
                                 onChange={(e) =>
@@ -421,7 +421,7 @@ const ManagerPacketPost = () => {
                         </div>
                     </div>
 
-                    {/* BUTTON HÀNG DƯỚI */}
+
                     <div
                         style={{
                             display: "flex",

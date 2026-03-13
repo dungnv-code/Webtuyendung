@@ -50,6 +50,7 @@ const path = {
     COMPANYADMINDETAIL: "/admin/company/:idb",
     POSTADMIN: "/admin/post",
     POSTADMINDETAIL: "/admin/post/:idp",
+    CREATECVADMIN: "/admin/createcv",
 }
 
 export default path;

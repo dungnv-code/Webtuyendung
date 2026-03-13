@@ -293,6 +293,7 @@ const ManagerSkill = () => {
                                 background: "rgba(255,255,255,0.3)",
                                 color: "black",
                                 fontWeight: "500",
+                                boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                                 transition: "0.25s ease",
                             }}
                             value={inputValue.job}
@@ -389,6 +390,7 @@ const ManagerSkill = () => {
                                 fontWeight: "600",
                                 boxShadow: "0 4px 14px rgba(59,130,246,0.4)",
                                 transition: "0.25s ease",
+
                             }}
                             onMouseEnter={(e) => (e.target.style.transform = "translateY(-2px)")}
                             onMouseLeave={(e) => (e.target.style.transform = "translateY(0)")}

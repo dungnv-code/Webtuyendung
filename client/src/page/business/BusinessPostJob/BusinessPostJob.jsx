@@ -25,9 +25,8 @@ const BusinessPostJob = () => {
 
     const [dataBusiness, setDataBusiness] = useState({})
 
-    // ===== deadline mặc định +4 tuần =====
     const defaultDeadline = new Date();
-    defaultDeadline.setDate(defaultDeadline.getDate() + 4 * 7);
+    defaultDeadline.setDate(defaultDeadline.getDate() + 8 * 7);
     const formatDate = defaultDeadline.toISOString().split("T")[0];
 
     useEffect(() => {
@@ -72,7 +71,7 @@ const BusinessPostJob = () => {
         fetchCities();
     }, []);
 
-    // ============ GET 6 API ============
+
     useEffect(() => {
         const fetchAllData = async () => {
             try {
@@ -100,7 +99,7 @@ const BusinessPostJob = () => {
         fetchAllData();
     }, []);
 
-    // ============ HANDLE CHANGE ============
+
     const handleChange = async (e) => {
         const { name, value } = e.target;
         if (name == "jobs") {
@@ -358,6 +357,7 @@ const BusinessPostJob = () => {
                             name="deadline"
                             className="form-control form-control-lg"
                             value={formData.deadline}
+                            disabled
                             onChange={handleChange}
                         />
                     </div>
@@ -374,6 +374,7 @@ const BusinessPostJob = () => {
                                 }
                                 value={formData.description}
                                 apiKey={import.meta.env.VITE_API_MAKE_DOWN}
+                                initialValue="Mô tả bài đăng công việc của bạn"
                                 init={{
                                     height: 450,
                                     menubar: true,
@@ -394,7 +395,7 @@ const BusinessPostJob = () => {
 
                 <div className="text-center mt-4">
                     <button className="btn btn-primary btn-lg" onClick={hanleSumitForm}>
-                        Tạo bài đăng
+                        <i class="fa-solid fa-square-plus"></i>    Tạo bài đăng
                     </button>
                 </div>
             </div>

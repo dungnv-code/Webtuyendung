@@ -10,7 +10,7 @@ const DetailCV = () => {
     const { idp } = useParams();
 
     const [currentPage, setCurrentPage] = useState(1);
-    const [limit] = useState(3);
+    const [limit] = useState(10);
     const [totalPages, setTotalPages] = useState(0);
     const [listJob, setListJob] = useState([]);
     const [loaddata, setLoaddata] = useState(false);
@@ -91,13 +91,16 @@ const DetailCV = () => {
                                         </td>
                                         <td>
                                             <select
+                                                className={`form-select form-select-sm w-auto 
+        ${job.status === "active" ? "border-success text-success" :
+                                                        job.status === "unactive" ? "border-danger text-danger" :
+                                                            "border-warning text-warning"}`}
                                                 value={job.status}
                                                 onChange={(e) => handleChangeStatus(idp, job._id, e.target.value)}
                                             >
                                                 <option value="pendding">Đang chờ</option>
                                                 <option value="active">Duyệt</option>
                                                 <option value="unactive">Từ chối</option>
-
                                             </select>
                                         </td>
                                         <td>
@@ -105,7 +108,7 @@ const DetailCV = () => {
                                                 className="btn btn-outline-primary btn-sm"
                                                 onClick={() => setUrlCV(job.fileCV)}
                                             >
-                                                📄 Xem CV
+                                                <i class="fa-solid fa-file"></i> Xem CV
                                             </button>
                                         </td>
                                     </tr>

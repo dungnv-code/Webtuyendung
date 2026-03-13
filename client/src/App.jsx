@@ -13,7 +13,7 @@ import {
 import {
   Adminlayout, DashboardAdmin, ManagerJob, ManagerLevel, ManagerPacketPost, ManagerSalaryRange
   , ManagerSkill, ManagerStyleJob, ManagerUser, Graph, ManagerExp, ManagerCompany, PostAdmin,
-  ManagerCompanyDetail, ManagerPostDetail
+  ManagerCompanyDetail, ManagerPostDetail, CreateCV
 } from './page/admin';
 import path from './ultils/path';
 import './App.css'
@@ -68,6 +68,7 @@ function App() {
           <Route path={path.COMPANYADMINDETAIL} element={<ManagerCompanyDetail />} />
           <Route path={path.POSTADMIN} element={<PostAdmin />} />
           <Route path={path.POSTADMINDETAIL} element={<ManagerPostDetail />} />
+          <Route path={path.CREATECVADMIN} element={<CreateCV />} />
         </Route>
       </Routes>
       <ToastContainer

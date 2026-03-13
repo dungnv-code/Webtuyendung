@@ -45,49 +45,6 @@ const ManagerStaff = () => {
         fetchData();
     }, [currentPage, limit, loaddata]);
 
-    // const hanleCreateJob = async () => {
-    //     const newError = {};
-
-    //     if (!inputValue.trim()) {
-    //         newError.inputValue = "Vui lòng nhập tên nhân viên";
-    //     }
-
-    //     setError(newError);
-
-    //     if (Object.keys(newError).length === 0) {
-    //         try {
-    //             await createLevel({ nameLevel: inputValue });
-    //             setInputValue("");
-    //             setCurrentPage(1);
-    //             toast.success("Thêm nhân viên thành công!")
-    //             setLoaddata(!loaddata)
-    //         } catch (error) {
-    //             // toast.error("Lỗi khi tạo công việc");
-    //         }
-    //     }
-    // };
-
-    // const hanleUpdateJob = async () => {
-    //     const newError = {};
-    //     if (!inputValue.trim()) {
-    //         newError.inputValue = "Vui lòng nhập tên nhân viên";
-    //     }
-    //     if (!currentIndex.trim()) {
-    //         newError.inputValue = "Vui lòng chọn nhân viên muốn sửa!";
-    //     }
-    //     setError(newError);
-    //     if (Object.keys(newError).length === 0) {
-    //         try {
-    //             await updateLevel(currentIndex, { nameLevel: inputValue });
-    //             setInputValue("");
-    //             setCurrentPage(1);
-    //             toast.success("Sửa nhân viên thành công!")
-    //             setLoaddata(!loaddata)
-    //         } catch (error) {
-    //             // toast.error("Lỗi khi sửa công việc");
-    //         }
-    //     }
-    // }
 
     const hanleDeleteJob = async (id) => {
         try {
@@ -97,7 +54,7 @@ const ManagerStaff = () => {
             toast.success("Xoá nhân viên thành công!")
             setLoaddata(!loaddata)
         } catch (error) {
-            // toast.error("Lỗi khi sửa công việc");
+
         }
     }
 
@@ -221,7 +178,6 @@ const ManagerStaff = () => {
                     </div>
                 </form>
 
-                {/* table */}
                 <div
                     className="container mt-4"
                     style={{
@@ -233,7 +189,7 @@ const ManagerStaff = () => {
                     <table
                         className="table table-dark table-hover table-bordered align-middle text-center rounded-3 overflow-hidden"
                         style={{
-                            minWidth: "1000px" // hoặc 1000px tùy bạn muốn rộng bao nhiêu
+                            minWidth: "1000px"
                         }}
                     >
                         <thead className="table-primary text-dark">
@@ -267,7 +223,7 @@ const ManagerStaff = () => {
 
 
                 </div>
-                <div className="d-flex justify-content-center">
+                <div className="d-flex justify-content-center mt-3">
                     <PaginationCustom
                         currentPage={currentPage}
                         setCurrentPage={setCurrentPage}

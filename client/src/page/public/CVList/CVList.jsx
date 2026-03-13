@@ -26,7 +26,7 @@ const CVList = () => {
 
     return (
         <div className="container py-4">
-            <h3 className="fw-bold mb-3">Danh sách CV đã ứng tuyển</h3>
+            <h3 className="fw-bold mb-3 text-center">Danh sách CV đã ứng tuyển</h3>
 
             <div className="row g-3">
                 {data.map(job => (
@@ -47,15 +47,17 @@ const CVList = () => {
                                     </p>
                                 </Link>
 
-                                <p className="small mb-1">
-                                    <i className="fa-solid fa-location-dot me-2"></i>
-                                    {job.location}
-                                </p>
+                                <div className="d-flex justify-content-between">
+                                    <p className="small mb-1">
+                                        <i className="fa-solid fa-location-dot me-2"></i>
+                                        {job.location}
+                                    </p>
 
-                                <p className="small mb-1">
-                                    <i className="fa-solid fa-clock me-2"></i>
-                                    Hạn nộp: {new Date(job.deadline).toLocaleDateString("vi-VN")}
-                                </p>
+                                    <p className="small mb-1">
+                                        <i className="fa-solid fa-clock me-2"></i>
+                                        Hạn nộp: {new Date(job.deadline).toLocaleDateString("vi-VN")}
+                                    </p>
+                                </div>
 
 
                                 {job.listCV.map(cv => (

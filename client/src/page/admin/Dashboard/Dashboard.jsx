@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { statisticAll } from "../../../api/job";
-
+import { PushpinOutlined, DollarOutlined } from '@ant-design/icons';
 
 import {
     BarChart, Bar,
@@ -57,9 +57,9 @@ const DashboardAdmin = () => {
     return (
         <div className="container py-4">
 
-            <h1 className="text-center mb-4">📊 Dashboard Tổng Quan</h1>
+            <h1 className="text-center mb-4"><i class="fa-solid fa-chart-column"></i> Dashboard Tổng Quan</h1>
 
-            {/* ====== BOOTSTRAP GRID THỐNG KÊ ====== */}
+
             <div className="row g-3">
 
                 <StatBox title="Tổng Bài Đăng" count={data.postjob?.length} color="primary" />
@@ -76,7 +76,7 @@ const DashboardAdmin = () => {
 
             {/* ====== BIỂU ĐỒ ====== */}
             <div className="mt-5">
-                <h3 className="text-center">📌 Số bài đăng theo lĩnh vực</h3>
+                <h3 className="text-center"><PushpinOutlined /> Số bài đăng theo lĩnh vực</h3>
                 <div style={{ width: "100%", height: 300 }}>
                     <ResponsiveContainer>
                         <BarChart data={postjobChart}>
@@ -91,7 +91,7 @@ const DashboardAdmin = () => {
             </div>
 
             <div className="mt-5">
-                <h3 className="text-center">💰 Doanh thu từng gói đăng</h3>
+                <h3 className="text-center"><DollarOutlined /> Doanh thu từng gói đăng</h3>
                 <div style={{ width: "100%", height: 300 }}>
                     <ResponsiveContainer>
                         <LineChart data={invoidChart}>

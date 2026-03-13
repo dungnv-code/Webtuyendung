@@ -289,6 +289,7 @@ const ManagerSalaryRange = () => {
                                         background: "rgba(255,255,255,0.3)",
                                         color: "black",
                                         fontWeight: "500",
+                                        boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                                         transition: "0.25s ease",
                                     }}
                                     value={inputValue.min}
@@ -328,6 +329,7 @@ const ManagerSalaryRange = () => {
                                         background: "rgba(255,255,255,0.3)",
                                         color: "black",
                                         fontWeight: "500",
+                                        boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                                         transition: "0.25s ease",
                                     }}
                                     value={inputValue.max}

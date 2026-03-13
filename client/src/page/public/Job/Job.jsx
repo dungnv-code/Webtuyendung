@@ -10,10 +10,9 @@ import {
 import PaginationCustom from "../../../component/pagination/pagination";
 import { Link } from "react-router-dom"
 import path from "../../../ultils/path"
-import useDebounce from "../../../ultils/useDebone"
+
 const Job = () => {
 
-    // DATA
     const [data, setData] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [limit, setLimit] = useState(10);
@@ -156,192 +155,241 @@ const Job = () => {
     };
 
     return (
-        <div className="row gap-2" style={{ margin: "0 60px" }}>
+        <div className="container mt-4" >
 
-            <div className="col-3">
+            <div className="row g-4">
 
-                <h6 className="fw-bold mb-3">
-                    <i className="fa-solid fa-filter me-1"></i> Lọc công việc
-                </h6>
 
-                <div className="mb-3">
-                    <label className="form-label fw-semibold">Ngành nghề</label>
-                    <select
-                        className="form-select"
-                        value={filterJob}
-                        onChange={(e) => {
-                            setFilterJob(e.target.value);
-                            setCurrentPage(1);
-                        }}
-                    >
-                        <option value="">Tất cả ngành nghề</option>
-                        {jobs.map(item => (
-                            <option key={item._id} value={item.title}>
-                                {item.title}
-                            </option>
-                        ))}
-                    </select>
-                </div>
+                <div className="col-lg-3">
 
-                <div className="mb-3">
-                    <label className="form-label fw-semibold">Hình thức làm việc</label>
-                    {typesjobs.map(item => (
-                        <div className="form-check mb-1" key={item._id}>
-                            <input
-                                type="checkbox"
-                                className="form-check-input"
-                                checked={filterTypes.includes(item.workType)}
-                                onChange={() => handleTypeChange(item.workType)}
-                            />
-                            <label className="form-check-label">{item.workType}</label>
-                        </div>
-                    ))}
-                </div>
+                    <div className="card shadow-sm">
+                        <div className="card-body">
 
-                <div className="mb-3">
-                    <label className="form-label fw-semibold">Vị trí</label>
-                    <select
-                        className="form-select"
-                        value={filterCitys}
-                        onChange={(e) => {
-                            setFilterCitys(e.target.value);
-                            setCurrentPage(1);
-                        }}
-                    >
-                        <option value="">Tất cả vị trí</option>
-                        {cities.map(item => (
-                            <option key={item.code} value={item.name}>
-                                {item.name}
-                            </option>
-                        ))}
-                    </select>
-                </div>
+                            <h5 className="fw-bold text-success mb-3">
+                                <i className="fa-solid fa-filter me-2"></i>
+                                Lọc công việc
+                            </h5>
 
-                <div className="mb-3">
-                    <label className="form-label fw-semibold">Kinh nghiệm</label>
-                    {exp.map(item => (
-                        <div className="form-check mb-1" key={item._id}>
-                            <input
-                                type="checkbox"
-                                className="form-check-input"
-                                checked={filterExp.includes(item.experience)}
-                                onChange={() => handleExpChange(item.experience)}
-                            />
-                            <label className="form-check-label">
-                                {item.experience}
-                            </label>
-                        </div>
-                    ))}
-                </div>
+                            <div className="mb-3">
+                                <label className="form-label fw-semibold text-success">Ngành nghề</label>
+                                <select
+                                    className="form-select"
+                                    value={filterJob}
+                                    onChange={(e) => {
+                                        setFilterJob(e.target.value);
+                                        setCurrentPage(1);
+                                    }}
+                                >
+                                    <option value="">Tất cả ngành nghề</option>
+                                    {jobs.map(item => (
+                                        <option key={item._id} value={item.title}>
+                                            {item.title}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
 
-                <div className="mb-3">
-                    <label className="form-label fw-semibold">Mức lương</label>
-                    <select
-                        className="form-select"
-                        value={filterSalary}
-                        onChange={(e) => {
-                            setFilterSalary(e.target.value);
-                            setCurrentPage(1);
-                        }}
-                    >
-                        <option value="">Tất cả mức lương</option>
-                        {salaryrange.map(item => (
-                            <option key={item._id} value={item._id}>
-                                {item.salaryRange}
-                            </option>
-                        ))}
-                    </select>
-                </div>
+                            <div className="mb-3">
+                                <label className="form-label fw-semibold text-success">Hình thức làm việc</label>
+                                {typesjobs.map(item => (
+                                    <div className="form-check" key={item._id}>
+                                        <input
+                                            type="checkbox"
+                                            className="form-check-input"
+                                            checked={filterTypes.includes(item.workType)}
+                                            onChange={() => handleTypeChange(item.workType)}
+                                        />
+                                        <label className="form-check-label">
+                                            {item.workType}
+                                        </label>
+                                    </div>
+                                ))}
+                            </div>
 
-                <div className="mb-3">
-                    <label className="form-label fw-semibold">Cấp bậc</label>
-                    <div className="row">
-                        {levels.map(item => (
-                            <div className="col-6" key={item._id}>
-                                <div className="form-check mb-1">
-                                    <input
-                                        type="checkbox"
-                                        className="form-check-input"
-                                        checked={filterLevel.includes(item.nameLevel)}
-                                        onChange={() => handleLevelChange(item.nameLevel)}
-                                    />
-                                    <label className="form-check-label">{item.nameLevel}</label>
+                            <div className="mb-3">
+                                <label className="form-label fw-semibold text-success">Vị trí</label>
+                                <select
+                                    className="form-select"
+                                    value={filterCitys}
+                                    onChange={(e) => {
+                                        setFilterCitys(e.target.value);
+                                        setCurrentPage(1);
+                                    }}
+                                >
+                                    <option value="">Tất cả vị trí</option>
+                                    {cities.map(item => (
+                                        <option key={item.code} value={item.name}>
+                                            {item.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="mb-3">
+                                <label className="form-label fw-semibold text-success">Kinh nghiệm</label>
+                                {exp.map(item => (
+                                    <div className="form-check" key={item._id}>
+                                        <input
+                                            type="checkbox"
+                                            className="form-check-input"
+                                            checked={filterExp.includes(item.experience)}
+                                            onChange={() => handleExpChange(item.experience)}
+                                        />
+                                        <label className="form-check-label">
+                                            {item.experience}
+                                        </label>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="mb-3">
+                                <label className="form-label fw-semibold text-success">Mức lương</label>
+                                <select
+                                    className="form-select"
+                                    value={filterSalary}
+                                    onChange={(e) => {
+                                        setFilterSalary(e.target.value);
+                                        setCurrentPage(1);
+                                    }}
+                                >
+                                    <option value="">Tất cả mức lương</option>
+                                    {salaryrange.map(item => (
+                                        <option key={item._id} value={item._id}>
+                                            {item.salaryRange}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="mb-2">
+                                <label className="form-label fw-semibol text-success">Cấp bậc</label>
+                                <div className="row">
+                                    {levels.map(item => (
+                                        <div className="col-6" key={item._id}>
+                                            <div className="form-check">
+                                                <input
+                                                    type="checkbox"
+                                                    className="form-check-input"
+                                                    checked={filterLevel.includes(item.nameLevel)}
+                                                    onChange={() => handleLevelChange(item.nameLevel)}
+                                                />
+                                                <label className="form-check-label">
+                                                    {item.nameLevel}
+                                                </label>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
-                        ))}
+
+                        </div>
                     </div>
+
                 </div>
-            </div>
 
-            <div className="col-8">
-                <div>{data.length} công việc được tìm thấy</div>
-                <div className="input-group input-group-sm" style={{ margin: "10px 0" }}>
-                    <input
-                        type="text"
-                        className="form-control"
-                        placeholder="Tìm kiếm..."
-                        value={inputValue}
-                        onChange={(e) => { setInputValue(e.target.value) }}
-                    />
-                    <button className="btn btn-primary" onClick={() => { setLoadInput(!loadInput) }} >
-                        Tìm
-                    </button>
-                </div>
-                {data.map(job => (
-                    <div className="card mb-3" key={job._id}>
-                        <div className="card-body">
-                            <div className="row g-3 align-items-center">
-                                <div className="col-md-2 col-4">
-                                    <img
-                                        src={job.imageCover}
-                                        alt=""
-                                        className="img-fluid rounded"
-                                    />
-                                </div>
-                                <div className="col-md-7 col-8">
-                                    <Link to={`${path.JOB}/${job._id}`}><p className="mb-2">{job.title}</p></Link>
-                                    <div className="row text-secondary">
-                                        <div className="col-4">
-                                            <i className="fa-solid fa-building me-1"></i>
-                                            {job.joblevel}
-                                        </div>
 
-                                        <div className="col-4">
-                                            <i className="fa-solid fa-location-arrow me-1"></i>
-                                            {job.location}
-                                        </div>
+                <div className="col-lg-9">
 
-                                        <div className="col-4 fw-semibold">
-                                            <i className="fa-solid fa-dollar-sign me-1"></i>
-                                            {job.salaryRange_salaryRange}
+                    <div className="d-flex justify-content-between align-items-center mb-3">
+
+                        <h6 className="fw-bold text-success mb-0">
+                            {data.length} công việc được tìm thấy
+                        </h6>
+
+                        <div className="input-group input-group-sm w-50">
+                            <input
+                                type="text"
+                                className="form-control"
+                                placeholder="Tìm kiếm công việc..."
+                                value={inputValue}
+                                onChange={(e) => setInputValue(e.target.value)}
+                            />
+
+                            <button
+                                className="btn btn-success"
+                                onClick={() => setLoadInput(!loadInput)}
+                            >
+                                Tìm
+                            </button>
+                        </div>
+
+                    </div>
+
+                    {data.map(job => (
+                        <div className="card mb-3 shadow-sm border-0" key={job._id}>
+                            <div className="card-body">
+
+                                <div className="row align-items-center g-3">
+
+                                    <div className="col-md-2 col-4">
+                                        <img
+                                            src={job.imageCover}
+                                            alt=""
+                                            className="img-fluid rounded border"
+                                        />
+                                    </div>
+
+                                    <div className="col-md-7 col-8">
+
+                                        <Link
+                                            to={`${path.JOB}/${job._id}`}
+                                            className="text-decoration-none"
+                                        >
+                                            <h6 className="fw-bold text-black">
+                                                {job.title}
+                                            </h6>
+                                        </Link>
+
+                                        <div className="row text-secondary small">
+
+                                            <div className="col-md-4">
+                                                <i className="fa-solid fa-building me-1"></i>
+                                                {job.joblevel}
+                                            </div>
+
+                                            <div className="col-md-4">
+                                                <i className="fa-solid fa-location-dot me-1"></i>
+                                                {job.location}
+                                            </div>
+
+                                            <div className="col-md-4 fw-semibold ">
+                                                <i className="fa-solid fa-dollar-sign me-1"></i>
+                                                {job.salaryRange_salaryRange}
+                                            </div>
+
                                         </div>
                                     </div>
-                                </div>
 
-                                <div className="col-md-3 text-md-end">
-                                    <span className="badge bg-info text-dark mb-2 w-100">
-                                        {job.workType}
-                                    </span>
+                                    <div className="col-md-3 text-md-end">
 
-                                    <p className="text-danger fw-semibold mb-0">
-                                        <i className="fa-solid fa-clock me-1"></i>
-                                        {getDaysRemaining(job.deadline)}
-                                    </p>
+                                        <span className="badge bg-success-subtle text-black mb-2 w-100">
+                                            {job.workType}
+                                        </span>
+
+                                        <p className="text-danger fw-semibold mb-0 small">
+                                            <i className="fa-solid fa-clock me-1"></i>
+                                            {getDaysRemaining(job.deadline)}
+                                        </p>
+
+                                    </div>
+
                                 </div>
 
                             </div>
                         </div>
-                    </div>
-                ))}
+                    ))}
 
-                <div className="d-flex justify-content-center mt-3">
-                    <PaginationCustom
-                        currentPage={currentPage}
-                        setCurrentPage={setCurrentPage}
-                        limit={limit}
-                        totalPages={totalPages}
-                    />
+                    <div className="d-flex justify-content-center mt-4">
+                        <PaginationCustom
+                            currentPage={currentPage}
+                            setCurrentPage={setCurrentPage}
+                            limit={limit}
+                            totalPages={totalPages}
+                        />
+                    </div>
+
                 </div>
+
             </div>
 
         </div>

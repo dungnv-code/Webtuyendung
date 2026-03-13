@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { chatboxUser } from "../../api/user";
 import path from "../../ultils/path";
 import { Link } from "react-router-dom";
-
+import "/Chatbox.css"
 const ChatBox = () => {
 
     const [open, setOpen] = useState(false);
@@ -73,7 +73,7 @@ const ChatBox = () => {
 
             <div className="position-fixed bottom-0 end-0 m-4" style={{ zIndex: 1000 }}>
                 <button
-                    className="btn btn-info rounded-circle shadow"
+                    className="btn btn-info rounded-circle shadow chat-btn"
                     style={{ width: "60px", height: "60px" }}
                     onClick={() => setOpen(!open)}
                 >
@@ -96,7 +96,7 @@ const ChatBox = () => {
                     <div className="card-header bg-info text-white d-flex justify-content-between align-items-center">
 
                         <span className="d-flex align-items-center gap-2">
-                            <i class="fa-brands fa-bots" style={{ fontSize: "45px" }}></i> tìm Việc
+                            <i class="fa-brands fa-bots" style={{ fontSize: "45px" }}></i> tìm việc
                         </span>
 
                         <button

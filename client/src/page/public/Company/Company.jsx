@@ -56,79 +56,117 @@ const Company = () => {
     };
 
     return (
-        <div className="container py-4">
+        <div className="container ">
+            <div className="card border-0 shadow-sm mb-4 text-success">
+                <div className="card-body">
+                    <h5 className="fw-bold text-center mb-3">
+                        <i className="fa-solid fa-building me-2"></i>
+                        Tìm kiếm công ty
+                    </h5>
 
-            {/* Search */}
-            <div className="card shadow-sm p-4">
-                <div className="mb-3">
-                    <input
-                        type="text"
-                        className="form-control"
-                        placeholder="Tìm kiếm theo tên công ty..."
-                        value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
-                    />
-                    {error?.inputValue && (
-                        <p className="text-danger mt-2">{error.inputValue}</p>
-                    )}
-                </div>
+                    <div className="row g-2">
+                        <div className="col-md-9">
+                            <input
+                                type="text"
+                                className="form-control"
+                                placeholder="Nhập tên công ty..."
+                                value={inputValue}
+                                onChange={(e) => setInputValue(e.target.value)}
+                            />
+                            {error?.inputValue && (
+                                <p className="text-danger small mt-1">{error.inputValue}</p>
+                            )}
+                        </div>
 
-                <div className="d-flex gap-3 justify-content-center">
-                    <button className="btn btn-primary" onClick={hanleSearch}>
-                        <SearchOutlined /> Tìm kiếm
-                    </button>
+                        <div className="col-md-3 d-flex gap-2">
+                            <button
+                                className="btn btn-success w-100"
+                                onClick={hanleSearch}
+                            >
+                                <SearchOutlined /> Tìm
+                            </button>
 
-                    <button className="btn btn-secondary" onClick={hanleReset}>
-                        <RedoOutlined /> Hủy
-                    </button>
+                            <button
+                                className="btn btn-outline-secondary w-100"
+                                onClick={hanleReset}
+                            >
+                                <RedoOutlined />
+                            </button>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
-            <div className="row mt-4 g-4">
-                {listBusiness?.map((item, index) => (
-                    <div className="col-md-4 col-sm-6" key={item._id}>
-                        <div className="card shadow-sm h-100 border-0">
 
+            {/* COMPANY LIST */}
+            <div className="row g-4">
+
+                {listBusiness?.map((item) => (
+                    <div className="col-lg-4 col-md-6" key={item._id}>
+
+                        <div className="card h-100 border-0 shadow-sm">
+
+                            {/* Cover */}
                             <div className="position-relative">
+
                                 <img
                                     src={item.imageCoverBusiness}
                                     className="card-img-top"
-                                    style={{ height: "140px", objectFit: "cover" }}
-                                    alt="cover"
+                                    style={{ height: "150px", objectFit: "cover" }}
+                                    alt=""
                                 />
 
+                                {/* Avatar */}
                                 <img
                                     src={item.imageAvatarBusiness}
-                                    alt="avatar"
-                                    className="rounded-circle position-absolute"
+                                    alt=""
+                                    className="rounded-circle position-absolute start-50 translate-middle border border-3 border-white shadow"
                                     style={{
-                                        width: "70px",
-                                        height: "70px",
+                                        width: "80px",
+                                        height: "80px",
                                         objectFit: "cover",
-                                        bottom: "-35px",
-                                        left: "50%",
-                                        transform: "translateX(-50%)",
-                                        border: "3px solid white",
+                                        top: "100%"
                                     }}
                                 />
+
                             </div>
 
-                            <div className="card-body mt-4 text-center">
-                                <Link to={`${path.COMPANY}/${item._id}`}><h5 className="fw-bold">{item.nameBusiness}</h5></Link>
-                                <p className="text-muted small">{item.addressBusiness}</p>
+
+                            {/* Body */}
+                            <div className="card-body text-center pt-5">
+
+                                <Link
+                                    to={`${path.COMPANY}/${item._id}`}
+                                    className="text-decoration-none"
+                                >
+                                    <h5 className="fw-bold text-dark mb-1">
+                                        {item.nameBusiness}
+                                    </h5>
+                                </Link>
+
+                                <p className="text-muted small mb-2">
+                                    <i className="fa-solid fa-location-dot me-1"></i>
+                                    {item.addressBusiness}
+                                </p>
+
                                 <div className="text-secondary small">
                                     <ReactMarkdown rehypePlugins={[rehypeRaw]}>
                                         {(item.descriptionBusiness || "").slice(0, 90) + "..."}
                                     </ReactMarkdown>
                                 </div>
+
                             </div>
+
                         </div>
+
                     </div>
                 ))}
+
             </div>
 
-            {/* Pagination */}
-            <div className="d-flex justify-content-center mt-4">
+
+            <div className="d-flex justify-content-center mt-5">
                 <PaginationCustom
                     currentPage={currentPage}
                     setCurrentPage={setCurrentPage}
@@ -136,6 +174,7 @@ const Company = () => {
                     totalPages={totalPages}
                 />
             </div>
+
         </div>
     );
 };

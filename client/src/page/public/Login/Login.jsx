@@ -12,6 +12,7 @@ import Loading from "../../../component/loading/Loading";
 
 import { jwtDecode } from "jwt-decode";
 const styles = {
+
     container: {
         position: "relative",
         width: "100%",
@@ -22,6 +23,7 @@ const styles = {
         justifyContent: "center",
         alignItems: "center",
     },
+
     bgImage: {
         position: "fixed",
         top: 0,
@@ -33,6 +35,7 @@ const styles = {
         transform: "scale(1.1)",
         zIndex: -1,
     },
+
     overlay: {
         width: "500px",
         padding: "40px 35px",
@@ -44,22 +47,25 @@ const styles = {
         textAlign: "center",
         boxShadow: "0 8px 25px rgba(0,0,0,0.4)",
     },
+
     title: {
         fontSize: "24px",
         marginBottom: "8px",
         fontWeight: "600",
         color: "#00b14f",
     },
+
     subtitle: {
         fontSize: "14px",
         marginBottom: "18px",
-        opacity: 0.9,
     },
+
     form: {
         display: "flex",
         flexDirection: "column",
         gap: "12px",
     },
+
     input: {
         width: "100%",
         padding: "11px",
@@ -70,10 +76,12 @@ const styles = {
         outline: "none",
         transition: "0.25s",
     },
+
     inputFocus: {
         backgroundColor: "white",
         boxShadow: "0 0 0 2px #00b14f",
     },
+
     error: {
         color: "#ffb3b3",
         fontSize: "13px",
@@ -125,7 +133,6 @@ const Login = () => {
     const handleOnSubmit = async () => {
         let newErrors = {};
 
-        // ===== VALIDATION =====
         if (!inputValue.email) newErrors.email = "Email không được để trống";
         if (!inputValue.password) newErrors.password = "Mật khẩu không được để trống";
         if (inputValue.password && inputValue.password.length < 8)
@@ -136,17 +143,14 @@ const Login = () => {
 
         setErrors(newErrors);
 
-        // Nếu có lỗi thì dừng luôn
         if (Object.keys(newErrors).length > 0) return;
 
-        // ===== CALL API =====
         setLoading(true);
 
         login(inputValue)
             .then(res => {
                 setLoading(false);
 
-                // Nếu API trả success: false → báo lỗi
                 if (!res.data?.success) {
                     Swal.fire({
                         title: "Lỗi!",
@@ -156,7 +160,6 @@ const Login = () => {
                     return;
                 }
 
-                // === Đăng nhập thành công ===
                 Swal.fire({
                     title: "Thành công!",
                     text: "Đăng nhập thành công!",
@@ -177,7 +180,7 @@ const Login = () => {
                     const redirectPath = localStorage.getItem("redirectAfterLogin");
                     if (redirectPath) {
                         localStorage.removeItem("redirectAfterLogin");
-                        navigate(redirectPath); // 🔥 Trở về trang trước đó
+                        navigate(redirectPath);
                     } else {
                         navigate(path.HOME);
                     }
@@ -187,7 +190,7 @@ const Login = () => {
                 setLoading(false);
                 Swal.fire({
                     title: "Lỗi!",
-                    text: err?.response?.data?.mes || "Đăng nhập thất bại!",
+                    text: err?.mes || "Đăng nhập thất bại!",
                     icon: "error",
                 });
             });

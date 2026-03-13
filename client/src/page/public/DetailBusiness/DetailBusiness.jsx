@@ -97,7 +97,7 @@ const DetailBusiness = () => {
 
     return (
         <>
-            <div className="container my-4">
+            <div className="container">
                 {/* Cover */}
                 <div className="position-relative">
                     <img
@@ -110,12 +110,16 @@ const DetailBusiness = () => {
                     {/* Overlay */}
                     <div className="position-absolute w-100" style={{ top: "205px" }}>
                         <div
-                            className="container rounded shadow p-4"
+                            className="container rounded-4 shadow-lg p-4 text-white"
                             style={{
-                                background: "linear-gradient(to right, #00b09b, #96c93d)",
+                                background: "rgba(255,255,255,0.15)",
+                                backdropFilter: "blur(12px)",
+                                WebkitBackdropFilter: "blur(12px)",
+                                border: "1px solid rgba(255,255,255,0.3)",
                             }}
                         >
                             <div className="row text-center align-items-center g-3">
+
                                 <div className="col-12 col-md-4">
                                     <img
                                         src={data?.imageAvatarBusiness}
@@ -124,26 +128,34 @@ const DetailBusiness = () => {
                                             width: "180px",
                                             height: "140px",
                                             objectFit: "cover",
+                                            borderRadius: "12px"
                                         }}
                                         alt="avatar"
                                     />
                                 </div>
 
                                 <div className="col-12 col-md-4">
-                                    <h5>{data?.nameBusiness}</h5>
-                                    <p className="text-muted mb-1">
+                                    <h5 className="fw-bold">{data?.nameBusiness}</h5>
+
+                                    <p className="text-light mb-1">
                                         <ContainerOutlined className="me-2" />
                                         Lĩnh vực: {data?.FieldBusiness}
                                     </p>
-                                    <p className="text-muted mb-1">
+
+                                    <p className="text-light mb-1">
                                         <i className="fa-solid fa-building me-2"></i>
                                         Nhân lực: {data?.numberOfEmployees}
                                     </p>
                                 </div>
 
-                                {/* Website + follow button */}
                                 <div className="col-12 col-md-4">
-                                    <div className="bg-light rounded p-3 shadow-sm">
+                                    <div
+                                        className="rounded-3 p-3"
+                                        style={{
+                                            background: "rgba(255,255,255,0.25)",
+                                            backdropFilter: "blur(10px)"
+                                        }}
+                                    >
                                         <p className="mb-2">
                                             <CodeSandboxOutlined className="me-2" />
                                             Website:
@@ -151,7 +163,7 @@ const DetailBusiness = () => {
                                                 href={data?.websiteBusiness}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="ms-1 text-success text-decoration-none"
+                                                className="ms-1 text-success "
                                             >
                                                 {data?.websiteBusiness}
                                             </a>
@@ -159,7 +171,7 @@ const DetailBusiness = () => {
 
                                         <button
                                             onClick={hanleCreateWishlistJob}
-                                            className="btn btn-outline-light px-4 py-2 fw-semibold"
+                                            className="btn btn-success px-4 py-2 fw-semibold"
                                         >
                                             {isLiked ? (
                                                 <i className="fa-solid fa-heart text-danger"></i>
@@ -171,6 +183,7 @@ const DetailBusiness = () => {
                                         </button>
                                     </div>
                                 </div>
+
                             </div>
                         </div>
                     </div>

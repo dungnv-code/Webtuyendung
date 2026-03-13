@@ -106,9 +106,6 @@ const DetailPostJob = () => {
 
     if (!detail) return <div className="text-center text-danger">Không tìm thấy bài đăng!</div>;
 
-
-
-
     const getDaysRemaining = (date) => {
         if (!date) return "Không có hạn";
         const end = new Date(date);
@@ -145,9 +142,8 @@ const DetailPostJob = () => {
     }
 
     return (
-        <div className="container py-4" style={{ position: "relative" }}>
+        <div className="container " style={{ position: "relative" }}>
             {loading && <Loading />}
-
             <div className="modal fade" id="uploadCV" tabIndex="-1" aria-hidden="true">
                 <div className="modal-dialog">
                     <div className="modal-content">
@@ -186,18 +182,11 @@ const DetailPostJob = () => {
                 </div>
             </div>
             <div
-                style={{
-                    backgroundImage: `url(${bg_detail_job})`,
-                    backgroundSize: "cover",
-                    backgroundRepeat: "no-repeat",
-                    backgroundPosition: "center",
-                    minHeight: "100vh",
-                    width: "100%",
-                }}
+
             >
 
                 <div className="p-4 shadow-sm rounded mb-3"
-                    style={{ background: "linear-gradient(90deg,#28a745,#44c45e)" }}>
+                    style={{ background: "linear-gradient(180deg, #002b33, rgba(0, 43, 51, .25)), linear-gradient(90deg, #008060 21.86%, #2bab60 78.13%)" }}>
                     <h2 className="fw-bold text-white">{detail.title}</h2>
                     <div className="row text-white mt-3">
                         <div className="col-md-4 d-flex align-items-center gap-2">
@@ -226,7 +215,7 @@ const DetailPostJob = () => {
                             </button>
                             <button
                                 onClick={hanleCreateWishlistJob}
-                                className="btn btn-outline-light px-4 py-2 fw-semibold"
+                                className="btn btn-outline-light btn-primary px-4 py-2 fw-semibold"
                             >
                                 {isLiked ? (
                                     <i className="fa-solid fa-heart text-danger"></i>
@@ -271,7 +260,7 @@ const DetailPostJob = () => {
                                 </button>
                                 <button
                                     onClick={hanleCreateWishlistJob}
-                                    className="btn btn-outline-light px-4 py-2 fw-semibold"
+                                    className="btn btn-outline-light btn-primary px-4 py-2 fw-semibold"
                                 >
                                     {isLiked ? (
                                         <i className="fa-solid fa-heart text-danger"></i>
@@ -283,7 +272,7 @@ const DetailPostJob = () => {
                                 </button>
                             </div>
                             <div class="alert alert-danger" role="alert">
-                                <i class="fa-solid fa-circle-exclamation"></i>
+                                <i class="fa-solid fa-circle-exclamation me-2"></i>
                                 Báo cáo tin tuyển dụng: Nếu bạn thấy rằng tin tuyển dụng này không đúng hoặc có dấu hiệu lừa đảo, hãy phản ánh với chúng tôi.
                             </div>
                             <div className="bg-white p-4 shadow-sm rounded mt-4">
@@ -314,7 +303,6 @@ const DetailPostJob = () => {
 
                                                     <div className="col-md-7 col-8">
 
-                                                        {/* Nếu hết hạn → không cho click */}
                                                         {isExpired ? (
                                                             <p className="mb-2 text-muted">{job.title}</p>
                                                         ) : (
@@ -406,22 +394,22 @@ const DetailPostJob = () => {
                             <h4 className="fw-bold text-success mb-3">Thông tin chung</h4>
 
                             <div className="d-flex align-items-center mb-3">
-                                <i className="fa-brands fa-critical-role text-success fs-4 me-2"></i>
+                                <i class="fa-solid fa-layer-group text-success fs-4 me-2"></i>
                                 Cấp bậc: {detail?.joblevel}
                             </div>
 
                             <div className="d-flex align-items-center mb-3">
-                                <i className="fa-solid fa-atom text-success fs-4 me-2"></i>
+                                <i class="fa-solid fa-briefcase text-success fs-4 me-2"></i>
                                 Nhóm công việc: {detail?.jobs}
                             </div>
 
                             <div className="d-flex align-items-center mb-3">
-                                <i className="fa-solid fa-ranking-star text-success fs-4 me-2"></i>
+                                <i class="fa-solid fa-users text-success fs-4 me-2"></i>
                                 Số lượng tuyển: {detail?.quantity}
                             </div>
 
                             <div className="d-flex align-items-center">
-                                <i className="fa-solid fa-briefcase text-success fs-4 me-2"></i>
+                                <i class="fa-solid fa-laptop-house text-success fs-4 me-2"></i>
                                 Hình thức làm việc: {detail?.workType}
                             </div>
                         </div>

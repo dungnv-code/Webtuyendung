@@ -176,7 +176,7 @@ const Businesssibar = () => {
                                 onMouseEnter={() => setHoverIndex(2)}
                                 onMouseLeave={() => setHoverIndex(null)}
                             >
-                                <AreaChartOutlined />
+                                <i class="fa-solid fa-info"></i>
                                 Thông tin doanh nghiệp
                             </NavLink>
                         </li>
@@ -192,7 +192,7 @@ const Businesssibar = () => {
                                 onMouseEnter={() => setHoverIndex(3)}
                                 onMouseLeave={() => setHoverIndex(null)}
                             >
-                                <UserOutlined />
+                                <i class="fa-solid fa-users"></i>
                                 Quản lí nhân viên
                             </NavLink>
                         </li>
@@ -208,7 +208,7 @@ const Businesssibar = () => {
                                 onMouseEnter={() => setHoverIndex(4)}
                                 onMouseLeave={() => setHoverIndex(null)}
                             >
-                                <ProjectOutlined />
+                                <i className="fa-solid fa-user-plus "></i>
                                 Thêm nhân viên
                             </NavLink>
                         </li>
@@ -224,7 +224,7 @@ const Businesssibar = () => {
                                 onMouseEnter={() => setHoverIndex(6)}
                                 onMouseLeave={() => setHoverIndex(null)}
                             >
-                                <RiseOutlined />
+                                <i class="fa-solid fa-cart-shopping"></i>
                                 Mua lượt đăng
                             </NavLink>
                         </li>
@@ -240,7 +240,7 @@ const Businesssibar = () => {
                                 onMouseEnter={() => setHoverIndex(7)}
                                 onMouseLeave={() => setHoverIndex(null)}
                             >
-                                <RiseOutlined />
+                                <i class="fa-solid fa-money-bill-transfer"></i>
                                 Lịch sử giao dịch
                             </NavLink>
                         </li>
@@ -262,7 +262,7 @@ const Businesssibar = () => {
                                 onMouseEnter={() => setHoverIndex(5)}
                                 onMouseLeave={() => setHoverIndex(null)}
                             >
-                                <ScheduleOutlined />
+                                <i class="fa-solid fa-pen-to-square"></i>
                                 Tạo bài đăng
                             </NavLink>
                         </li>
@@ -278,7 +278,7 @@ const Businesssibar = () => {
                                 onMouseEnter={() => setHoverIndex(9)}
                                 onMouseLeave={() => setHoverIndex(null)}
                             >
-                                <ScheduleOutlined />
+                                <i class="fa-solid fa-file-lines"></i>
                                 Quản lí bài đăng
                             </NavLink>
                         </li>

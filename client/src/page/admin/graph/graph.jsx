@@ -24,25 +24,21 @@ const Graph = () => {
             const groupedMonthly = {};
 
             invoices.forEach((item) => {
-                const date = item.createdAt.split("T")[0]; // YYYY-MM-DD
-                const month = date.substring(0, 7); // YYYY-MM
+                const date = item.createdAt.split("T")[0];
+                const month = date.substring(0, 7);
 
-                // Daily
                 if (!groupedDaily[date]) groupedDaily[date] = 0;
                 groupedDaily[date] += item.totalPrice;
 
-                // Monthly
                 if (!groupedMonthly[month]) groupedMonthly[month] = 0;
                 groupedMonthly[month] += item.totalPrice;
             });
 
-            // Format daily
             const formattedDaily = Object.keys(groupedDaily).map((date) => ({
                 date,
                 total: groupedDaily[date],
             }));
 
-            // Format monthly
             const formattedMonthly = Object.keys(groupedMonthly).map((month) => ({
                 month,
                 total: groupedMonthly[month],
@@ -57,11 +53,10 @@ const Graph = () => {
 
     return (
         <div className="container py-4">
-
-            {/* ---------------- TITLE ---------------- */}
-            <h2 className="fw-bold text-center mb-4">Thống kê doanh thu</h2>
-
-            {/* ----------------- DAILY GRAPH ----------------- */}
+            <div className="d-flex py-3 mb-4 justify-content-center" >
+                <i className="fa-solid fa-chart-line fs-1 mb-2"></i>
+                <h2 className="fw-bold mb-0">Thống kê doanh thu</h2>
+            </div>
             <div className="card shadow-lg border-0 rounded-4 mb-5">
                 <div className="card-body">
                     <h5 className="mb-3">Doanh thu theo ngày</h5>
@@ -84,8 +79,6 @@ const Graph = () => {
                     </div>
                 </div>
             </div>
-
-            {/* ----------------- MONTHLY GRAPH ----------------- */}
             <div className="card shadow-lg border-0 rounded-4">
                 <div className="card-body">
                     <h5 className="mb-3">Doanh thu theo tháng</h5>

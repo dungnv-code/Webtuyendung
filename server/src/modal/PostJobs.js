@@ -107,7 +107,6 @@ const PostJobSchema = new mongoose.Schema({
         default: false,
     },
 
-
     listCV: [
         {
             idUser: {

@@ -405,10 +405,8 @@ const changeStatusPausePostjobs = async (idp) => {
         throw new Error("Không tìm thấy bài đăng để cập nhật!");
     }
 
-    // Toggle trạng thái
     const statusPause = !post.statusPause;
 
-    // Cập nhật
     await usePostJobs.updatebyOne({ _id: idp }, { statusPause });
 
     return {
@@ -422,41 +420,204 @@ const matchCVWithJD = async (cvText, jdText) => {
     try {
         const chatCompletion = await groq.chat.completions.create({
             model: "llama-3.3-70b-versatile",
-            temperature: 0.1,
+            temperature: 0.05,
             response_format: { type: "json_object" },
             messages: [
                 {
                     role: "system",
-                    content: `Bạn là chuyên gia Technical Recruiter. Nhiệm vụ: Chấm điểm CV dựa trên JD.
-          QUY TẮC: 
-          1. Score = 0 nếu dữ liệu là báo cáo, danh sách hàng hóa hoặc không phải CV người thật.
-          2. Score 85-100: Khớp hoàn toàn kỹ năng (ReactJS, PHP, Ruby) & >5 năm kinh nghiệm.
-          3. Score 40-60: Thiếu 1 kỹ năng chính hoặc kinh nghiệm < 3 năm.
-          4. Trả về đúng định dạng JSON.`
+                    content: `
+Bạn là AI tuyển dụng chuyên phân tích CV và Job Description.
+QUY TẮC QUAN TRỌNG:
+- Chỉ trả về JSON hợp lệ
+- Không viết giải thích
+- Không markdown
+- Không text ngoài JSON
+BƯỚC 0: KIỂM TRA TÀI LIỆU
+Xác định tài liệu CV DATA có phải là CV cá nhân hay không.
+CV hợp lệ thường chứa các thông tin như:
+- Thông tin cá nhân
+- Kinh nghiệm làm việc
+- Kỹ năng
+- Học vấn
+- Dự án
+- Chứng chỉ
+Nếu tài liệu KHÔNG phải CV cá nhân
+(ví dụ: portfolio, company profile, proposal, tài liệu marketing, báo cáo...)
+=> TRẢ VỀ JSON NGAY LẬP TỨC:
+{
+ "score": 0,
+ "reason": "Tài liệu không phải CV cá nhân",
+ "title": {
+   "job": "",
+   "cv": "",
+   "score": 0
+ }
+}
+KHÔNG PHÂN TÍCH BẤT KỲ TRƯỜNG NÀO KHÁC.
+BƯỚC 1: KIỂM TRA TITLE
+1. Trích xuất:
+jobTitle: title chính của Job Description  
+cvTitle: title nghề nghiệp chính của CV (thường nằm ở phần Profile / Title / Experience)
+2. Chuẩn hóa title về nhóm nghề nghiệp (career group):
+Developer group: Frontend Developer, Backend Developer, Fullstack Developer, 
+                 Software Engineer, Web Developer, Mobile Developer
+Analyst group:   Business Analyst, System Analyst, Data Analyst
+Design group:    UI Designer, UX Designer, Graphic Designer
+Marketing group: Marketing, Digital Marketing, SEO, Content Marketing
+Sales group:     Sales, Business Development
+HR group:        HR, Recruiter
+3. So sánh nhóm nghề nghiệp — KIỂM TRA TRƯỚC KHI LÀM BẤT CỨ ĐIỀU GÌ KHÁC:
+BƯỚC BẮT BUỘC - PHẢI THỰC HIỆN ĐẦU TIÊN:
+- Xác định jobGroup = career group của jobTitle
+- Xác định cvGroup   = career group của cvTitle
+- Nếu jobGroup ≠ cvGroup → DỪNG NGAY, trả về JSON bên dưới, KHÔNG làm gì thêm
+{
+  "score": 0,
+  "reason": "Job title và CV title khác lĩnh vực",
+  "title": {
+    "job": "<jobTitle>",
+    "cv": "<cvTitle>",
+    "score": 0
+  }
+}
+TUYỆT ĐỐI KHÔNG phân tích skills / experience / projects / education / language / summary
+TUYỆT ĐỐI KHÔNG cộng điểm từ các mục khác
+TUYỆT ĐỐI KHÔNG trả về score > 0 khi jobGroup ≠ cvGroup
+Ví dụ minh họa:
+- jobTitle: "Fullstack Developer"  → jobGroup: Developer
+- cvTitle:  "System Analyst"       → cvGroup:  Analyst
+- Developer ≠ Analyst              → score: 0, DỪNG NGAY
+Chỉ tiếp tục phân tích chi tiết khi jobGroup = cvGroup.
+
+BƯỚC 2: PHÂN TÍCH CV
+A. TRÍCH XUẤT THÔNG TIN CV
+Trích xuất chính xác các mục sau từ CV:
+- title:         Chức danh nghề nghiệp chính
+- experience:    Số năm kinh nghiệm + các vị trí đã làm
+- position:      Cấp bậc hiện tại (Junior / Middle / Senior / Lead)
+- skills:        Kỹ năng kỹ thuật (hard skills)
+- projectSkills: Kỹ năng thể hiện qua dự án thực tế
+- projects:      Danh sách dự án + công nghệ sử dụng
+- education:     Trình độ học vấn + chuyên ngành
+- language:      Ngôn ngữ + mức độ thành thạo
+B. ĐÁNH GIÁ KỸ NĂNG MỀM (Soft Skills)
+Dựa trên cách mô tả trong CV, đánh giá:
+- communication:    Khả năng diễn đạt rõ ràng trong CV
+- teamwork:         Đề cập làm việc nhóm / phối hợp team
+- problemSolving:   Mô tả giải quyết vấn đề cụ thể
+- leadership:       Kinh nghiệm dẫn dắt / mentor / lead
+- adaptability:     Làm việc nhiều domain / công nghệ khác nhau
+C. ĐÁNH GIÁ TRÌNH BÀY CV (CV Presentation)
+- clarity:          Cấu trúc CV rõ ràng, dễ đọc
+- experienceDesc:   Mô tả kinh nghiệm cụ thể, có số liệu
+- logicFlow:        Trình bày logic, mạch lạc
+- projectDesc:      Dự án nêu rõ công nghệ + vai trò + kết quả
+CHẤM ĐIỂM TỪNG TIÊU CHÍ (0-10)
+Thang điểm:
+0-2  : Không có / Không phù hợp
+3-5  : Có nhưng yếu / Phù hợp thấp
+6-8  : Đáp ứng tốt
+9-10 : Xuất sắc / Phù hợp rất cao
+Yêu cầu chấm điểm KHÁCH QUAN:
+- Đối chiếu trực tiếp với yêu cầu Job Description
+- Không suy đoán nếu CV không đề cập rõ → chấm thấp
+- Có bằng chứng cụ thể từ CV mới chấm cao
+========================
+TÍNH ĐIỂM TỔNG (0-100)
+Công thức:
+score = (skills        * 0.25)
+      + (projectSkills * 0.25)
+      + (experience    * 0.20)
+      + (softSkills    * 0.10)
+      + (cvPresentation* 0.10)
+      + (education     * 0.05)
+      + (language      * 0.05)
+Trong đó:
+- softSkills     = trung bình của 5 soft skill scores
+- cvPresentation = trung bình của 4 presentation scores
+`
                 },
                 {
                     role: "user",
-                    content: `PHÂN TÍCH:
-          JD: ${jdText}
-          ---
-          CV: ${cvText}
-          ---
-          YÊU CẦU JSON:
-          {
-            "score": number,
-            "match_details": { "skills": "string", "exp": "string", "location": "string" },
-            "strengths": [],
-            "weaknesses": [],
-            "summary": "string"
-          }`
+                    content: `
+JOB DATA:
+${jdText}
+CV DATA:
+${cvText}
+Trả về JSON theo format:
+{
+ "score": 0,
+ "title": {"job": "", "cv": "", "score": 0},
+ "experience": {"job": "", "cv": "", "score": 0},
+ "position": {"job": "", "cv": "", "score": 0},
+ "skills": {"job": [], "cv": [], "matched": [], "missing": [], "score": 0},
+ "projectSkills": {"skills": [], "matchedWithJob": [], "missingFromJob": [], "score": 0},
+ "softSkills": {"cv": [], "relevantToJob": [], "score": 0},
+ "cvPresentation": {"structure": "", "clarity": "", "score": 0},
+ "projects": [],
+ "education": {"cv": "", "score": 0},
+ "language": {"cv": "", "score": 0},
+ "summary": ""
+}
+`
                 }
             ]
         });
-        const result = JSON.parse(chatCompletion.choices[0].message.content);
-        return result;
+
+        const raw = chatCompletion.choices?.[0]?.message?.content || "{}";
+
+        try {
+
+            const data = JSON.parse(raw);
+
+            return {
+                score: data.score || 0,
+                title: data.title || {},
+                experience: data.experience || {},
+                position: data.position || {},
+                skills: data.skills || {},
+                projectSkills: data.projectSkills || {},
+                projects: data.projects || [],
+                education: data.education || {},
+                language: data.language || {},
+                summary: data.summary || ""
+            };
+
+        } catch (err) {
+
+            console.error("JSON parse error:", err);
+            console.log("RAW AI:", raw);
+
+            return {
+                score: 0,
+                title: {},
+                experience: {},
+                position: {},
+                skills: {},
+                projectSkills: {},
+                projects: [],
+                education: {},
+                language: {},
+                summary: "AI trả JSON không hợp lệ"
+            };
+        }
+
     } catch (error) {
-        console.error("Lỗi Groq AI:", error.message);
-        return { score: 0, strengths: [], weaknesses: [], summary: "Lỗi hệ thống." };
+
+        console.error("Error matching CV:", error);
+
+        return {
+            score: 0,
+            title: {},
+            experience: {},
+            position: {},
+            skills: {},
+            projectSkills: {},
+            projects: [],
+            education: {},
+            language: {},
+            summary: "Lỗi hệ thống khi phân tích"
+        };
     }
 };
 
@@ -465,6 +626,14 @@ const uploadCVPostjobs = async (idp, id, req) => {
 
     const post = await usePostJobs.findByOne({ _id: idp });
     if (!post) throw new Error("Không tìm thấy bài đăng!");
+
+    if (post.status == "pendding") {
+        throw new Error("Bài đăng chưa được kiểm duyệt!");
+    }
+
+    if (post.statusPause) {
+        throw new Error("Bài đăng đang trong trạng thái tạm ẩn!");
+    }
 
     const hasApplied = post.listCV.some(cv => cv.idUser.toString() === id.toString());
 
@@ -487,7 +656,7 @@ const uploadCVPostjobs = async (idp, id, req) => {
         console.log("Lỗi parse PDF:", err.message);
     }
 
-    const aiAnalysis = await matchCVWithJD(pdfText, post.description || "");
+    const aiAnalysis = await matchCVWithJD(pdfText, post || "");
     let evaluate = "";
     if (aiAnalysis.score >= 90) {
         evaluate = "Xuất sắc (Ưu tiên)";
@@ -500,7 +669,7 @@ const uploadCVPostjobs = async (idp, id, req) => {
     } else if (aiAnalysis.score >= 10) {
         evaluate = "Kém (Không khớp)";
     } else {
-        evaluate = "Rất tệ / Dữ liệu rác";
+        evaluate = "Rất tệ / Dữ liệu không liên quan";
     }
 
     const updatedPost = await usePostJobs.updatebyOne(
@@ -522,6 +691,8 @@ const uploadCVPostjobs = async (idp, id, req) => {
             }
         }
     );
+
+    console.log(aiAnalysis)
 
     return {
         success: true,

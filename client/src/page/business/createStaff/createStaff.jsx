@@ -2,6 +2,7 @@ import { useState } from "react";
 import Swal from "sweetalert2";
 import Loading from "../../../component/loading/Loading";
 import { createStaffBusiness } from "../../../api/business";
+
 const createStaff = () => {
     const [inputValue, setInputValue] = useState({
         username: "",
@@ -9,7 +10,7 @@ const createStaff = () => {
         phone: "",
     });
 
-    const [loading, setLoading] = useState(false)
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState({});
 
     const handleChange = (e) => {
@@ -53,7 +54,6 @@ const createStaff = () => {
                     showConfirmButton: false,
                 });
 
-                // Reset form sau khi thêm
                 setInputValue({
                     username: "",
                     email: "",
@@ -77,61 +77,99 @@ const createStaff = () => {
     };
 
     return (
-        <div className="container mt-4">
+        <div className="container mt-5">
             {loading && <Loading />}
-            <h3 className="fw-bold mb-3" style={{ textAlign: "center" }}>Thêm nhân viên</h3>
-            <form onSubmit={handleSubmit} className="row g-3">
-                {/* Username */}
-                <div className="col-md-12">
-                    <label className="form-label fw-semibold">Tên nhân viên</label>
-                    <input
-                        type="text"
-                        className="form-control"
-                        name="username"
-                        placeholder="Nhập tên nhân viên..."
-                        value={inputValue.username}
-                        onChange={handleChange}
-                    />
-                    {error.username && (
-                        <span className="text-danger">{error.username}</span>
-                    )}
-                </div>
 
-                {/* Email */}
-                <div className="col-md-6">
-                    <label className="form-label fw-semibold">Email</label>
-                    <input
-                        type="email"
-                        className="form-control"
-                        name="email"
-                        placeholder="Email..."
-                        value={inputValue.email}
-                        onChange={handleChange}
-                    />
-                    {error.email && <span className="text-danger">{error.email}</span>}
-                </div>
+            <div className="row justify-content-center">
+                <div className="col-md-8 col-lg-8">
 
-                {/* Phone */}
-                <div className="col-md-6">
-                    <label className="form-label fw-semibold">Số điện thoại</label>
-                    <input
-                        type="text"
-                        className="form-control"
-                        name="phone"
-                        placeholder="Số điện thoại..."
-                        value={inputValue.phone}
-                        onChange={handleChange}
-                    />
-                    {error.phone && <span className="text-danger">{error.phone}</span>}
-                </div>
+                    <div className="card shadow-sm border-0">
+                        <div className="card-body p-4">
 
-                {/* Submit */}
-                <div className="col-12 mt-2">
-                    <button className="btn btn-primary px-4" type="submit">
-                        Thêm nhân viên
-                    </button>
+                            <h3 className="fw-bold text-center mb-4">
+                                <i className="fa-solid fa-user-plus me-2 text-primary"></i>
+                                Thêm nhân viên
+                            </h3>
+
+                            <form onSubmit={handleSubmit} className="row g-3">
+
+                                {/* Username */}
+                                <div className="col-12">
+                                    <label className="form-label fw-semibold">
+                                        Tên nhân viên
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        name="username"
+                                        placeholder="Nhập tên nhân viên..."
+                                        value={inputValue.username}
+                                        onChange={handleChange}
+                                    />
+                                    {error.username && (
+                                        <small className="text-danger">
+                                            {error.username}
+                                        </small>
+                                    )}
+                                </div>
+
+                                {/* Email */}
+                                <div className="col-md-6">
+                                    <label className="form-label fw-semibold">
+                                        Email
+                                    </label>
+                                    <input
+                                        type="email"
+                                        className="form-control"
+                                        name="email"
+                                        placeholder="Email..."
+                                        value={inputValue.email}
+                                        onChange={handleChange}
+                                    />
+                                    {error.email && (
+                                        <small className="text-danger">
+                                            {error.email}
+                                        </small>
+                                    )}
+                                </div>
+
+                                {/* Phone */}
+                                <div className="col-md-6">
+                                    <label className="form-label fw-semibold">
+                                        Số điện thoại
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        name="phone"
+                                        placeholder="Số điện thoại..."
+                                        value={inputValue.phone}
+                                        onChange={handleChange}
+                                    />
+                                    {error.phone && (
+                                        <small className="text-danger">
+                                            {error.phone}
+                                        </small>
+                                    )}
+                                </div>
+
+                                <div className="col-12 mt-3 d-grid">
+                                    <button
+                                        className="btn btn-primary fw-semibold"
+                                        type="submit"
+                                    >
+                                        <i className="fa-solid fa-plus me-2"></i>
+                                        Thêm nhân viên
+                                    </button>
+                                </div>
+
+                            </form>
+
+                        </div>
+                    </div>
+
                 </div>
-            </form>
+            </div>
         </div>
     );
 };

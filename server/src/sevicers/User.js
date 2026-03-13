@@ -11,11 +11,11 @@ const Groq = require("groq-sdk");
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 const genateAccessToken = (payload) => {
-    return jwt.sign(payload, process.env.JWT_SECRET_KEY, { expiresIn: "7h" });
+    return jwt.sign(payload, process.env.JWT_SECRET_KEY, { expiresIn: "500d" });
 }
 
 const genateRefreshToken = (payload) => {
-    return jwt.sign(payload, process.env.JWT_SECRET_KEY, { expiresIn: "7d" });
+    return jwt.sign(payload, process.env.JWT_SECRET_KEY, { expiresIn: "500d" });
 }
 
 const RegisterUser = async (data) => {
@@ -530,7 +530,7 @@ const wishlistbusinessUser = async (idUser) => {
 const listCVuploadUser = async (idUser) => {
     try {
         const jobs = await userPostJobs.findAll(
-            { listCV: { $elemMatch: { idUser } } },   // lọc job có CV của user
+            { listCV: { $elemMatch: { idUser } } },
             {
                 imageCover: 1,
                 title: 1,
@@ -544,6 +544,7 @@ const listCVuploadUser = async (idUser) => {
                 listCV: 1
             }
         )
+            .sort({ deadline: 1 })
             .populate("business", "nameBusiness addressBusiness imageAvatarBusiness")
             .lean();
 
@@ -590,7 +591,6 @@ const chatboxUser = async (data) => {
         const messageLower = message.toLowerCase().replace(/[?.,!]/g, "");
         const now = new Date();
 
-        // synonym từ viết tắt
         const synonyms = {
             cntt: "công nghệ thông tin",
             it: "công nghệ thông tin",
@@ -600,7 +600,6 @@ const chatboxUser = async (data) => {
             hn: "hà nội"
         };
 
-        // keyword tìm việc
         const jobKeywords = [
             "việc",
             "job",
@@ -643,9 +642,6 @@ const chatboxUser = async (data) => {
             };
         }
 
-        // =============================
-        // TƯ VẤN NGHỀ NGHIỆP (AI)
-        // =============================
 
         if (isCareerQuestion && !isJobQuestion) {
 
@@ -693,10 +689,6 @@ Quy tắc:
             }
 
         }
-
-        // =============================
-        // TÌM JOB TRONG DATABASE
-        // =============================
 
         let query = {
             status: "active",
@@ -780,9 +772,6 @@ Quy tắc:
 
         }
 
-        // =============================
-        // QUERY DATABASE
-        // =============================
 
         let jobs = await userPostJobs.findAll(query)
             .sort(sortOption)

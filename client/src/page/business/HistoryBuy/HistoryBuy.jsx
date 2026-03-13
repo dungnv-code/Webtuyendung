@@ -111,7 +111,7 @@ const HistoryBuy = () => {
                         </tbody>
                     </table>
                 </div>
-                <div className="d-flex justify-content-center">
+                <div className="d-flex justify-content-center mt-2">
                     <PaginationCustom
                         currentPage={currentPage}
                         setCurrentPage={setCurrentPage}

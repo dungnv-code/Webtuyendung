@@ -218,17 +218,17 @@ const ManagerPostJob = () => {
                                     <td>{job.updatedAt}</td>
                                     <td>{job.status == "pendding" ? "Chờ kiểm duyệt" : "Đã kiểm duyệt"}</td>
                                     <td>{job.statusPause ? "Đang tạm ẩn" : "Tạm ẩn"}</td>
-                                    <td onClick={() => { hanleChangeStatus(job._id) }}><SwapOutlined /></td>
-                                    <td><Link to={`${path.CVPOSTJOB}/${job._id}`} ><FundViewOutlined /></Link></td>
+                                    <td onClick={() => { hanleChangeStatus(job._id) }}>{job.statusPause ? <i class="fa-solid fa-toggle-on"></i> : <i class="fa-solid fa-toggle-off"></i>}</td>
+                                    <td><Link to={`${path.CVPOSTJOB}/${job._id}`} ><i class="fa-solid fa-file text-white"></i></Link></td>
                                     <td className="text-danger fs-5" role="button">
-                                        <Link to={`${path.MANAGERPOSTJOB}/${job._id}`} > <EditOutlined /></Link>
+                                        <Link to={`${path.MANAGERPOSTJOB}/${job._id}`} > <EditOutlined className="text-white" /></Link>
                                     </td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
                 </div>
-                <div className="d-flex justify-content-center">
+                <div className="d-flex justify-content-center mt-2">
                     <PaginationCustom
                         currentPage={currentPage}
                         setCurrentPage={setCurrentPage}
