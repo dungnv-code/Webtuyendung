@@ -4,14 +4,13 @@
     overflow: hidden;
 }
 
-/* Sidebar trái */
+
 .cv-layout>*:first-child {
     width: 220px;
     border-right: 1px solid #ddd;
     background: #fff;
 }
 
-/* Editor giữa */
 .cv-editor {
     flex: 1;
     overflow-y: auto;
@@ -21,13 +20,12 @@
     justify-content: center;
 }
 
-/* Canvas CV */
 .cv-editor>div {
     width: 100%;
     max-width: 850px;
 }
 
-/* Settings panel phải */
+
 .cv-settings {
     width: 260px;
     border-left: 1px solid #ddd;

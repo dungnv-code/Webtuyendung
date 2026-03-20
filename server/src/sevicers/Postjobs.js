@@ -488,7 +488,6 @@ Ví dụ minh họa:
 - cvTitle:  "System Analyst"       → cvGroup:  Analyst
 - Developer ≠ Analyst              → score: 0, DỪNG NGAY
 Chỉ tiếp tục phân tích chi tiết khi jobGroup = cvGroup.
-
 BƯỚC 2: PHÂN TÍCH CV
 A. TRÍCH XUẤT THÔNG TIN CV
 Trích xuất chính xác các mục sau từ CV:

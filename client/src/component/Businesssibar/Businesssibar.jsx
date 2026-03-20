@@ -1,98 +1,24 @@
 import path from "../../ultils/path";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
-    HomeOutlined, AreaChartOutlined, UserOutlined, ProjectOutlined,
-    ScheduleOutlined, RiseOutlined, LoginOutlined
+    HomeOutlined, AreaChartOutlined, LoginOutlined,
+    FundViewOutlined, ShoppingCartOutlined, HistoryOutlined
 } from '@ant-design/icons';
-
-import { LogOut } from "../../redux/userUser/userSlice"
-
+import { LogOut } from "../../redux/userUser/userSlice";
 import { logout, getUserSingle } from "../../api/user";
 import { useDispatch, useSelector } from "react-redux";
 import { jwtDecode } from "jwt-decode";
 import { useEffect, useState } from "react";
-const sidebarStyle = {
-    container: {
-        background: "rgba(15, 23, 42, 0.85)",
-        backdropFilter: "blur(14px)",
-        color: "#e2e8f0",
-        width: "23%",
-        height: "100vh",
-        padding: "22px 0",
-        position: "fixed",
-        top: 0,
-        left: 0,
-        borderRight: "1px solid rgba(255,255,255,0.12)",
-        boxShadow: "6px 0 20px rgba(0,0,0,0.35)",
-        overflowY: "auto",
-        scrollbarWidth: "none",
-        msOverflowStyle: "none",
-    },
-    containerHideScroll: `
-        ::-webkit-scrollbar {
-            width: 0px;
-            background: transparent;
-        }
-    `,
-    brand: {
-        textAlign: "center",
-        color: "#a5f3fc",
-        fontSize: "2rem",
-        fontWeight: 800,
-        letterSpacing: "2px",
-        marginBottom: "25px",
-        textShadow: "0 0 10px rgba(0,255,255,0.5)",
-    },
-    ul: {
-        padding: 0,
-        marginTop: "20px",
-        listStyle: "none",
-        width: "100%",
-    },
-    li: {
-        marginBottom: "12px",
-    },
-    link: {
-        color: "#cbd5e1",
-        fontSize: "1.07rem",
-        padding: "14px 22px",
-        margin: "10px 14px",
-        borderRadius: "14px",
-        textDecoration: "none",
-        display: "flex",
-        gap: "14px",
-        alignItems: "center",
-        transition: "0.25s ease",
-        background: "rgba(255,255,255,0.04)",
-        border: "1px solid rgba(255,255,255,0.05)",
-    },
-    hover: {
-        background: "rgba(94,234,212,0.18)",
-        color: "#fff",
-        transform: "translateX(6px)",
-        boxShadow: "0 4px 12px rgba(94,234,212,0.25)",
-    },
-    active: {
-        background: "linear-gradient(90deg, #06b6d4 0%, #3b82f6 100%)",
-        color: "#fff",
-        fontWeight: 600,
-        border: "1px solid rgba(255,255,255,0.25)",
-        boxShadow: "0 4px 16px rgba(6,182,212,0.45)",
-    }
-};
 
 const Businesssibar = () => {
-    const [hoverIndex, setHoverIndex] = useState(null);
     const dispatch = useDispatch();
     const user = useSelector(state => state.user);
-    const [datatoken, setDatatoken] = useState();
-
+    const [datatoken, setDatatoken] = useState(null);
     const navigate = useNavigate();
+
     useEffect(() => {
-        if (!user.isLogIn) {
-            navigate(path.LOGIN)
-        }
-    }, [])
+        if (!user.isLogIn) navigate(path.LOGIN);
+    }, []);
 
     useEffect(() => {
         const fetchGetUser = async () => {
@@ -101,11 +27,17 @@ const Businesssibar = () => {
                 if (!["nhatuyendung", "STAFF"].includes(reponse.data.role)) {
                     navigate(path.LOGIN);
                 }
-            } catch (err) {
-            }
+            } catch (err) { }
+        };
+        fetchGetUser();
+    }, [user.isLogIn]);
+
+    useEffect(() => {
+        if (user.token) {
+            const decode = jwtDecode(user.token);
+            setDatatoken(decode);
         }
-        fetchGetUser()
-    }, [user.isLogIn])
+    }, []);
 
     const handleClickLogout = async () => {
         try {
@@ -116,193 +48,322 @@ const Businesssibar = () => {
         }
     };
 
-    useEffect(() => {
-        const decode = jwtDecode(user.token)
-        setDatatoken(decode)
-    }, [])
+    const isOwner = datatoken?.role === "nhatuyendung";
+    const isStaff = datatoken?.role === "STAFF";
+    const hasBusiness = datatoken?.businessId != null;
+
+    const navItems = [
+        {
+            show: true,
+            to: path.DASHBOARDBUSINESS,
+            icon: <HomeOutlined />,
+            label: "Trang chủ",
+        },
+        {
+            show: isOwner && !hasBusiness,
+            to: path.CREATEBUSINESS,
+            icon: <AreaChartOutlined />,
+            label: "Tạo công ty",
+        },
+        {
+            show: isOwner && hasBusiness,
+            to: path.MANAGERINFOBUSI,
+            icon: <i className="fa-solid fa-circle-info" />,
+            label: "Thông tin doanh nghiệp",
+        },
+        {
+            show: isOwner && hasBusiness,
+            to: path.MANAGERSTAFF,
+            icon: <i className="fa-solid fa-users" />,
+            label: "Quản lý nhân viên",
+        },
+        {
+            show: isOwner && hasBusiness,
+            to: path.CREATESTAFF,
+            icon: <i className="fa-solid fa-user-plus" />,
+            label: "Thêm nhân viên",
+        },
+        {
+            show: (isOwner || isStaff) && hasBusiness,
+            to: path.BUSINESSPOSTJOB,
+            icon: <i className="fa-solid fa-pen-to-square" />,
+            label: "Tạo bài đăng",
+        },
+        {
+            show: (isOwner || isStaff) && hasBusiness,
+            to: path.MANAGERPOSTJOB,
+            icon: <i className="fa-solid fa-file-lines" />,
+            label: "Quản lý bài đăng",
+        },
+        {
+            show: isOwner && hasBusiness,
+            to: path.BUSINESSBUYPOSTJOB,
+            icon: <i className="fa-solid fa-cart-shopping" />,
+            label: "Mua lượt đăng",
+        },
+        {
+            show: isOwner && hasBusiness,
+            to: path.HISTORYBUY,
+            icon: <i className="fa-solid fa-money-bill-transfer" />,
+            label: "Lịch sử giao dịch",
+        },
+    ];
 
     return (
-        <nav style={sidebarStyle.container}>
-            <h2 style={sidebarStyle.brand}>Doanh nghiệp</h2>
-
-            <ul style={sidebarStyle.ul}>
-                {/* Trang chủ */}
-                <li style={sidebarStyle.li}>
-                    <NavLink
-                        to={path.DASHBOARDBUSINESS}
-                        style={({ isActive }) => ({
-                            ...sidebarStyle.link,
-                            ...(hoverIndex === 0 ? sidebarStyle.hover : {}),
-                            ...(isActive ? sidebarStyle.active : {}),
-                        })}
-                        onMouseEnter={() => setHoverIndex(0)}
-                        onMouseLeave={() => setHoverIndex(null)}
-                    >
-                        <HomeOutlined />
-                        Trang chủ
-                    </NavLink>
-                </li>
-
-                {/* Tạo công ty */}
-                {
-                    datatoken?.role == "nhatuyendung" && datatoken?.businessId == null && <li style={sidebarStyle.li}>
-                        <NavLink
-                            to={path.CREATEBUSINESS}
-                            style={({ isActive }) => ({
-                                ...sidebarStyle.link,
-                                ...(hoverIndex === 1 ? sidebarStyle.hover : {}),
-                                ...(isActive ? sidebarStyle.active : {}),
-                            })}
-                            onMouseEnter={() => setHoverIndex(1)}
-                            onMouseLeave={() => setHoverIndex(null)}
-                        >
-                            <AreaChartOutlined />
-                            Tạo công ty
-                        </NavLink>
-                    </li>
+        <>
+            <style>{`
+                @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Inter:wght@300;400;500&display=swap');
+                .bsb-nav {
+                    width: 290px;
+                    min-width: 290px;
+                    height: 100vh;
+                    position: fixed;
+                    top: 0; left: 0;
+                    background: #fff;
+                    border-right: 1px solid #eef0f6;
+                    box-shadow: 4px 0 24px rgba(99,102,241,0.07);
+                    display: flex;
+                    flex-direction: column;
+                    overflow-y: auto;
+                    scrollbar-width: none;
+                    z-index: 100;
+                    font-family: 'Inter', sans-serif;
                 }
 
-                {
-                    datatoken?.role === "nhatuyendung" && datatoken?.businessId != null &&
-                    <>
-                        <li style={sidebarStyle.li}>
-                            <NavLink
-                                to={path.MANAGERINFOBUSI}
-                                style={({ isActive }) => ({
-                                    ...sidebarStyle.link,
-                                    ...(hoverIndex === 2 ? sidebarStyle.hover : {}),
-                                    ...(isActive ? sidebarStyle.active : {}),
-                                })}
-                                onMouseEnter={() => setHoverIndex(2)}
-                                onMouseLeave={() => setHoverIndex(null)}
-                            >
-                                <i class="fa-solid fa-info"></i>
-                                Thông tin doanh nghiệp
-                            </NavLink>
-                        </li>
+                .bsb-nav::-webkit-scrollbar { display: none; }
 
-                        <li style={sidebarStyle.li}>
-                            <NavLink
-                                to={path.MANAGERSTAFF}
-                                style={({ isActive }) => ({
-                                    ...sidebarStyle.link,
-                                    ...(hoverIndex === 3 ? sidebarStyle.hover : {}),
-                                    ...(isActive ? sidebarStyle.active : {}),
-                                })}
-                                onMouseEnter={() => setHoverIndex(3)}
-                                onMouseLeave={() => setHoverIndex(null)}
-                            >
-                                <i class="fa-solid fa-users"></i>
-                                Quản lí nhân viên
-                            </NavLink>
-                        </li>
-
-                        <li style={sidebarStyle.li}>
-                            <NavLink
-                                to={path.CREATESTAFF}
-                                style={({ isActive }) => ({
-                                    ...sidebarStyle.link,
-                                    ...(hoverIndex === 4 ? sidebarStyle.hover : {}),
-                                    ...(isActive ? sidebarStyle.active : {}),
-                                })}
-                                onMouseEnter={() => setHoverIndex(4)}
-                                onMouseLeave={() => setHoverIndex(null)}
-                            >
-                                <i className="fa-solid fa-user-plus "></i>
-                                Thêm nhân viên
-                            </NavLink>
-                        </li>
-
-                        <li style={sidebarStyle.li}>
-                            <NavLink
-                                to={path.BUSINESSBUYPOSTJOB}
-                                style={({ isActive }) => ({
-                                    ...sidebarStyle.link,
-                                    ...(hoverIndex === 6 ? sidebarStyle.hover : {}),
-                                    ...(isActive ? sidebarStyle.active : {}),
-                                })}
-                                onMouseEnter={() => setHoverIndex(6)}
-                                onMouseLeave={() => setHoverIndex(null)}
-                            >
-                                <i class="fa-solid fa-cart-shopping"></i>
-                                Mua lượt đăng
-                            </NavLink>
-                        </li>
-
-                        <li style={sidebarStyle.li}>
-                            <NavLink
-                                to={path.HISTORYBUY}
-                                style={({ isActive }) => ({
-                                    ...sidebarStyle.link,
-                                    ...(hoverIndex === 7 ? sidebarStyle.hover : {}),
-                                    ...(isActive ? sidebarStyle.active : {}),
-                                })}
-                                onMouseEnter={() => setHoverIndex(7)}
-                                onMouseLeave={() => setHoverIndex(null)}
-                            >
-                                <i class="fa-solid fa-money-bill-transfer"></i>
-                                Lịch sử giao dịch
-                            </NavLink>
-                        </li>
-                    </>
+                /* ── Brand ── */
+                .bsb-brand {
+                    padding: 1.75rem 1.5rem 1.25rem;
+                    border-bottom: 1px solid #f3f4f6;
                 }
 
-                {
-                    (datatoken?.role === "nhatuyendung" || datatoken?.role === "STAFF") &&
-                    datatoken?.businessId != null &&
-                    <>
-                        <li style={sidebarStyle.li}>
-                            <NavLink
-                                to={path.BUSINESSPOSTJOB}
-                                style={({ isActive }) => ({
-                                    ...sidebarStyle.link,
-                                    ...(hoverIndex === 5 ? sidebarStyle.hover : {}),
-                                    ...(isActive ? sidebarStyle.active : {}),
-                                })}
-                                onMouseEnter={() => setHoverIndex(5)}
-                                onMouseLeave={() => setHoverIndex(null)}
-                            >
-                                <i class="fa-solid fa-pen-to-square"></i>
-                                Tạo bài đăng
-                            </NavLink>
-                        </li>
-
-                        <li style={sidebarStyle.li}>
-                            <NavLink
-                                to={path.MANAGERPOSTJOB}
-                                style={({ isActive }) => ({
-                                    ...sidebarStyle.link,
-                                    ...(hoverIndex === 9 ? sidebarStyle.hover : {}),
-                                    ...(isActive ? sidebarStyle.active : {}),
-                                })}
-                                onMouseEnter={() => setHoverIndex(9)}
-                                onMouseLeave={() => setHoverIndex(null)}
-                            >
-                                <i class="fa-solid fa-file-lines"></i>
-                                Quản lí bài đăng
-                            </NavLink>
-                        </li>
-                    </>
+                .bsb-brand-inner {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.65rem;
                 }
 
-                <li style={sidebarStyle.li}>
+                .bsb-logo {
+                    width: 36px; height: 36px;
+                    border-radius: 10px;
+                    background: linear-gradient(135deg, #6366f1, #10b981);
+                    display: flex; align-items: center; justify-content: center;
+                    flex-shrink: 0;
+                }
+
+                .bsb-logo i { color: #fff; font-size: 0.9rem; }
+
+                .bsb-brand-text {
+                    font-family: 'Sora', sans-serif;
+                    font-size: 0.95rem;
+                    font-weight: 700;
+                    color: #1e1b4b;
+                    line-height: 1.2;
+                }
+
+                .bsb-brand-sub {
+                    font-size: 0.67rem;
+                    color: #9ca3af;
+                    font-weight: 400;
+                    letter-spacing: 0.05em;
+                    text-transform: uppercase;
+                }
+
+                /* ── Role badge ── */
+                .bsb-role {
+                    margin: 0.75rem 1.25rem 0;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 0.35rem;
+                    background: rgba(99,102,241,0.08);
+                    color: #6366f1;
+                    border-radius: 999px;
+                    padding: 0.22rem 0.7rem;
+                    font-size: 0.68rem;
+                    font-weight: 600;
+                    letter-spacing: 0.06em;
+                    text-transform: uppercase;
+                    width: fit-content;
+                }
+
+                .bsb-role-dot {
+                    width: 5px; height: 5px;
+                    border-radius: 50%;
+                    background: #6366f1;
+                    flex-shrink: 0;
+                }
+
+                /* ── Section label ── */
+                .bsb-section-label {
+                    font-size: 0.62rem;
+                    font-weight: 600;
+                    letter-spacing: 0.12em;
+                    text-transform: uppercase;
+                    color: #c4c9d4;
+                    padding: 1rem 1.5rem 0.35rem;
+                }
+
+                /* ── Nav list ── */
+                .bsb-ul {
+                    list-style: none;
+                    padding: 0.5rem 0.75rem;
+                    margin: 0;
+                    flex: 1;
+                }
+
+                .bsb-li { margin-bottom: 2px; }
+
+                .bsb-link {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.65rem;
+                    padding: 0.65rem 0.85rem;
+                    border-radius: 10px;
+                    text-decoration: none;
+                    color: #6b7280;
+                    font-size: 0.85rem;
+                    font-weight: 400;
+                    transition: background 0.18s, color 0.18s, transform 0.18s;
+                    position: relative;
+                }
+
+                .bsb-link:hover {
+                    background: #f5f3ff;
+                    color: #6366f1;
+                    transform: translateX(2px);
+                }
+
+                .bsb-link.active {
+                    background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(16,185,129,0.08));
+                    color: #6366f1;
+                    font-weight: 600;
+                }
+
+                /* active left bar */
+                .bsb-link.active::before {
+                    content: '';
+                    position: absolute;
+                    left: 0; top: 20%; bottom: 20%;
+                    width: 3px;
+                    border-radius: 999px;
+                    background: linear-gradient(180deg, #6366f1, #10b981);
+                }
+
+                .bsb-link-icon {
+                    width: 28px; height: 28px;
+                    border-radius: 8px;
+                    display: flex; align-items: center; justify-content: center;
+                    font-size: 0.8rem;
+                    background: #f3f4f6;
+                    flex-shrink: 0;
+                    transition: background 0.18s, color 0.18s;
+                    color: #9ca3af;
+                }
+
+                .bsb-link:hover .bsb-link-icon {
+                    background: rgba(99,102,241,0.12);
+                    color: #6366f1;
+                }
+
+                .bsb-link.active .bsb-link-icon {
+                    background: rgba(99,102,241,0.15);
+                    color: #6366f1;
+                }
+
+                /* ── Logout section ── */
+                .bsb-footer {
+                    padding: 0.75rem;
+                    border-top: 1px solid #f3f4f6;
+                }
+
+                .bsb-logout {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.65rem;
+                    padding: 0.65rem 0.85rem;
+                    border-radius: 10px;
+                    text-decoration: none;
+                    color: #9ca3af;
+                    font-size: 0.85rem;
+                    font-weight: 400;
+                    width: 100%;
+                    background: none;
+                    border: none;
+                    cursor: pointer;
+                    font-family: 'Inter', sans-serif;
+                    transition: background 0.18s, color 0.18s;
+                }
+
+                .bsb-logout:hover {
+                    background: rgba(244,63,94,0.07);
+                    color: #f43f5e;
+                }
+
+                .bsb-logout:hover .bsb-logout-icon {
+                    background: rgba(244,63,94,0.1);
+                    color: #f43f5e;
+                }
+
+                .bsb-logout-icon {
+                    width: 28px; height: 28px;
+                    border-radius: 8px;
+                    display: flex; align-items: center; justify-content: center;
+                    background: #f3f4f6; color: #9ca3af;
+                    font-size: 0.8rem; flex-shrink: 0;
+                    transition: background 0.18s, color 0.18s;
+                }
+            `}</style>
+
+            <nav className="bsb-nav">
+
+                <div className="bsb-brand">
+                    <div className="bsb-brand-inner">
+                        <div className="bsb-logo">
+                            <i className="fa-solid fa-building" />
+                        </div>
+                        <div>
+                            <p className="bsb-brand-text">Doanh nghiệp</p>
+                            <p className="bsb-brand-sub">Quản lý tuyển dụng</p>
+                        </div>
+                    </div>
+
+                    {datatoken && (
+                        <div className="bsb-role">
+                            <span className="bsb-role-dot" />
+                            {datatoken.role === "nhatuyendung" ? "Nhà tuyển dụng" : "Nhân viên"}
+                        </div>
+                    )}
+                </div>
+
+                <p className="bsb-section-label">Menu chính</p>
+                <ul className="bsb-ul">
+                    {navItems.filter(item => item.show).map((item, i) => (
+                        <li className="bsb-li" key={i}>
+                            <NavLink
+                                to={item.to}
+                                className={({ isActive }) => `bsb-link${isActive ? " active" : ""}`}
+                            >
+                                <span className="bsb-link-icon">{item.icon}</span>
+                                {item.label}
+                            </NavLink>
+                        </li>
+                    ))}
+                </ul>
+
+                {/* Logout */}
+                <div className="bsb-footer">
                     <NavLink
                         to={path.LOGIN}
-                        style={({ isActive }) => ({
-                            ...sidebarStyle.link,
-                            ...(hoverIndex === 8 ? sidebarStyle.hover : {}),
-                            ...(isActive ? sidebarStyle.active : {}),
-                        })}
-                        onMouseEnter={() => setHoverIndex(8)}
-                        onMouseLeave={() => setHoverIndex(null)}
+                        className="bsb-logout"
                         onClick={handleClickLogout}
                     >
-                        <LoginOutlined />
+                        <span className="bsb-logout-icon"><LoginOutlined /></span>
                         Đăng xuất
                     </NavLink>
-                </li>
-            </ul>
-        </nav>
+                </div>
+            </nav>
+        </>
     );
 };
 

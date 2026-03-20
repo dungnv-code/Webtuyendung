@@ -11,7 +11,7 @@ const BusinessLayout = () => {
             <div>
                 <Businesssibar />
             </div>
-            <div className="business-content" style={{ marginLeft: "25%" }}>
+            <div className="business-content" style={{ marginLeft: "23%" }}>
                 <Outlet />
             </div>
         </div>

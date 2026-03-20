@@ -2,39 +2,50 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getDetailPostjobs, getAllPostjobs, uploadCVPostjobs } from "../../../api/job";
 import { createWishListJob, checkWishlistJob } from "../../../api/user";
-import bg_detail_job from "../../../assets/bg-hoa-mai-job-detail.png";
 import Loading from "../../../component/loading/Loading";
 import { Link } from "react-router-dom";
 import path from "../../../ultils/path";
-import { toast } from "react-toastify"
-import { useSelector } from "react-redux"
+import { toast } from "react-toastify";
+import { useSelector } from "react-redux";
+
 const DetailPostJob = () => {
     const { idp } = useParams();
     const [detail, setDetail] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [listsuggest, setListsuggest] = useState([])
+    const [listsuggest, setListsuggest] = useState([]);
     const [isLiked, setIsLiked] = useState(false);
+    const [fileCV, setFileCV] = useState(null);
+    const isLogIn = useSelector(state => state.user.isLogIn);
 
-    const isLogIn = useSelector(state => state.user.isLogIn)
     useEffect(() => {
         const fetchDetail = async () => {
             try {
                 const res = await getDetailPostjobs(idp);
-                if (res.success) {
-                    setDetail(res.data);
-                }
-            } catch (error) {
-                console.error(error);
-            }
+                if (res.success) setDetail(res.data);
+            } catch (error) { console.error(error); }
         };
-
         fetchDetail();
     }, [idp]);
+
+    useEffect(() => {
+        if (!detail?.jobs) return;
+        const fetchSuggest = async () => {
+            try {
+                const res = await getAllPostjobs({
+                    flatten: true,
+                    populate: "salaryRange:salaryRange,min,max",
+                    limit: 7,
+                    jobs: detail.jobs,
+                });
+                setListsuggest(res.data);
+            } catch (error) { console.error(error); }
+        };
+        fetchSuggest();
+    }, [detail?.jobs]);
 
     const showModal = () => {
         const modal = document.getElementById("uploadCV");
         if (!modal) return;
-
         modal.classList.add("show", "d-block");
         modal.style.backgroundColor = "rgba(0,0,0,0.5)";
     };
@@ -42,77 +53,33 @@ const DetailPostJob = () => {
     const hideModal = () => {
         const modal = document.getElementById("uploadCV");
         if (!modal) return;
-
         modal.classList.remove("show", "d-block");
         modal.style.backgroundColor = "transparent";
     };
 
-    useEffect(() => {
-        if (!detail?.jobs) return;
-        const fetchDetail = async () => {
-            try {
-                const res = await getAllPostjobs({
-                    flatten: true,
-                    populate: "salaryRange:salaryRange,min,max", limit: 7, jobs: detail.jobs
-                });
-                setListsuggest(res.data);
-            } catch (error) {
-                console.error(error);
-            }
-        };
-
-        fetchDetail();
-    }, [detail?.jobs]);
-
-
-    const [fileCV, setFileCV] = useState(null);
-
     const handleChangeFile = (e) => {
         const file = e.target.files[0];
-
         if (!file) return;
-
-        if (file.type !== "application/pdf") {
-            toast.error("Chỉ chấp nhận file PDF!");
-            return;
-        }
-
+        if (file.type !== "application/pdf") { toast.error("Chỉ chấp nhận file PDF!"); return; }
         setFileCV(file);
     };
 
     const handleUploadCV = async () => {
-        if (!fileCV) {
-            toast.error("Vui lòng chọn file PDF trước!");
-            return;
-        }
+        if (!fileCV) { toast.error("Vui lòng chọn file PDF trước!"); return; }
         try {
             setLoading(true);
             const formData = new FormData();
             formData.append("fileCV", fileCV);
             const res = await uploadCVPostjobs(idp, formData);
-
-            if (res.success) {
-                toast.success("Nộp CV thành công!");
-                hideModal();
-            } else {
-                toast.error("Nộp CV thất bại!");
-            }
-        } catch (error) {
-
-        } finally {
-            setLoading(false);
-        }
+            if (res.success) { toast.success("Nộp CV thành công!"); hideModal(); }
+            else toast.error("Nộp CV thất bại!");
+        } catch (error) { }
+        finally { setLoading(false); }
     };
-
-    if (!detail) return <div className="text-center text-danger">Không tìm thấy bài đăng!</div>;
 
     const getDaysRemaining = (date) => {
         if (!date) return "Không có hạn";
-        const end = new Date(date);
-        if (isNaN(end.getTime())) return "Ngày không hợp lệ";
-        const now = new Date();
-        const diff = Math.ceil((end - now) / (1000 * 60 * 60 * 24));
-
+        const diff = Math.ceil((new Date(date) - new Date()) / 86400000);
         return diff <= 0 ? "Đã hết hạn" : `${diff} ngày`;
     };
 
@@ -120,371 +87,410 @@ const DetailPostJob = () => {
         try {
             const res = await checkWishlistJob(idp);
             setIsLiked(res.isLiked);
-        } catch (err) {
-            console.log(err);
-        }
+        } catch (err) { console.log(err); }
     };
 
     const hanleCreateWishlistJob = async () => {
         try {
             const repo = await createWishListJob(idp);
-            if (repo.success) {
-                toast.success(repo.message)
-                checkLike()
-            }
-        }
-        catch (err) {
-        }
-    }
+            if (repo.success) { toast.success(repo.message); checkLike(); }
+        } catch (err) { }
+    };
 
-    if (isLogIn) {
-        checkLike();
-    }
+    if (isLogIn) checkLike();
+    if (!detail) return <div className="text-center text-danger py-5">Không tìm thấy bài đăng!</div>;
 
     return (
-        <div className="container " style={{ position: "relative" }}>
+        <div style={{ background: "#f8fffe", minHeight: "100vh" }}>
             {loading && <Loading />}
+
+            {/* ── UPLOAD CV MODAL ── */}
             <div className="modal fade" id="uploadCV" tabIndex="-1" aria-hidden="true">
-                <div className="modal-dialog">
-                    <div className="modal-content">
-
-                        <div className="modal-header">
-                            <h5 className="modal-title">Nộp CV ứng tuyển</h5>
-                            <button type="button" className="btn-close" onClick={hideModal}></button>
+                <div className="modal-dialog modal-dialog-centered">
+                    <div className="modal-content border-0 shadow rounded-3">
+                        <div className="modal-header border-0 pb-0" style={{ background: "#1b5e20", borderRadius: "0.75rem 0.75rem 0 0" }}>
+                            <h5 className="modal-title text-white fw-bold">
+                                <i className="fa-solid fa-file-arrow-up me-2"></i>
+                                Nộp CV ứng tuyển
+                            </h5>
+                            <button type="button" className="btn-close btn-close-white" onClick={hideModal}></button>
                         </div>
-
-                        <div className="modal-body">
-
-                            <label className="fw-semibold mb-2">Chọn file CV (PDF):</label>
-                            <input
-                                type="file"
-                                accept="application/pdf"
-                                className="form-control"
-                                onChange={handleChangeFile}
-                            />
-
-                            {fileCV && (
-                                <p className="mt-2 text-success">
-                                    <i className="fa-solid fa-file-pdf"></i> Đã chọn: {fileCV.name}
-                                </p>
-                            )}
-
+                        <div className="modal-body px-4 py-4">
+                            <label className="form-label fw-semibold mb-2" style={{ color: "#2e7d32" }}>
+                                Chọn file CV (PDF):
+                            </label>
+                            <div className="border-2 border-dashed rounded-3 p-4 text-center"
+                                style={{ borderColor: "#c8e6c9", background: "#f1f8e9", cursor: "pointer" }}
+                                onClick={() => document.getElementById("cvFileInput").click()}>
+                                <i className="fa-solid fa-cloud-arrow-up fs-2 mb-2 d-block" style={{ color: "#4caf50" }}></i>
+                                {fileCV ? (
+                                    <p className="mb-0 fw-semibold" style={{ color: "#2e7d32" }}>
+                                        <i className="fa-solid fa-file-pdf me-1 text-danger"></i>{fileCV.name}
+                                    </p>
+                                ) : (
+                                    <p className="mb-0 text-muted small">Nhấn để chọn file PDF</p>
+                                )}
+                            </div>
+                            <input id="cvFileInput" type="file" accept="application/pdf"
+                                className="d-none" onChange={handleChangeFile} />
                         </div>
-
-                        <div className="modal-footer">
-                            <button type="button" className="btn btn-secondary" onClick={hideModal}>
+                        <div className="modal-footer border-0 px-4 pb-4 pt-0 gap-2">
+                            <button type="button" className="btn btn-outline-secondary rounded-pill px-4" onClick={hideModal}>
                                 Đóng
                             </button>
-                            <button type="button" onClick={handleUploadCV} className="btn btn-primary">Nộp CV</button>
+                            <button type="button" onClick={handleUploadCV}
+                                className="btn btn-success rounded-pill px-4 fw-semibold">
+                                <i className="fa-solid fa-paper-plane me-1"></i> Nộp CV
+                            </button>
                         </div>
-
                     </div>
                 </div>
             </div>
-            <div
 
-            >
-
-                <div className="p-4 shadow-sm rounded mb-3"
-                    style={{ background: "linear-gradient(180deg, #002b33, rgba(0, 43, 51, .25)), linear-gradient(90deg, #008060 21.86%, #2bab60 78.13%)" }}>
-                    <h2 className="fw-bold text-white">{detail.title}</h2>
-                    <div className="row text-white mt-3">
-                        <div className="col-md-4 d-flex align-items-center gap-2">
-                            <i className="fa-solid fa-dollar-sign fs-5"></i>
-                            <span>{detail.salaryRange?.salaryRange || "Thoả thuận"}</span>
+            {/* ── HERO BANNER ── */}
+            <div className="py-5"
+                style={{ background: "linear-gradient(135deg, #1b5e20 0%, #2e7d32 50%, #388e3c 100%)" }}>
+                <div className="container">
+                    <div className="row align-items-center g-4">
+                        <div className="col-auto d-none d-md-block">
+                            <div className="rounded-3 overflow-hidden border border-white border-opacity-25"
+                                style={{ width: "90px", height: "90px" }}>
+                                <img src={detail.business?.imageAvatarBusiness} alt="logo"
+                                    className="w-100 h-100" style={{ objectFit: "cover" }} />
+                            </div>
                         </div>
-                        <div className="col-md-4 d-flex align-items-center gap-2">
-                            <i className="fa-solid fa-location-dot fs-5"></i>
-                            <span>{detail.location}</span>
+                        <div className="col">
+                            <p className="mb-1 small" style={{ color: "#a5d6a7" }}>
+                                {detail.business?.nameBusiness}
+                            </p>
+                            <h2 className="fw-bold text-white mb-3">{detail.title}</h2>
+                            <div className="d-flex flex-wrap gap-3">
+                                {[
+                                    { icon: "fa-money-bill-wave", text: detail.salaryRange?.salaryRange || "Thoả thuận" },
+                                    { icon: "fa-location-dot", text: detail.location },
+                                    { icon: "fa-briefcase", text: detail.experience },
+                                ].map((item, i) => (
+                                    <span key={i} className="d-flex align-items-center gap-2 rounded-pill px-3 py-1"
+                                        style={{ background: "rgba(255,255,255,0.15)", color: "#fff", fontSize: "0.88rem" }}>
+                                        <i className={`fa-solid ${item.icon}`} style={{ color: "#69f0ae" }}></i>
+                                        {item.text}
+                                    </span>
+                                ))}
+                            </div>
                         </div>
-                        <div className="col-md-4 d-flex align-items-center gap-2">
-                            <i className="fa-solid fa-briefcase fs-5"></i>
-                            <span>{detail.experience}</span>
-                        </div>
-                    </div>
-
-                    <div className="d-flex justify-content-between align-items-center mt-4 flex-wrap">
-                        <div className="text-white">
-                            <strong>Hạn nộp hồ sơ:</strong>{" "}
-                            {new Date(detail.deadline).toLocaleDateString("vi-VN")}
-                        </div>
-
-                        <div className="d-flex gap-3 mt-3 mt-md-0">
-                            <button onClick={showModal} className="btn btn-light px-4 py-2 fw-semibold text-success">
-                                Ứng tuyển ngay
-                            </button>
-                            <button
-                                onClick={hanleCreateWishlistJob}
-                                className="btn btn-outline-light btn-primary px-4 py-2 fw-semibold"
-                            >
-                                {isLiked ? (
-                                    <i className="fa-solid fa-heart text-danger"></i>
-                                ) : (
-                                    <i className="fa-regular fa-heart"></i>
-                                )}
-                                {" "}
-                                {isLiked ? "Đã lưu" : "Lưu tin"}
-                            </button>
+                        <div className="col-md-auto">
+                            <div className="d-flex flex-column gap-2 align-items-stretch">
+                                <button onClick={showModal}
+                                    className="btn btn-light fw-bold px-4 py-2 rounded-pill"
+                                    style={{ color: "#1b5e20", minWidth: "160px" }}>
+                                    <i className="fa-solid fa-paper-plane me-2"></i>Ứng tuyển ngay
+                                </button>
+                                <button onClick={hanleCreateWishlistJob}
+                                    className="btn fw-semibold px-4 py-2 rounded-pill"
+                                    style={{ background: "rgba(255,255,255,0.15)", color: "#fff", border: "1px solid rgba(255,255,255,0.3)" }}>
+                                    {isLiked
+                                        ? <><i className="fa-solid fa-heart text-danger me-2"></i>Đã lưu</>
+                                        : <><i className="fa-regular fa-heart me-2"></i>Lưu tin</>}
+                                </button>
+                                <p className="text-center mb-0 small" style={{ color: "#a5d6a7" }}>
+                                    <i className="fa-regular fa-clock me-1"></i>
+                                    Hạn nộp: {new Date(detail.deadline).toLocaleDateString("vi-VN")}
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                {/* Body */}
+            {/* ── MAIN BODY ── */}
+            <div className="container py-4">
                 <div className="row g-4">
-                    {/* LEFT CONTENT */}
+
+                    {/* ── LEFT COLUMN ── */}
                     <div className="col-lg-8">
 
-                        {/* Job Description */}
-                        <div className="bg-white p-4 shadow-sm rounded mb-3 border-start border-4 border-success">
-                            <h4 className="fw-bold text-success">Chi tiết tin tuyển dụng</h4>
+                        {/* Job description */}
+                        <div className="card border-0 shadow-sm rounded-3 mb-4">
+                            <div className="card-body px-4 py-4">
+                                <h5 className="fw-bold mb-4 pb-2 border-bottom"
+                                    style={{ color: "#1b5e20", borderColor: "#c8e6c9 !important" }}>
+                                    <i className="fa-solid fa-file-lines me-2" style={{ color: "#4caf50" }}></i>
+                                    Chi tiết tin tuyển dụng
+                                </h5>
 
-                            {/* Skills */}
-                            <div className="mt-3">
-                                <strong>Kỹ năng yêu cầu:</strong>
-                                <div className="d-flex gap-2 mt-2 flex-wrap">
-                                    {detail.skills?.map((s, i) => (
-                                        <span key={i} className="badge bg-success bg-opacity-75">{s}</span>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div
-                                className="mt-4 job-description"
-                                dangerouslySetInnerHTML={{ __html: detail.description }}
-                            ></div>
-                            <strong>Hạn nộp hồ sơ:</strong>{" "}
-                            {new Date(detail.deadline).toLocaleDateString("vi-VN")}
-                            <div className="d-flex gap-3 m-4">
-                                <button onClick={showModal} className="btn btn-success px-4 py-2 fw-semibold text-white">
-                                    Ứng tuyển ngay
-                                </button>
-                                <button
-                                    onClick={hanleCreateWishlistJob}
-                                    className="btn btn-outline-light btn-primary px-4 py-2 fw-semibold"
-                                >
-                                    {isLiked ? (
-                                        <i className="fa-solid fa-heart text-danger"></i>
-                                    ) : (
-                                        <i className="fa-regular fa-heart"></i>
-                                    )}
-                                    {" "}
-                                    {isLiked ? "Đã lưu" : "Lưu tin"}
-                                </button>
-                            </div>
-                            <div class="alert alert-danger" role="alert">
-                                <i class="fa-solid fa-circle-exclamation me-2"></i>
-                                Báo cáo tin tuyển dụng: Nếu bạn thấy rằng tin tuyển dụng này không đúng hoặc có dấu hiệu lừa đảo, hãy phản ánh với chúng tôi.
-                            </div>
-                            <div className="bg-white p-4 shadow-sm rounded mt-4">
-                                <h4 className="fw-bold mb-3 text-success">
-                                    <i className="fa-solid fa-lightbulb me-2"></i>
-                                    Gợi ý việc làm tương tự
-                                </h4>
-
-                                {listsuggest.length === 0 && (
-                                    <p className="text-muted fst-italic">Không tìm thấy công việc tương tự.</p>
+                                {/* Skills */}
+                                {detail.skills?.length > 0 && (
+                                    <div className="mb-4">
+                                        <p className="fw-semibold mb-2" style={{ color: "#2e7d32" }}>
+                                            <i className="fa-solid fa-tags me-1"></i> Kỹ năng yêu cầu:
+                                        </p>
+                                        <div className="d-flex gap-2 flex-wrap">
+                                            {detail.skills.map((s, i) => (
+                                                <span key={i} className="badge rounded-pill px-3 py-2"
+                                                    style={{ background: "#e8f5e9", color: "#2e7d32", fontSize: "0.82rem", fontWeight: "500" }}>
+                                                    {s}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
                                 )}
 
-                                {listsuggest.map(job => {
-                                    const isExpired = getDaysRemaining(job.deadline) === "Đã hết hạn";
+                                {/* Description */}
+                                <div className="job-description"
+                                    dangerouslySetInnerHTML={{ __html: detail.description }} />
 
-                                    return (
-                                        <div className="card mb-3" key={job._id}>
-                                            <div className="card-body">
-                                                <div className="row g-3 align-items-center">
+                                {/* Deadline + CTA */}
+                                <div className="rounded-3 p-3 mt-4 d-flex align-items-center justify-content-between flex-wrap gap-3"
+                                    style={{ background: "#f1f8e9", border: "1px solid #c8e6c9" }}>
+                                    <p className="mb-0 fw-semibold" style={{ color: "#2e7d32" }}>
+                                        <i className="fa-regular fa-calendar me-2"></i>
+                                        Hạn nộp hồ sơ:{" "}
+                                        <span className="text-danger">
+                                            {new Date(detail.deadline).toLocaleDateString("vi-VN")}
+                                        </span>
+                                    </p>
+                                    <div className="d-flex gap-2">
+                                        <button onClick={showModal}
+                                            className="btn btn-success rounded-pill px-4 fw-semibold">
+                                            <i className="fa-solid fa-paper-plane me-1"></i> Ứng tuyển ngay
+                                        </button>
+                                        <button onClick={hanleCreateWishlistJob}
+                                            className="btn btn-outline-success rounded-pill px-4 fw-semibold">
+                                            {isLiked
+                                                ? <><i className="fa-solid fa-heart text-danger me-1"></i>Đã lưu</>
+                                                : <><i className="fa-regular fa-heart me-1"></i>Lưu tin</>}
+                                        </button>
+                                    </div>
+                                </div>
 
-                                                    <div className="col-md-2 col-4">
-                                                        <img
-                                                            src={job.imageCover}
-                                                            alt=""
-                                                            className="img-fluid rounded"
-                                                        />
-                                                    </div>
+                                {/* Warning */}
+                                <div className="alert border-0 rounded-3 mt-3 d-flex gap-2 align-items-start"
+                                    style={{ background: "#fff3e0", color: "#e65100" }}>
+                                    <i className="fa-solid fa-circle-exclamation mt-1 flex-shrink-0"></i>
+                                    <span className="small">
+                                        <strong>Báo cáo tin tuyển dụng:</strong> Nếu bạn thấy tin này không đúng hoặc có dấu hiệu lừa đảo, hãy phản ánh với chúng tôi.
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
 
-                                                    <div className="col-md-7 col-8">
+                        {/* Suggested jobs */}
+                        <div className="card border-0 shadow-sm rounded-3 mb-4">
+                            <div className="card-body px-4 py-4">
+                                <h5 className="fw-bold mb-4 pb-2 border-bottom" style={{ color: "#1b5e20" }}>
+                                    <i className="fa-solid fa-lightbulb me-2" style={{ color: "#4caf50" }}></i>
+                                    Gợi ý việc làm tương tự
+                                </h5>
 
-                                                        {isExpired ? (
-                                                            <p className="mb-2 text-muted">{job.title}</p>
-                                                        ) : (
-                                                            <Link to={`${path.JOB}/${job._id}`}>
-                                                                <p className="mb-2">{job.title}</p>
-                                                            </Link>
-                                                        )}
-
-                                                        <div className="row text-secondary">
-                                                            <div className="col-4">
-                                                                <i className="fa-solid fa-building me-1"></i>
-                                                                {job.joblevel}
-                                                            </div>
-
-                                                            <div className="col-4">
-                                                                <i className="fa-solid fa-location-arrow me-1"></i>
-                                                                {job.location}
-                                                            </div>
-
-                                                            <div className="col-4 fw-semibold">
-                                                                <i className="fa-solid fa-dollar-sign me-1"></i>
-                                                                {job.salaryRange_salaryRange}
-                                                            </div>
+                                {listsuggest.length === 0 ? (
+                                    <p className="text-muted fst-italic small">Không tìm thấy công việc tương tự.</p>
+                                ) : (
+                                    listsuggest.map(job => {
+                                        const isExpired = getDaysRemaining(job.deadline) === "Đã hết hạn";
+                                        return (
+                                            <div key={job._id}
+                                                className="rounded-3 border p-3 mb-3"
+                                                style={{
+                                                    borderColor: "#e8f5e9 !important",
+                                                    transition: "box-shadow 0.2s",
+                                                    opacity: isExpired ? 0.6 : 1,
+                                                }}
+                                                onMouseEnter={e => !isExpired && (e.currentTarget.style.boxShadow = "0 4px 16px rgba(76,175,80,0.12)")}
+                                                onMouseLeave={e => e.currentTarget.style.boxShadow = ""}>
+                                                <div className="row align-items-center g-3">
+                                                    <div className="col-auto">
+                                                        <div className="rounded-2 border overflow-hidden"
+                                                            style={{ width: "56px", height: "56px" }}>
+                                                            <img src={job.imageCover} alt={job.title}
+                                                                className="w-100 h-100" style={{ objectFit: "cover" }} />
                                                         </div>
                                                     </div>
-
-                                                    <div className="col-md-3 text-md-end">
-                                                        <span className="badge bg-info text-dark mb-2 w-100">
+                                                    <div className="col">
+                                                        {isExpired ? (
+                                                            <p className="fw-semibold mb-1 text-muted">{job.title}</p>
+                                                        ) : (
+                                                            <Link to={`${path.JOB}/${job._id}`} className="text-decoration-none">
+                                                                <p className="fw-semibold mb-1" style={{ color: "#1b5e20" }}>{job.title}</p>
+                                                            </Link>
+                                                        )}
+                                                        <div className="d-flex flex-wrap gap-3">
+                                                            <span className="text-muted small">
+                                                                <i className="fa-solid fa-building me-1" style={{ color: "#4caf50" }}></i>{job.joblevel}
+                                                            </span>
+                                                            <span className="text-muted small">
+                                                                <i className="fa-solid fa-location-dot me-1" style={{ color: "#4caf50" }}></i>{job.location}
+                                                            </span>
+                                                            <span className="fw-semibold small" style={{ color: "#2e7d32" }}>
+                                                                <i className="fa-solid fa-money-bill-wave me-1"></i>{job.salaryRange_salaryRange}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="col-auto text-end">
+                                                        <span className="badge rounded-pill mb-2 d-block"
+                                                            style={{ background: "#e8f5e9", color: "#2e7d32", fontSize: "0.72rem" }}>
                                                             {job.workType}
                                                         </span>
-
-                                                        <p className={`fw-semibold mb-0 ${isExpired ? "text-muted" : "text-danger"}`}>
-                                                            <i className="fa-solid fa-clock me-1"></i>
+                                                        <span className={`small fw-semibold ${isExpired ? "text-muted" : "text-danger"}`}>
+                                                            <i className="fa-regular fa-clock me-1"></i>
                                                             {getDaysRemaining(job.deadline)}
-                                                        </p>
+                                                        </span>
                                                     </div>
-
                                                 </div>
                                             </div>
-                                        </div>
-                                    );
-                                })}
+                                        );
+                                    })
+                                )}
                             </div>
                         </div>
                     </div>
 
-                    {/* RIGHT CONTENT */}
                     <div className="col-lg-4">
 
-                        {/* Business Info */}
-                        <div className="bg-white p-4 shadow-sm rounded mb-4 border-top border-success border-3">
-                            <h4 className="fw-bold text-success mb-3">Thông tin doanh nghiệp</h4>
+                        <div className="card border-0 shadow-sm rounded-3 mb-4">
+                            <div className="card-header border-0 rounded-top-3 py-3 px-4"
+                                style={{ background: "#1b5e20" }}>
+                                <h6 className="fw-bold text-white mb-0">
+                                    <i className="fa-solid fa-building me-2"></i>
+                                    Thông tin doanh nghiệp
+                                </h6>
+                            </div>
+                            <div className="card-body px-4 py-4">
+                                <div className="d-flex align-items-center gap-3 mb-3">
+                                    <img src={detail.business?.imageAvatarBusiness} alt="logo"
+                                        className="rounded-2" style={{ width: "64px", height: "64px", objectFit: "cover" }} />
+                                    <div>
+                                        <h6 className="fw-bold mb-0" style={{ color: "#1b5e20" }}>
+                                            {detail.business?.nameBusiness}
+                                        </h6>
+                                        <p className="text-muted small mb-0">
+                                            <i className="fa-solid fa-location-dot me-1" style={{ color: "#4caf50" }}></i>
+                                            {detail.business?.addressBusiness}
+                                        </p>
+                                    </div>
+                                </div>
+                                <hr style={{ borderColor: "#e8f5e9" }} />
+                                {[
+                                    { icon: "fa-users", label: "Quy mô", value: detail.business?.numberOfEmployees },
+                                    { icon: "fa-layer-group", label: "Lĩnh vực", value: detail.business?.FieldBusiness },
+                                ].map((row, i) => (
+                                    <div key={i} className="d-flex align-items-center gap-2 mb-2">
+                                        <i className={`fa-solid ${row.icon} fa-sm`} style={{ color: "#4caf50", width: "16px" }}></i>
+                                        <span className="small text-muted">{row.label}:</span>
+                                        <span className="small fw-semibold">{row.value}</span>
+                                    </div>
+                                ))}
+                                {detail.business?.websiteBusiness && (
+                                    <div className="d-flex align-items-center gap-2 mb-3">
+                                        <i className="fa-solid fa-globe fa-sm" style={{ color: "#4caf50", width: "16px" }}></i>
+                                        <a href={detail.business.websiteBusiness} target="_blank" rel="noreferrer"
+                                            className="small text-success text-truncate" style={{ maxWidth: "200px" }}>
+                                            {detail.business.websiteBusiness}
+                                        </a>
+                                    </div>
+                                )}
+                                <Link to={`${path.COMPANY}/${detail.business?._id}`}
+                                    className="btn btn-outline-success w-100 rounded-pill fw-semibold btn-sm">
+                                    Xem trang công ty
+                                    <i className="fa-solid fa-arrow-right ms-1"></i>
+                                </Link>
+                            </div>
+                        </div>
 
-                            <div className="d-flex align-items-center">
-                                <img
-                                    src={detail.business?.imageAvatarBusiness}
-                                    className="rounded"
-                                    width="80"
-                                    height="80"
-                                    alt="logo"
-                                />
-                                <div className="ms-3">
-                                    <h5 className="text-success">{detail.business?.nameBusiness}</h5>
-                                    <p className="text-muted small">
-                                        {detail.business?.addressBusiness}
-                                    </p>
+                        {/* General info */}
+                        <div className="card border-0 shadow-sm rounded-3 mb-4">
+                            <div className="card-header border-0 rounded-top-3 py-3 px-4"
+                                style={{ background: "#1b5e20" }}>
+                                <h6 className="fw-bold text-white mb-0">
+                                    <i className="fa-solid fa-circle-info me-2"></i>
+                                    Thông tin chung
+                                </h6>
+                            </div>
+                            <div className="card-body px-4 py-3">
+                                {[
+                                    { icon: "fa-layer-group", label: "Cấp bậc", value: detail?.joblevel },
+                                    { icon: "fa-briefcase", label: "Nhóm công việc", value: detail?.jobs },
+                                    { icon: "fa-users", label: "Số lượng tuyển", value: detail?.quantity },
+                                    { icon: "fa-laptop-house", label: "Hình thức", value: detail?.workType },
+                                ].map((row, i) => (
+                                    <div key={i} className={`d-flex align-items-center gap-3 py-2 ${i < 3 ? "border-bottom" : ""}`}
+                                        style={{ borderColor: "#f1f8e9" }}>
+                                        <div className="rounded-2 d-flex align-items-center justify-content-center flex-shrink-0"
+                                            style={{ width: "32px", height: "32px", background: "#e8f5e9" }}>
+                                            <i className={`fa-solid ${row.icon} fa-sm`} style={{ color: "#2e7d32" }}></i>
+                                        </div>
+                                        <div>
+                                            <p className="mb-0 text-muted" style={{ fontSize: "0.75rem" }}>{row.label}</p>
+                                            <p className="mb-0 fw-semibold small">{row.value}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="card border-0 shadow-sm rounded-3">
+                            <div className="card-header border-0 rounded-top-3 py-3 px-4"
+                                style={{ background: "#e65100" }}>
+                                <h6 className="fw-bold text-white mb-0">
+                                    <i className="fa-solid fa-shield-halved me-2"></i>
+                                    Bí kíp tìm việc an toàn
+                                </h6>
+                            </div>
+                            <div className="card-body px-4 py-4">
+                                <p className="small text-muted mb-3">
+                                    Dấu hiệu của tổ chức, cá nhân tuyển dụng không minh bạch:
+                                </p>
+                                <p className="small fw-semibold mb-2" style={{ color: "#e65100" }}>1. Dấu hiệu phổ biến:</p>
+                                <div className="d-flex flex-column gap-2 mb-3">
+                                    {["Mô tả công việc sơ sài", "Hứa hẹn \"việc nhẹ lương cao\"", "Yêu cầu tải app / nạp tiền", "Yêu cầu nộp phí phỏng vấn", "Yêu cầu nộp giấy tờ gốc", "Địa điểm phỏng vấn bất thường"].map((t, i) => (
+                                        <div key={i} className="d-flex align-items-center gap-2">
+                                            <i className="fa-solid fa-triangle-exclamation fa-xs" style={{ color: "#e65100" }}></i>
+                                            <span className="small text-muted">{t}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                                <p className="small fw-semibold mb-2" style={{ color: "#e65100" }}>2. Cần làm gì:</p>
+                                <div className="d-flex flex-column gap-2 mb-3">
+                                    {["Kiểm tra thông tin công ty trước khi ứng tuyển.", "Báo cáo tin tuyển dụng khi thấy đáng ngờ."].map((t, i) => (
+                                        <div key={i} className="d-flex align-items-center gap-2">
+                                            <i className="fa-solid fa-check fa-xs" style={{ color: "#4caf50" }}></i>
+                                            <span className="small text-muted">{t}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="rounded-2 p-3 small" style={{ background: "#fbe9e7" }}>
+                                    <p className="mb-1 fw-semibold" style={{ color: "#e65100" }}>Bộ phận hỗ trợ ứng viên:</p>
+                                    <p className="mb-1"><i className="fa-solid fa-envelope me-1"></i> hotro@topcv.vn</p>
+                                    <p className="mb-0"><i className="fa-solid fa-phone me-1"></i> (024) 6680 5588</p>
                                 </div>
                             </div>
-
-                            <hr />
-
-                            <p><strong>Quy mô:</strong> {detail.business?.numberOfEmployees}</p>
-                            <p><strong>Lĩnh vực:</strong> {detail.business?.FieldBusiness}</p>
-
-                            <p>
-                                <strong>Website:</strong><br />
-                                <a href={detail.business?.websiteBusiness} target="_blank" rel="noreferrer">
-                                    {detail.business?.websiteBusiness}
-                                </a>
-                            </p>
-
-                            <button className="btn btn-outline-success w-100 mt-3">
-                                Xem trang công ty
-                            </button>
-                        </div>
-
-                        {/* General Info */}
-                        <div className="bg-white p-4 shadow-sm rounded border-start border-4 border-success">
-                            <h4 className="fw-bold text-success mb-3">Thông tin chung</h4>
-
-                            <div className="d-flex align-items-center mb-3">
-                                <i class="fa-solid fa-layer-group text-success fs-4 me-2"></i>
-                                Cấp bậc: {detail?.joblevel}
-                            </div>
-
-                            <div className="d-flex align-items-center mb-3">
-                                <i class="fa-solid fa-briefcase text-success fs-4 me-2"></i>
-                                Nhóm công việc: {detail?.jobs}
-                            </div>
-
-                            <div className="d-flex align-items-center mb-3">
-                                <i class="fa-solid fa-users text-success fs-4 me-2"></i>
-                                Số lượng tuyển: {detail?.quantity}
-                            </div>
-
-                            <div className="d-flex align-items-center">
-                                <i class="fa-solid fa-laptop-house text-success fs-4 me-2"></i>
-                                Hình thức làm việc: {detail?.workType}
-                            </div>
-                        </div>
-
-                        {/* Safety Tips */}
-                        <div className="bg-white p-4 mt-4 shadow-sm rounded border border-success">
-                            <h4 className="fw-bold mb-3 text-success">
-                                <i className="fa-solid fa-question me-2"></i>
-                                Bí kíp Tìm việc an toàn
-                            </h4>
-
-                            <p>Dưới đây là những dấu hiệu của các tổ chức, cá nhân tuyển dụng không minh bạch:</p>
-
-                            <h6 className="fw-semibold mt-3 text-success">1. Dấu hiệu phổ biến:</h6>
-                            <ul className="list-group list-group-flush mb-3">
-                                <li className="list-group-item">Mô tả công việc sơ sài</li>
-                                <li className="list-group-item">Hứa hẹn “việc nhẹ lương cao”</li>
-                                <li className="list-group-item">Yêu cầu tải app / nạp tiền</li>
-                                <li className="list-group-item">Yêu cầu nộp phí phỏng vấn</li>
-                                <li className="list-group-item">Yêu cầu nộp giấy tờ gốc</li>
-                                <li className="list-group-item">Địa điểm phỏng vấn bất thường</li>
-                            </ul>
-
-                            <h6 className="fw-semibold mt-3 text-success">2. Cần làm gì:</h6>
-                            <ul className="list-group list-group-flush">
-                                <li className="list-group-item">Kiểm tra thông tin công ty trước khi ứng tuyển.</li>
-                                <li className="list-group-item">Báo cáo tin tuyển dụng khi thấy đáng ngờ.</li>
-                                <li className="list-group-item">
-                                    Bộ phận hỗ trợ ứng viên:<br />
-                                    <strong>Email:</strong> hotro@topcv.vn<br />
-                                    <strong>Hotline:</strong> (024) 6680 5588
-                                </li>
-                            </ul>
                         </div>
 
                     </div>
                 </div>
-            </div>
-            <div>
-                <div class="bg-white p-4 rounded shadow-sm">
-                    <p class="lh-lg">
-                        <strong>Cơ hội ứng tuyển việc làm với đãi ngộ hấp dẫn tại các công ty hàng đầu</strong><br />
-                        Trước sự phát triển mạnh mẽ của nền kinh tế, nhiều ngành nghề đang rơi vào tình trạng khan hiếm nhân lực,
-                        đặc biệt là nguồn nhân lực chất lượng cao. Vì vậy, các trường Đại học đã chủ động liên kết với doanh nghiệp
-                        nhằm tạo điều kiện cho sinh viên được học tập, rèn luyện và tiếp cận môi trường làm việc thực tế.
-                    </p>
-
-                    <p class="lh-lg">
-                        <strong>Vì sao nên tìm việc làm tại TopCV?</strong>
-                    </p>
-
-                    <p class="lh-lg">
-                        <strong>1. Việc làm chất lượng</strong><br />
-                        • Hàng nghìn tin tuyển dụng uy tín được cập nhật liên tục.<br />
-                        • Hệ thống thông minh gợi ý công việc phù hợp dựa trên CV của bạn.
-                    </p>
-
-                    <p class="lh-lg">
-                        <strong>2. Công cụ viết CV đẹp – Miễn phí</strong><br />
-                        • Nhiều mẫu CV chuyên nghiệp phù hợp mọi vị trí.<br />
-                        • Giao diện trực quan, dễ chỉnh sửa, tạo CV chỉ trong 5 phút.
-                    </p>
-
-                    <p class="lh-lg">
-                        <strong>3. Hỗ trợ người tìm việc</strong><br />
-                        • Nhà tuyển dụng chủ động liên hệ qua hệ thống kết nối ứng viên.<br />
-                        • Báo cáo chi tiết về việc xem CV và lời mời phỏng vấn.
-                    </p>
-
-                    <p class="lh-lg">
-                        TopCV đồng hành cùng bạn trong hành trình sự nghiệp với những cơ hội việc làm lương cao
-                        tại các <strong>công ty lớn</strong>, môi trường <strong>chuyên nghiệp – năng động – trẻ trung</strong>.
-                        Dù bạn tìm việc tại <strong>Hà Nội</strong> hay <strong>TP.HCM</strong>, TopCV luôn mang đến
-                        những vị trí mới nhất và phù hợp nhất.
-                    </p>
+                <div className="card border-0 shadow-sm rounded-3">
+                    <div className="card-body px-4 py-4">
+                        <p className="lh-lg text-muted small mb-3">
+                            <strong className="text-dark">Cơ hội ứng tuyển việc làm với đãi ngộ hấp dẫn tại các công ty hàng đầu</strong><br />
+                            Trước sự phát triển mạnh mẽ của nền kinh tế, nhiều ngành nghề đang rơi vào tình trạng khan hiếm nhân lực,
+                            đặc biệt là nguồn nhân lực chất lượng cao. Vì vậy, các trường Đại học đã chủ động liên kết với doanh nghiệp
+                            nhằm tạo điều kiện cho sinh viên được học tập, rèn luyện và tiếp cận môi trường làm việc thực tế.
+                        </p>
+                        <p className="fw-semibold mb-2" style={{ color: "#1b5e20" }}>Vì sao nên tìm việc làm tại TopCV?</p>
+                        {[
+                            { title: "1. Việc làm chất lượng", points: ["Hàng nghìn tin tuyển dụng uy tín được cập nhật liên tục.", "Hệ thống thông minh gợi ý công việc phù hợp dựa trên CV của bạn."] },
+                            { title: "2. Công cụ viết CV đẹp – Miễn phí", points: ["Nhiều mẫu CV chuyên nghiệp phù hợp mọi vị trí.", "Giao diện trực quan, dễ chỉnh sửa, tạo CV chỉ trong 5 phút."] },
+                            { title: "3. Hỗ trợ người tìm việc", points: ["Nhà tuyển dụng chủ động liên hệ qua hệ thống kết nối ứng viên.", "Báo cáo chi tiết về việc xem CV và lời mời phỏng vấn."] },
+                        ].map((sec, i) => (
+                            <div key={i} className="mb-3">
+                                <p className="fw-semibold mb-1 small" style={{ color: "#2e7d32" }}>{sec.title}</p>
+                                {sec.points.map((p, j) => (
+                                    <p key={j} className="text-muted small mb-1 lh-lg">
+                                        <i className="fa-solid fa-check me-2" style={{ color: "#4caf50" }}></i>{p}
+                                    </p>
+                                ))}
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
         </div>

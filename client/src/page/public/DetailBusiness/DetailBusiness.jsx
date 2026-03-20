@@ -2,372 +2,377 @@ import { useEffect, useState } from "react";
 import { getDetailBusiness } from "../../../api/job";
 import { getPostJobUserBusiness } from "../../../api/business";
 import { useParams, Link } from "react-router-dom";
-import {
-    CodeSandboxOutlined,
-    ContainerOutlined,
-    EnvironmentOutlined
-} from "@ant-design/icons";
 import { createWishListBusiness, checkWishlistBusiness } from "../../../api/user";
 import { toast } from "react-toastify";
 import PaginationCustom from "../../../component/pagination/pagination";
 import path from "../../../ultils/path";
-import { useSelector } from "react-redux"
+import { useSelector } from "react-redux";
+
 const DetailBusiness = () => {
     const { idb } = useParams();
-
     const [data, setData] = useState({});
     const [listjob, setListjob] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
-    const [limit, setLimit] = useState(7);
+    const [limit] = useState(7);
     const [totalPages, setTotalPages] = useState(0);
-    const isLogIn = useSelector(state => state.user.isLogIn)
     const [isLiked, setIsLiked] = useState(false);
-    // Fetch business detail
+    const isLogIn = useSelector(state => state.user.isLogIn);
+
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const repo = await getDetailBusiness(idb);
                 setData(repo.data);
-            } catch (err) {
-                console.log("Error load business", err);
-            }
+            } catch (err) { console.log(err); }
         };
         fetchData();
     }, [idb]);
 
-    // Fetch jobs by business
     useEffect(() => {
         const fetchJobs = async () => {
             try {
-                const repo = await getPostJobUserBusiness(idb, {
-                    page: currentPage,
-                    limit,
-                });
-
+                const repo = await getPostJobUserBusiness(idb, { page: currentPage, limit });
                 setListjob(repo.data || []);
                 setTotalPages(repo.totalPages || 0);
-            } catch (err) {
-                console.log("Error load jobs", err);
-            }
+            } catch (err) { console.log(err); }
         };
         fetchJobs();
     }, [idb, currentPage, limit]);
 
-    // Calculate days remaining
     const getDaysRemaining = (deadline) => {
-        const end = new Date(deadline).getTime();
-        const now = Date.now();
-        const distance = end - now;
-
+        const distance = new Date(deadline).getTime() - Date.now();
         if (distance <= 0) return "Đã hết hạn";
-        const days = Math.ceil(distance / (1000 * 60 * 60 * 24));
-        return `Còn ${days} ngày`;
+        return `Còn ${Math.ceil(distance / 86400000)} ngày`;
     };
 
-    // Generate map URL
-    const generateMapIframe = (address) => {
-        const encoded = encodeURIComponent(address);
-        return `https://www.google.com/maps?q=${encoded}&output=embed`;
-    };
+    const generateMapIframe = (address) =>
+        `https://www.google.com/maps?q=${encodeURIComponent(address)}&output=embed`;
 
     const checkLike = async () => {
         try {
             const res = await checkWishlistBusiness(idb);
             setIsLiked(res.isLiked);
-        } catch (err) {
-            console.log(err);
-        }
+        } catch (err) { console.log(err); }
     };
 
     const hanleCreateWishlistJob = async () => {
         try {
             const repo = await createWishListBusiness(idb);
-            if (repo.success) {
-                toast.success(repo.message)
-                checkLike()
-            }
-        }
-        catch (err) {
-        }
-    }
+            if (repo.success) { toast.success(repo.message); checkLike(); }
+        } catch (err) { }
+    };
 
-    if (isLogIn) {
-        checkLike();
-    }
+    if (isLogIn) checkLike();
 
     return (
-        <>
-            <div className="container">
-                {/* Cover */}
-                <div className="position-relative">
+        <div style={{ background: "#f8fffe", minHeight: "100vh" }}>
+
+            {/* ── COVER + PROFILE CARD ── */}
+            <div className="position-relative" style={{ marginBottom: "80px" }}>
+                {/* Cover image */}
+                <div style={{ height: "300px", overflow: "hidden" }}>
                     <img
                         src={data?.imageCoverBusiness}
-                        className="img-fluid w-100 rounded"
-                        style={{ height: "400px", objectFit: "cover" }}
+                        className="w-100 h-100"
+                        style={{ objectFit: "cover", filter: "brightness(0.75)" }}
                         alt="cover"
                     />
+                    {/* Gradient overlay */}
+                    <div className="position-absolute top-0 start-0 w-100 h-100"
+                        style={{ background: "linear-gradient(to bottom, transparent 40%, rgba(27,94,32,0.6))" }} />
+                </div>
 
-                    {/* Overlay */}
-                    <div className="position-absolute w-100" style={{ top: "205px" }}>
-                        <div
-                            className="container rounded-4 shadow-lg p-4 text-white"
-                            style={{
-                                background: "rgba(255,255,255,0.15)",
-                                backdropFilter: "blur(12px)",
-                                WebkitBackdropFilter: "blur(12px)",
-                                border: "1px solid rgba(255,255,255,0.3)",
-                            }}
-                        >
-                            <div className="row text-center align-items-center g-3">
+                {/* Profile card overlapping cover */}
+                <div className="container" style={{ marginTop: "-64px", position: "relative", zIndex: 10 }}>
+                    <div className="card border-0 shadow rounded-4 px-4 py-4">
+                        <div className="row align-items-center g-4">
 
-                                <div className="col-12 col-md-4">
-                                    <img
-                                        src={data?.imageAvatarBusiness}
-                                        className="border border-3 border-white shadow"
-                                        style={{
-                                            width: "180px",
-                                            height: "140px",
-                                            objectFit: "cover",
-                                            borderRadius: "12px"
-                                        }}
-                                        alt="avatar"
-                                    />
-                                </div>
-
-                                <div className="col-12 col-md-4">
-                                    <h5 className="fw-bold">{data?.nameBusiness}</h5>
-
-                                    <p className="text-light mb-1">
-                                        <ContainerOutlined className="me-2" />
-                                        Lĩnh vực: {data?.FieldBusiness}
-                                    </p>
-
-                                    <p className="text-light mb-1">
-                                        <i className="fa-solid fa-building me-2"></i>
-                                        Nhân lực: {data?.numberOfEmployees}
-                                    </p>
-                                </div>
-
-                                <div className="col-12 col-md-4">
-                                    <div
-                                        className="rounded-3 p-3"
-                                        style={{
-                                            background: "rgba(255,255,255,0.25)",
-                                            backdropFilter: "blur(10px)"
-                                        }}
-                                    >
-                                        <p className="mb-2">
-                                            <CodeSandboxOutlined className="me-2" />
-                                            Website:
-                                            <a
-                                                href={data?.websiteBusiness}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="ms-1 text-success "
-                                            >
-                                                {data?.websiteBusiness}
-                                            </a>
-                                        </p>
-
-                                        <button
-                                            onClick={hanleCreateWishlistJob}
-                                            className="btn btn-success px-4 py-2 fw-semibold"
-                                        >
-                                            {isLiked ? (
-                                                <i className="fa-solid fa-heart text-danger"></i>
-                                            ) : (
-                                                <i className="fa-regular fa-heart"></i>
-                                            )}
-                                            {" "}
-                                            {isLiked ? "Đã theo dõi" : "Theo dõi"}
-                                        </button>
-                                    </div>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Main body */}
-                    <div className="row mt-2 g-4">
-                        {/* Left column */}
-                        <div className="col-lg-8 col-md-7">
-                            <div
-                                className="p-3 bg-white rounded"
-                                style={{ boxShadow: "0 6px 18px rgba(0,0,0,0.15)" }}
-                            >
-                                <div style={{ textAlign: "center", color: "#28a745" }}>
-                                    <h4 className="fw-semibold">Giới thiệu công ty</h4>
-                                </div>
-
-                                <div className="text-secondary small mt-4">
-                                    {data?.descriptionBusiness ? (
-                                        <div
-                                            className="job-description"
-                                            dangerouslySetInnerHTML={{ __html: data.descriptionBusiness }}
-                                        ></div>
-                                    ) : (
-                                        <p className="text-muted fst-italic">
-                                            Công ty chưa cập nhật phần giới thiệu.
-                                        </p>
-                                    )}
-                                </div>
-                                <div>
-                                    <h5>Các bài đăng doanh nghiệp</h5>
-                                </div>
-                                {listjob.map((job) => (
-                                    <div className="card mb-3" key={job._id}>
-                                        <div className="card-body">
-                                            <div className="row g-3 align-items-center">
-                                                <div className="col-md-2 col-4">
-                                                    <img
-                                                        src={job?.imageCover}
-                                                        alt=""
-                                                        className="img-fluid rounded"
-                                                    />
-                                                </div>
-
-                                                <div className="col-md-7 col-8">
-                                                    {getDaysRemaining(job?.deadline) === "Đã hết hạn" ? (
-                                                        <p
-                                                            className="mb-2 text-muted"
-                                                            style={{ cursor: "not-allowed" }}
-                                                        >
-                                                            {job?.title}
-                                                        </p>
-                                                    ) : (
-                                                        <Link to={`${path.JOB}/${job._id}`}>
-                                                            <p className="mb-2">{job?.title}</p>
-                                                        </Link>
-                                                    )}
-                                                    <div className="row text-secondary">
-                                                        <div className="col-4">
-                                                            <i className="fa-solid fa-building me-1"></i>
-                                                            {job?.joblevel}
-                                                        </div>
-
-                                                        <div className="col-4">
-                                                            <i className="fa-solid fa-location-arrow me-1"></i>
-                                                            {job?.location}
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div className="col-md-3 text-md-end">
-                                                    <span className="badge bg-success text-light mb-2 w-100">
-                                                        {job?.workType}
-                                                    </span>
-
-                                                    <p className="text-danger fw-semibold mb-0">
-                                                        <i className="fa-solid fa-clock me-1"></i>
-                                                        {getDaysRemaining(job?.deadline)}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-
-                                {/* Pagination */}
-                                <div className="d-flex justify-content-center mt-3">
-                                    <PaginationCustom
-                                        currentPage={currentPage}
-                                        setCurrentPage={setCurrentPage}
-                                        limit={limit}
-                                        totalPages={totalPages}
-                                    />
+                            {/* Avatar */}
+                            <div className="col-auto">
+                                <div className="rounded-3 overflow-hidden"
+                                    style={{ width: "100px", height: "100px", border: "3px solid #fff", boxShadow: "0 4px 16px rgba(0,0,0,0.15)" }}>
+                                    <img src={data?.imageAvatarBusiness} alt="avatar"
+                                        className="w-100 h-100" style={{ objectFit: "cover" }} />
                                 </div>
                             </div>
-                        </div>
 
-                        {/* Right column */}
-                        <div className="col-lg-4 col-md-5">
-                            <div
-                                className="bg-white rounded p-3"
-                                style={{ boxShadow: "0 6px 18px rgba(0,0,0,0.15)" }}
-                            >
-                                <h5
-                                    className="text-center mb-3 fw-bold"
-                                    style={{ color: "#28a745" }}
-                                >
-                                    Thông tin liên hệ
-                                </h5>
-
-                                <div className="mb-2">
-                                    <span className="fw-semibold">
-                                        <EnvironmentOutlined className="me-2" />
-                                        Địa chỉ công ty:
+                            {/* Company info */}
+                            <div className="col">
+                                <h4 className="fw-bold mb-1" style={{ color: "#1b5e20" }}>{data?.nameBusiness}</h4>
+                                <div className="d-flex flex-wrap gap-3 mt-1">
+                                    <span className="small text-muted">
+                                        <i className="fa-solid fa-layer-group me-1" style={{ color: "#4caf50" }}></i>
+                                        {data?.FieldBusiness}
                                     </span>
-                                    <div className="mt-1 ps-4 text-secondary">
+                                    <span className="small text-muted">
+                                        <i className="fa-solid fa-users me-1" style={{ color: "#4caf50" }}></i>
+                                        {data?.numberOfEmployees}
+                                    </span>
+                                    <span className="small text-muted">
+                                        <i className="fa-solid fa-location-dot me-1" style={{ color: "#4caf50" }}></i>
                                         {data?.addressBusiness}
-                                    </div>
-                                </div>
-
-                                <div className="mt-3 mb-2 fw-semibold">
-                                    <i className="fa-solid fa-map me-2"></i>
-                                    Xem bản đồ:
-                                </div>
-
-                                <div className="mt-2">
-                                    <iframe
-                                        src={generateMapIframe(data?.addressBusiness)}
-                                        className="w-100"
-                                        height="250"
-                                        style={{
-                                            border: 0,
-                                            borderRadius: "10px",
-                                            boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                                        }}
-                                        loading="lazy"
-                                    ></iframe>
-                                </div>
-                            </div>
-
-                            <div
-                                className="bg-white rounded p-3 mt-3"
-                                style={{ boxShadow: "0 6px 18px rgba(0,0,0,0.15)" }}
-                            >
-                                <h5
-                                    className="text-center mb-3 fw-bold"
-                                    style={{ color: "#28a745" }}
-                                >
-                                    Chia sẻ công ty tới bạn bè
-                                </h5>
-
-                                <div className="mb-2">
-                                    <span className="fw-semibold">Sao chép đường dẫn:</span>
-
-                                    <div
-                                        className="mt-1 ps-4 text-secondary d-flex align-items-center"
-                                        style={{ cursor: "pointer" }}
-                                        onClick={() => {
-                                            navigator.clipboard.writeText(
-                                                data?.websiteBusiness
-                                            );
-                                            toast.success("Đã sao chép link website!");
-                                        }}
-                                    >
-                                        {data?.websiteBusiness}
-                                        <i className="fa-solid fa-copy ms-2"></i>
-                                    </div>
-
-                                    <span className="fw-semibold">
-                                        Chia sẻ qua mạng xã hội
                                     </span>
-
-                                    <div className="mt-2 ps-4 text-secondary social-icons d-flex align-items-center gap-2">
-                                        <i className="fa-brands fa-facebook"></i>
-                                        <i className="fa-brands fa-twitter"></i>
-                                        <i className="fa-brands fa-linkedin"></i>
-                                        <i className="fa-brands fa-tiktok"></i>
-                                    </div>
                                 </div>
+                                {data?.websiteBusiness && (
+                                    <a href={data.websiteBusiness} target="_blank" rel="noopener noreferrer"
+                                        className="small mt-1 d-inline-block text-decoration-none"
+                                        style={{ color: "#2e7d32" }}>
+                                        <i className="fa-solid fa-globe me-1"></i>
+                                        {data.websiteBusiness}
+                                    </a>
+                                )}
                             </div>
+
+                            {/* CTA */}
+                            <div className="col-auto">
+                                <button onClick={hanleCreateWishlistJob}
+                                    className={`btn rounded-pill px-4 fw-semibold ${isLiked ? "btn-success" : "btn-outline-success"}`}>
+                                    {isLiked
+                                        ? <><i className="fa-solid fa-heart me-2"></i>Đã theo dõi</>
+                                        : <><i className="fa-regular fa-heart me-2"></i>Theo dõi</>}
+                                </button>
+                            </div>
+
                         </div>
                     </div>
                 </div>
             </div>
-        </>
+
+            {/* ── MAIN BODY ── */}
+            <div className="container pb-5">
+                <div className="row g-4">
+
+                    {/* ── LEFT COLUMN ── */}
+                    <div className="col-lg-8">
+
+                        {/* Company description */}
+                        <div className="card border-0 shadow-sm rounded-3 mb-4">
+                            <div className="card-header border-0 rounded-top-3 py-3 px-4"
+                                style={{ background: "#1b5e20" }}>
+                                <h6 className="fw-bold text-white mb-0">
+                                    <i className="fa-solid fa-building me-2"></i>
+                                    Giới thiệu công ty
+                                </h6>
+                            </div>
+                            <div className="card-body px-4 py-4">
+                                {data?.descriptionBusiness ? (
+                                    <div className="job-description text-secondary small lh-lg"
+                                        dangerouslySetInnerHTML={{ __html: data.descriptionBusiness }} />
+                                ) : (
+                                    <p className="text-muted fst-italic small mb-0">
+                                        <i className="fa-solid fa-circle-info me-1"></i>
+                                        Công ty chưa cập nhật phần giới thiệu.
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Job listings */}
+                        <div className="card border-0 shadow-sm rounded-3">
+                            <div className="card-header border-0 rounded-top-3 py-3 px-4 d-flex align-items-center justify-content-between"
+                                style={{ background: "#1b5e20" }}>
+                                <h6 className="fw-bold text-white mb-0">
+                                    <i className="fa-solid fa-briefcase me-2"></i>
+                                    Việc làm đang tuyển
+                                </h6>
+                                <span className="badge rounded-pill px-3"
+                                    style={{ background: "#69f0ae", color: "#1b5e20", fontSize: "0.75rem" }}>
+                                    {listjob.length} vị trí
+                                </span>
+                            </div>
+                            <div className="card-body px-4 py-4">
+                                {listjob.length === 0 ? (
+                                    <div className="text-center py-4">
+                                        <i className="fa-solid fa-briefcase fs-2 mb-2 d-block" style={{ color: "#c8e6c9" }}></i>
+                                        <p className="text-muted small mb-0">Hiện chưa có vị trí tuyển dụng.</p>
+                                    </div>
+                                ) : (
+                                    listjob.map((job) => {
+                                        const isExpired = getDaysRemaining(job?.deadline) === "Đã hết hạn";
+                                        return (
+                                            <div key={job._id}
+                                                className="rounded-3 border p-3 mb-3"
+                                                style={{
+                                                    borderColor: "#e8f5e9",
+                                                    transition: "box-shadow 0.2s, transform 0.2s",
+                                                    opacity: isExpired ? 0.6 : 1,
+                                                }}
+                                                onMouseEnter={e => {
+                                                    if (!isExpired) {
+                                                        e.currentTarget.style.boxShadow = "0 4px 16px rgba(76,175,80,0.12)";
+                                                        e.currentTarget.style.transform = "translateY(-2px)";
+                                                    }
+                                                }}
+                                                onMouseLeave={e => {
+                                                    e.currentTarget.style.boxShadow = "";
+                                                    e.currentTarget.style.transform = "";
+                                                }}>
+                                                <div className="row align-items-center g-3">
+
+                                                    {/* Logo */}
+                                                    <div className="col-auto">
+                                                        <div className="rounded-2 border overflow-hidden"
+                                                            style={{ width: "56px", height: "56px" }}>
+                                                            <img src={job?.imageCover} alt={job?.title}
+                                                                className="w-100 h-100" style={{ objectFit: "cover" }} />
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Info */}
+                                                    <div className="col">
+                                                        {isExpired ? (
+                                                            <p className="fw-semibold mb-1 text-muted small">{job?.title}</p>
+                                                        ) : (
+                                                            <Link to={`${path.JOB}/${job._id}`} className="text-decoration-none">
+                                                                <p className="fw-semibold mb-1 small" style={{ color: "#1b5e20" }}>
+                                                                    {job?.title}
+                                                                </p>
+                                                            </Link>
+                                                        )}
+                                                        <div className="d-flex flex-wrap gap-3">
+                                                            <span className="text-muted small">
+                                                                <i className="fa-solid fa-building me-1" style={{ color: "#4caf50" }}></i>
+                                                                {job?.joblevel}
+                                                            </span>
+                                                            <span className="text-muted small">
+                                                                <i className="fa-solid fa-location-dot me-1" style={{ color: "#4caf50" }}></i>
+                                                                {job?.location}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Right */}
+                                                    <div className="col-auto text-end d-flex flex-column align-items-end gap-1">
+                                                        <span className="badge rounded-pill px-3 py-2"
+                                                            style={{ background: "#e8f5e9", color: "#2e7d32", fontSize: "0.72rem" }}>
+                                                            {job?.workType}
+                                                        </span>
+                                                        <span className={`small fw-semibold ${isExpired ? "text-muted" : "text-danger"}`}>
+                                                            <i className="fa-regular fa-clock me-1"></i>
+                                                            {getDaysRemaining(job?.deadline)}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })
+                                )}
+
+                                {totalPages > 1 && (
+                                    <div className="d-flex justify-content-center mt-3">
+                                        <PaginationCustom
+                                            currentPage={currentPage}
+                                            setCurrentPage={setCurrentPage}
+                                            limit={limit}
+                                            totalPages={totalPages}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* ── RIGHT COLUMN ── */}
+                    <div className="col-lg-4">
+
+                        {/* Contact info */}
+                        <div className="card border-0 shadow-sm rounded-3 mb-4">
+                            <div className="card-header border-0 rounded-top-3 py-3 px-4"
+                                style={{ background: "#1b5e20" }}>
+                                <h6 className="fw-bold text-white mb-0">
+                                    <i className="fa-solid fa-address-card me-2"></i>
+                                    Thông tin liên hệ
+                                </h6>
+                            </div>
+                            <div className="card-body px-4 py-4">
+                                {[
+                                    { icon: "fa-location-dot", label: "Địa chỉ", value: data?.addressBusiness },
+                                    { icon: "fa-layer-group", label: "Lĩnh vực", value: data?.FieldBusiness },
+                                    { icon: "fa-users", label: "Quy mô", value: data?.numberOfEmployees },
+                                ].map((row, i) => (
+                                    <div key={i} className={`d-flex align-items-start gap-3 py-2 ${i < 2 ? "border-bottom" : ""}`}
+                                        style={{ borderColor: "#f1f8e9" }}>
+                                        <div className="rounded-2 d-flex align-items-center justify-content-center flex-shrink-0 mt-1"
+                                            style={{ width: "30px", height: "30px", background: "#e8f5e9" }}>
+                                            <i className={`fa-solid ${row.icon} fa-sm`} style={{ color: "#2e7d32" }}></i>
+                                        </div>
+                                        <div>
+                                            <p className="mb-0 text-muted" style={{ fontSize: "0.72rem" }}>{row.label}</p>
+                                            <p className="mb-0 fw-semibold small">{row.value}</p>
+                                        </div>
+                                    </div>
+                                ))}
+
+                                {/* Map */}
+                                {data?.addressBusiness && (
+                                    <div className="mt-3">
+                                        <p className="fw-semibold small mb-2" style={{ color: "#2e7d32" }}>
+                                            <i className="fa-solid fa-map-location-dot me-1"></i>Bản đồ:
+                                        </p>
+                                        <iframe
+                                            src={generateMapIframe(data.addressBusiness)}
+                                            className="w-100 rounded-3"
+                                            height="200"
+                                            style={{ border: 0, boxShadow: "0 2px 8px rgba(0,0,0,0.08)" }}
+                                            loading="lazy"
+                                            title="map"
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Share */}
+                        <div className="card border-0 shadow-sm rounded-3">
+                            <div className="card-header border-0 rounded-top-3 py-3 px-4"
+                                style={{ background: "#1b5e20" }}>
+                                <h6 className="fw-bold text-white mb-0">
+                                    <i className="fa-solid fa-share-nodes me-2"></i>
+                                    Chia sẻ công ty
+                                </h6>
+                            </div>
+                            <div className="card-body px-4 py-4">
+                                <p className="small fw-semibold mb-2" style={{ color: "#2e7d32" }}>
+                                    Sao chép đường dẫn:
+                                </p>
+                                <div className="input-group mb-3">
+                                    <input type="text" className="form-control form-control-sm"
+                                        value={data?.websiteBusiness || ""}
+                                        readOnly
+                                        style={{ borderColor: "#c8e6c9", fontSize: "0.8rem", background: "#f9fbe7" }} />
+                                    <button className="btn btn-success btn-sm px-3"
+                                        onClick={() => {
+                                            navigator.clipboard.writeText(data?.websiteBusiness);
+                                            toast.success("Đã sao chép link website!");
+                                        }}>
+                                        <i className="fa-solid fa-copy"></i>
+                                    </button>
+                                </div>
+
+                                <p className="small fw-semibold mb-2" style={{ color: "#2e7d32" }}>
+                                    Chia sẻ qua mạng xã hội:
+                                </p>
+                                <div className="d-flex gap-2">
+                                    {[
+                                        { icon: "fa-facebook-f", color: "#1877f2" },
+                                        { icon: "fa-twitter", color: "#1da1f2" },
+                                        { icon: "fa-linkedin-in", color: "#0a66c2" },
+                                        { icon: "fa-tiktok", color: "#010101" },
+                                    ].map((s) => (
+                                        <button key={s.icon}
+                                            className="btn btn-sm d-flex align-items-center justify-content-center rounded-circle"
+                                            style={{ width: "36px", height: "36px", background: s.color, color: "#fff", border: "none" }}>
+                                            <i className={`fa-brands ${s.icon}`} style={{ fontSize: "0.85rem" }}></i>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
     );
 };
 

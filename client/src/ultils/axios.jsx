@@ -37,10 +37,14 @@ instance.interceptors.response.use(
                 title: "Bạn chưa đăng nhập",
                 text: "Nhấn OK để chuyển đến trang đăng nhập",
                 confirmButtonText: "OK",
+                showCancelButton: true,
+                cancelButtonText: "Huỷ",
                 allowOutsideClick: false,
-                allowEscapeKey: false
-            }).then(() => {
-                window.location.href = "/login";
+                allowEscapeKey: false,
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = "/login";
+                }
             });
 
             return Promise.reject(errData);
