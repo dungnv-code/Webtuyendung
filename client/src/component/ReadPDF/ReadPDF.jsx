@@ -6,7 +6,6 @@ import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
 
 const ReadPDF = ({ fileUrl }) => {
     const defaultLayoutPluginInstance = defaultLayoutPlugin();
-
     return (
         <div style={{ height: '90vh' }}>
             <Worker workerUrl="https://unpkg.com/pdfjs-dist@2.16.105/build/pdf.worker.min.js">

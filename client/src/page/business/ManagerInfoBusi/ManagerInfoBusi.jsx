@@ -126,7 +126,7 @@ const ManagerInfoBusi = () => {
                 .mb-page {
                     min-height: 100vh;
                     background: linear-gradient(160deg, #f0f4ff 0%, #fafafa 55%, #f0fdf4 100%);
-                    padding: 3rem 1rem;
+                    padding: 1rem 1rem;
                     font-family: 'Inter', sans-serif;
                 }
 
@@ -146,7 +146,7 @@ const ManagerInfoBusi = () => {
                     color: #9ca3af;
                     letter-spacing: 0.1em;
                     text-transform: uppercase;
-                    margin-bottom: 2.5rem;
+                    margin-bottom: 1rem;
                 }
 
                 /* ── Form card ── */
@@ -367,12 +367,9 @@ const ManagerInfoBusi = () => {
                 <p className="mb-sub">Quản lý thông tin hồ sơ công ty</p>
 
                 <form className="mb-form" onSubmit={handleSubmit}>
-
-                    {/* ── Section 1: Thông tin cơ bản ── */}
                     <p className="mb-section"><i className="fa-solid fa-building" /> Thông tin cơ bản</p>
 
                     <div className="mb-grid">
-                        {/* Tên doanh nghiệp */}
                         <div>
                             <label className="mb-label"><i className="fa-solid fa-tag" /> Tên doanh nghiệp</label>
                             <input
@@ -383,8 +380,6 @@ const ManagerInfoBusi = () => {
                             />
                             {error.nameBusiness && <p className="mb-err">✕ {error.nameBusiness}</p>}
                         </div>
-
-                        {/* Mã số thuế */}
                         <div>
                             <label className="mb-label"><i className="fa-solid fa-file-invoice" /> Mã số thuế</label>
                             <input
@@ -398,7 +393,6 @@ const ManagerInfoBusi = () => {
                     </div>
 
                     <div className="mb-grid full" style={{ marginBottom: "1.1rem" }}>
-                        {/* Địa chỉ */}
                         <div>
                             <label className="mb-label"><i className="fa-solid fa-location-dot" /> Địa chỉ</label>
                             <input
@@ -412,7 +406,6 @@ const ManagerInfoBusi = () => {
                     </div>
 
                     <div className="mb-grid">
-                        {/* Lĩnh vực */}
                         <div>
                             <label className="mb-label"><i className="fa-solid fa-layer-group" /> Lĩnh vực</label>
                             <input
@@ -424,7 +417,6 @@ const ManagerInfoBusi = () => {
                             {error.FieldBusiness && <p className="mb-err">✕ {error.FieldBusiness}</p>}
                         </div>
 
-                        {/* Số điện thoại */}
                         <div>
                             <label className="mb-label"><i className="fa-solid fa-phone" /> Số điện thoại</label>
                             <input
@@ -438,7 +430,6 @@ const ManagerInfoBusi = () => {
                     </div>
 
                     <div className="mb-grid">
-                        {/* Website */}
                         <div>
                             <label className="mb-label"><i className="fa-solid fa-globe" /> Website</label>
                             <input
@@ -450,7 +441,6 @@ const ManagerInfoBusi = () => {
                             {error.websiteBusiness && <p className="mb-err">✕ {error.websiteBusiness}</p>}
                         </div>
 
-                        {/* Số nhân viên */}
                         <div>
                             <label className="mb-label"><i className="fa-solid fa-users" /> Số lượng nhân viên</label>
                             <div className="mb-select-wrap">
@@ -460,10 +450,10 @@ const ManagerInfoBusi = () => {
                                     value={form.numberOfEmployees} onChange={handleChange}
                                 >
                                     <option value="">-- Chọn quy mô --</option>
-                                    <option value="1-9 nhân viên">1 – 9 nhân viên</option>
-                                    <option value="10-24 nhân viên">10 – 24 nhân viên</option>
-                                    <option value="25-99 nhân viên">25 – 99 nhân viên</option>
-                                    <option value="100-499 nhân viên">100 – 499 nhân viên</option>
+                                    <option value="1-9 nhân viên">1 - 9 nhân viên</option>
+                                    <option value="10-24 nhân viên">10 - 24 nhân viên</option>
+                                    <option value="25-99 nhân viên">25 - 99 nhân viên</option>
+                                    <option value="100-499 nhân viên">100 - 499 nhân viên</option>
                                     <option value="500+ nhân viên">500+ nhân viên</option>
                                 </select>
                             </div>
@@ -473,11 +463,9 @@ const ManagerInfoBusi = () => {
 
                     <hr className="mb-divider" />
 
-                    {/* ── Section 2: Hình ảnh ── */}
                     <p className="mb-section"><i className="fa-solid fa-image" /> Hình ảnh & Giấy tờ</p>
 
                     <div className="mb-grid">
-                        {/* Cover */}
                         <div>
                             <label className="mb-label"><i className="fa-solid fa-panorama" /> Ảnh cover</label>
                             <label className="mb-file-label">
@@ -491,7 +479,6 @@ const ManagerInfoBusi = () => {
                             )}
                         </div>
 
-                        {/* Avatar */}
                         <div>
                             <label className="mb-label"><i className="fa-solid fa-id-badge" /> Ảnh đại diện</label>
                             <label className="mb-file-label">
@@ -507,7 +494,6 @@ const ManagerInfoBusi = () => {
                     </div>
 
                     <div className="mb-grid full" style={{ marginBottom: "1.1rem" }}>
-                        {/* Chứng nhận */}
                         <div>
                             <label className="mb-label"><i className="fa-solid fa-certificate" /> Chứng nhận doanh nghiệp</label>
                             <label className="mb-file-label">
@@ -524,7 +510,6 @@ const ManagerInfoBusi = () => {
 
                     <hr className="mb-divider" />
 
-                    {/* ── Section 3: Mô tả ── */}
                     <p className="mb-section"><i className="fa-solid fa-align-left" /> Mô tả doanh nghiệp</p>
 
                     <Editor

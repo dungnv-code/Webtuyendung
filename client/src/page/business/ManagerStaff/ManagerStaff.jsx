@@ -61,7 +61,7 @@ const ManagerStaff = () => {
                 .ms-page {
                     min-height: 100vh;
                     background: linear-gradient(160deg, #f0f4ff 0%, #fafafa 55%, #f0fdf4 100%);
-                    padding: 3rem 1rem;
+                    padding: 1rem 1rem;
                     font-family: 'Inter', sans-serif;
                     display: flex;
                     flex-direction: column;
@@ -84,7 +84,7 @@ const ManagerStaff = () => {
                     color: #9ca3af;
                     letter-spacing: 0.1em;
                     text-transform: uppercase;
-                    margin-bottom: 2.5rem;
+                    margin-bottom: 1rem;
                 }
 
                 /* ── Card wrap ── */

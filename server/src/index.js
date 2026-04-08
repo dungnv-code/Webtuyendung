@@ -13,20 +13,21 @@ const corsOptions = {
 };
 
 const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 phút
-    max: 100, // mỗi IP tối đa 100 request / 15 phút
+    windowMs: 15 * 60 * 1000,
+    max: 100,
     message: {
         success: false,
         mes: "Bạn đã gửi quá nhiều request. Hãy thử lại sau!"
     }
 });
-// app.use(limiter);
-
+// rate limit
+app.use(limiter);
+// CORS
 app.use(cors(corsOptions));
+// body parser
 app.use(express.json({ extended: true }));
 app.use(cookieParser());
 
-// database connection
 const { connectDB } = require("./config/db");
 connectDB();
 

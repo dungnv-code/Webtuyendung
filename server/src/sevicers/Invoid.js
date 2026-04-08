@@ -12,7 +12,6 @@ const useWorkType = require("../repository/WorkType")
 const usePostpackage = require("../repository/Postpackage")
 
 const createInvoid = async (businessId, data) => {
-    // Kiểm tra doanh nghiệp có tồn tại không
     const business = await useBusiness.findByOne({ _id: businessId });
     if (!business) {
         throw new Error("Doanh nghiệp không tồn tại!");
@@ -20,9 +19,7 @@ const createInvoid = async (businessId, data) => {
 
     const total = data.price * data.amount;
     data.totalPrice = total;
-    data.business = businessId; // gán businessId vào invoice
-
-    // Tạo hoá đơn
+    data.business = businessId;
     const invoice = await useInvoid.create(data);
 
     if (invoice && data.typeInvoid === "BASIC") {

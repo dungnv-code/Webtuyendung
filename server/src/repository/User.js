@@ -30,6 +30,10 @@ const updatebyOne = (condition, data) => {
     return User.findOneAndUpdate(condition, data, { new: true });
 };
 
+const updateMany = (condition, data) => {
+    return User.updateMany(condition, data);
+};
+
 module.exports = {
     findByOne,
     createUser,
@@ -37,4 +41,5 @@ module.exports = {
     findAll,
     updatebyOne,
     countDocuments,
+    updateMany,
 }

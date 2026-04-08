@@ -8,9 +8,6 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_SECRET,
 });
 
-/**
- * 1) Upload ảnh, không dùng cho PDF
- */
 const cloudStorage = new CloudinaryStorage({
     cloudinary,
     params: {

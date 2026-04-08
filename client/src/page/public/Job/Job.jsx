@@ -14,7 +14,7 @@ import path from "../../../ultils/path";
 const Job = () => {
     const [data, setData] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
-    const [limit] = useState(10);
+    const [limit] = useState(13);
     const [totalPages, setTotalPages] = useState(0);
     const [loadInput, setLoadInput] = useState(false);
 

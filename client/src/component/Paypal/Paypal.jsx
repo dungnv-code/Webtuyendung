@@ -38,7 +38,6 @@ const ButtonWrapper = ({ currency, showSpinner, amount, payload, setIsSuccess })
                 });
             }, 1000)
 
-            // 🔹 Reset sau 5s
             setTimeout(() => {
                 setIsSuccess(false);
             }, 6000);
@@ -81,7 +80,7 @@ export default function App({ amount, payload, setIsSuccess }) {
     return (
         <div style={{ maxWidth: "750px", minHeight: "200px" }}>
             <PayPalScriptProvider options={{
-                clientId: "test", // ⚠️ đổi thành clientId thật khi production
+                clientId: "test",
                 components: "buttons",
                 currency: "USD"
             }}>
@@ -90,7 +89,7 @@ export default function App({ amount, payload, setIsSuccess }) {
                     currency="USD"
                     amount={amount}
                     showSpinner={false}
-                    setIsSuccess={setIsSuccess} // ✅ thêm vào
+                    setIsSuccess={setIsSuccess}
                 />
             </PayPalScriptProvider>
         </div>

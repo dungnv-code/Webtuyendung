@@ -36,7 +36,6 @@ const CreateBusiness = () => {
     const handleChange = (e) => {
         const { name, value, type, files } = e.target;
 
-        // Xử lý file
         if (type === "file") {
             const file = files[0];
 
@@ -119,8 +118,6 @@ const CreateBusiness = () => {
 
             <form onSubmit={handleSubmit} className="row g-4 p-4 bg-white shadow rounded">
 
-                {/* ===== INPUT TEXT FIELDS ===== */}
-
                 <div className="col-md-6">
                     <label className="form-label fw-semibold">Tên doanh nghiệp</label>
                     <input
@@ -194,8 +191,6 @@ const CreateBusiness = () => {
                     {error.websiteBusiness && <div className="invalid-feedback">{error.websiteBusiness}</div>}
                 </div>
 
-                {/* ===== SELECT ===== */}
-
                 <div className="col-md-6">
                     <label className="form-label fw-semibold">Số lượng nhân viên</label>
                     <select
@@ -213,9 +208,6 @@ const CreateBusiness = () => {
                     </select>
                     {error.numberOfEmployees && <div className="invalid-feedback">{error.numberOfEmployees}</div>}
                 </div>
-
-                {/* ===== IMAGE UPLOAD PREVIEW ===== */}
-
                 <div className="col-md-6">
                     <label className="form-label fw-semibold">Ảnh cover</label>
                     <input

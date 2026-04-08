@@ -69,6 +69,10 @@ const detailPostJobCV = async (id, params) => {
     return await axios.get(`/postjobs/getCVPostJobs/${id}`, { params })
 }
 
+const getDashboardBusiness = async () => {
+    return await axios.get(`/business/getDashboard`)
+}
+
 export {
     creatBusiness,
     updateBusiness,
@@ -85,4 +89,5 @@ export {
     getDetailPost,
     updatePostJob,
     detailPostJobCV,
+    getDashboardBusiness,
 }

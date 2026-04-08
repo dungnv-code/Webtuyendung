@@ -7,6 +7,7 @@ const cloudinary = require("cloudinary").v2;
 const Groq = require("groq-sdk");
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 const PostJob = require("../modal/PostJobs")
+const sendMail = require("../ulti/sendMail");
 cloudinary.config({
     cloud_name: process.env.CLOUD_NAME,
     api_key: process.env.CLOUD_API_KEY,
@@ -81,6 +82,21 @@ const createPostjobs = async (businessId, id, data) => {
         }
         await business.save();
     }
+
+    await useUser.updateMany(
+        { wishlistJBusiness: businessId },
+        {
+            $push: {
+                notifications: {
+                    $each: [{
+                        title: `Việc làm mới từ ${business.nameBusiness || "doanh nghiệp"}`,
+                        message: `Có job mới: ${data.title}`,
+                    }],
+                    $position: 0
+                }
+            }
+        }
+    );
 
     return {
         success: true,
@@ -257,7 +273,6 @@ const convertFlattenQuery = (queryParams, populate = []) => {
     return flatFilters;
 };
 
-
 const applyFlattenFilter = (items, flatFilters = {}) => {
     return items.filter(item => {
 
@@ -398,7 +413,7 @@ const changeStatusPostjobs = async (idp) => {
 };
 
 const changeStatusPausePostjobs = async (idp) => {
-    // Tìm bài đăng theo ID
+
     const post = await usePostJobs.findByOne({ _id: idp });
 
     if (!post) {
@@ -415,238 +430,172 @@ const changeStatusPausePostjobs = async (idp) => {
     };
 };
 
+function cleanCV(text) {
+    return text
+        .replace(/\[.*?\]\(.*?\)/g, "")
+        .replace(/mailto:/gi, "")
+        .replace(/https?:\/\/\S+/g, "")
+        .replace(/\t/g, " ")
+        .replace(/[ ]{3,}/g, "  ")
+        .replace(/\n{3,}/g, "\n\n")
+        .trim();
+}
+
+function safeParseJSON(raw = "") {
+    try {
+        let clean = raw
+            .replace(/```json\s*/gi, "")
+            .replace(/```\s*/g, "")
+            .trim();
+        const start = clean.indexOf("{");
+        const end = clean.lastIndexOf("}");
+        if (start !== -1 && end > start) {
+            clean = clean.slice(start, end + 1);
+        }
+        return JSON.parse(clean);
+    } catch {
+        return null;
+    }
+}
+
+function calcScore(data) {
+    const g = (obj, key) => Number(obj?.[key]) || 0;
+    const s = {
+        skills: g(data.skills, "score"),
+        projectSkills: g(data.projectSkills, "score"),
+        experience: g(data.experience, "score"),
+        softSkills: g(data.softSkills, "score"),
+        cvPresentation: g(data.cvPresentation, "score"),
+        education: g(data.education, "score"),
+        language: g(data.language, "score"),
+    };
+    return Math.round(
+        s.skills * 2.5 +
+        s.projectSkills * 2.5 +
+        s.experience * 2.0 +
+        s.softSkills * 1.0 +
+        s.cvPresentation * 1.0 +
+        s.education * 0.5 +
+        s.language * 0.5
+    );
+}
+
+function buildEmptyResult(summary, title = { job: "", cv: "", score: 0 }) {
+    return {
+        score: 0, title,
+        experience: {}, position: {}, skills: {},
+        projectSkills: {}, projects: [], softSkills: {},
+        cvPresentation: {}, education: {}, language: {},
+        summary
+    };
+}
+
+async function groqJSON(systemPrompt, userContent, temperature = 0) {
+    const res = await groq.chat.completions.create({
+        model: "llama-3.3-70b-versatile",
+        temperature,
+
+        messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userContent }
+        ]
+    });
+    const raw = res.choices?.[0]?.message?.content || "";
+    return safeParseJSON(raw);
+}
 
 const matchCVWithJD = async (cvText, jdText) => {
     try {
-        const chatCompletion = await groq.chat.completions.create({
-            model: "llama-3.3-70b-versatile",
-            temperature: 0.05,
-            response_format: { type: "json_object" },
-            messages: [
-                {
-                    role: "system",
-                    content: `
-Bạn là AI tuyển dụng chuyên phân tích CV và Job Description.
-QUY TẮC QUAN TRỌNG:
-- Chỉ trả về JSON hợp lệ
-- Không viết giải thích
-- Không markdown
-- Không text ngoài JSON
-BƯỚC 0: KIỂM TRA TÀI LIỆU
-Xác định tài liệu CV DATA có phải là CV cá nhân hay không.
-CV hợp lệ thường chứa các thông tin như:
-- Thông tin cá nhân
-- Kinh nghiệm làm việc
-- Kỹ năng
-- Học vấn
-- Dự án
-- Chứng chỉ
-Nếu tài liệu KHÔNG phải CV cá nhân
-(ví dụ: portfolio, company profile, proposal, tài liệu marketing, báo cáo...)
-=> TRẢ VỀ JSON NGAY LẬP TỨC:
-{
- "score": 0,
- "reason": "Tài liệu không phải CV cá nhân",
- "title": {
-   "job": "",
-   "cv": "",
-   "score": 0
- }
-}
-KHÔNG PHÂN TÍCH BẤT KỲ TRƯỜNG NÀO KHÁC.
-BƯỚC 1: KIỂM TRA TITLE
-1. Trích xuất:
-jobTitle: title chính của Job Description  
-cvTitle: title nghề nghiệp chính của CV (thường nằm ở phần Profile / Title / Experience)
-2. Chuẩn hóa title về nhóm nghề nghiệp (career group):
-Developer group: Frontend Developer, Backend Developer, Fullstack Developer, 
-                 Software Engineer, Web Developer, Mobile Developer
-Analyst group:   Business Analyst, System Analyst, Data Analyst
-Design group:    UI Designer, UX Designer, Graphic Designer
-Marketing group: Marketing, Digital Marketing, SEO, Content Marketing
-Sales group:     Sales, Business Development
-HR group:        HR, Recruiter
-3. So sánh nhóm nghề nghiệp — KIỂM TRA TRƯỚC KHI LÀM BẤT CỨ ĐIỀU GÌ KHÁC:
-BƯỚC BẮT BUỘC - PHẢI THỰC HIỆN ĐẦU TIÊN:
-- Xác định jobGroup = career group của jobTitle
-- Xác định cvGroup   = career group của cvTitle
-- Nếu jobGroup ≠ cvGroup → DỪNG NGAY, trả về JSON bên dưới, KHÔNG làm gì thêm
-{
-  "score": 0,
-  "reason": "Job title và CV title khác lĩnh vực",
-  "title": {
-    "job": "<jobTitle>",
-    "cv": "<cvTitle>",
-    "score": 0
-  }
-}
-TUYỆT ĐỐI KHÔNG phân tích skills / experience / projects / education / language / summary
-TUYỆT ĐỐI KHÔNG cộng điểm từ các mục khác
-TUYỆT ĐỐI KHÔNG trả về score > 0 khi jobGroup ≠ cvGroup
-Ví dụ minh họa:
-- jobTitle: "Fullstack Developer"  → jobGroup: Developer
-- cvTitle:  "System Analyst"       → cvGroup:  Analyst
-- Developer ≠ Analyst              → score: 0, DỪNG NGAY
-Chỉ tiếp tục phân tích chi tiết khi jobGroup = cvGroup.
-BƯỚC 2: PHÂN TÍCH CV
-A. TRÍCH XUẤT THÔNG TIN CV
-Trích xuất chính xác các mục sau từ CV:
-- title:         Chức danh nghề nghiệp chính
-- experience:    Số năm kinh nghiệm + các vị trí đã làm
-- position:      Cấp bậc hiện tại (Junior / Middle / Senior / Lead)
-- skills:        Kỹ năng kỹ thuật (hard skills)
-- projectSkills: Kỹ năng thể hiện qua dự án thực tế
-- projects:      Danh sách dự án + công nghệ sử dụng
-- education:     Trình độ học vấn + chuyên ngành
-- language:      Ngôn ngữ + mức độ thành thạo
-B. ĐÁNH GIÁ KỸ NĂNG MỀM (Soft Skills)
-Dựa trên cách mô tả trong CV, đánh giá:
-- communication:    Khả năng diễn đạt rõ ràng trong CV
-- teamwork:         Đề cập làm việc nhóm / phối hợp team
-- problemSolving:   Mô tả giải quyết vấn đề cụ thể
-- leadership:       Kinh nghiệm dẫn dắt / mentor / lead
-- adaptability:     Làm việc nhiều domain / công nghệ khác nhau
-C. ĐÁNH GIÁ TRÌNH BÀY CV (CV Presentation)
-- clarity:          Cấu trúc CV rõ ràng, dễ đọc
-- experienceDesc:   Mô tả kinh nghiệm cụ thể, có số liệu
-- logicFlow:        Trình bày logic, mạch lạc
-- projectDesc:      Dự án nêu rõ công nghệ + vai trò + kết quả
-CHẤM ĐIỂM TỪNG TIÊU CHÍ (0-10)
-Thang điểm:
-0-2  : Không có / Không phù hợp
-3-5  : Có nhưng yếu / Phù hợp thấp
-6-8  : Đáp ứng tốt
-9-10 : Xuất sắc / Phù hợp rất cao
-Yêu cầu chấm điểm KHÁCH QUAN:
-- Đối chiếu trực tiếp với yêu cầu Job Description
-- Không suy đoán nếu CV không đề cập rõ → chấm thấp
-- Có bằng chứng cụ thể từ CV mới chấm cao
-========================
-TÍNH ĐIỂM TỔNG (0-100)
-Công thức:
-score = (skills        * 0.25)
-      + (projectSkills * 0.25)
-      + (experience    * 0.20)
-      + (softSkills    * 0.10)
-      + (cvPresentation* 0.10)
-      + (education     * 0.05)
-      + (language      * 0.05)
-Trong đó:
-- softSkills     = trung bình của 5 soft skill scores
-- cvPresentation = trung bình của 4 presentation scores
-`
-                },
-                {
-                    role: "user",
-                    content: `
-JOB DATA:
-${jdText}
-CV DATA:
-${cvText}
-Trả về JSON theo format:
-{
- "score": 0,
- "title": {"job": "", "cv": "", "score": 0},
- "experience": {"job": "", "cv": "", "score": 0},
- "position": {"job": "", "cv": "", "score": 0},
- "skills": {"job": [], "cv": [], "matched": [], "missing": [], "score": 0},
- "projectSkills": {"skills": [], "matchedWithJob": [], "missingFromJob": [], "score": 0},
- "softSkills": {"cv": [], "relevantToJob": [], "score": 0},
- "cvPresentation": {"structure": "", "clarity": "", "score": 0},
- "projects": [],
- "education": {"cv": "", "score": 0},
- "language": {"cv": "", "score": 0},
- "summary": ""
-}
-`
-                }
-            ]
-        });
-
-        const raw = chatCompletion.choices?.[0]?.message?.content || "{}";
-
-        try {
-
-            const data = JSON.parse(raw);
-
-            return {
-                score: data.score || 0,
-                title: data.title || {},
-                experience: data.experience || {},
-                position: data.position || {},
-                skills: data.skills || {},
-                projectSkills: data.projectSkills || {},
-                projects: data.projects || [],
-                education: data.education || {},
-                language: data.language || {},
-                summary: data.summary || ""
-            };
-
-        } catch (err) {
-
-            console.error("JSON parse error:", err);
-            console.log("RAW AI:", raw);
-
-            return {
-                score: 0,
-                title: {},
-                experience: {},
-                position: {},
-                skills: {},
-                projectSkills: {},
-                projects: [],
-                education: {},
-                language: {},
-                summary: "AI trả JSON không hợp lệ"
-            };
-        }
-
-    } catch (error) {
-
-        console.error("Error matching CV:", error);
+        const cvRaw = cleanCV(cvText).slice(0, 8000);
+        const jdRaw = cleanCV(jdText).slice(0, 2000);
+        const cv = await groqJSON(
+            `You are a CV parser. Read the CV and return ONLY a JSON object, nothing else before or after.
+Output this exact schema with real values:
+{"currentTitle":"string max 5 words","totalYearsExp":0,"skills":["string"],"education":"string","languages":["string"],"hasPersonalInfo":false,"hasExperience":false,"hasSkills":false,"hasEducation":false,"hasProjects":false,"projectCount":0,"experienceSummary":"string 1 sentence","projectSummary":"string 1 sentence"}`,
+            cvRaw
+        );
+        if (!cv) return buildEmptyResult("Lỗi extract CV");
+        const validSections = [
+            cv.hasPersonalInfo, cv.hasExperience, cv.hasSkills,
+            cv.hasEducation, cv.hasProjects
+        ].filter(Boolean).length;
+        if (validSections < 3) return buildEmptyResult("Tài liệu không phải CV cá nhân");
+        const jd = await groqJSON(
+            `You are a JD parser. Read the job description and return ONLY a JSON object, nothing else before or after.
+Output this exact schema with real values:
+{"jobTitle":"string max 5 words","jobGroup":"Developer|Analyst|Design|Marketing|Sales|HR|Other","requiredSkills":["string"],"requiredYearsExp":0,"requiredEducation":"string","requiredLanguages":["string"]}`,
+            jdRaw
+        );
+        if (!jd) return buildEmptyResult("Lỗi extract JD");
+        const groupKeywords = {
+            Developer: ["developer", "engineer", "frontend", "backend", "fullstack", "web", "mobile", "software"],
+            Analyst: ["analyst", "data analyst", "business analyst", "system analyst"],
+            Design: ["designer", "ui", "ux", "graphic"],
+            Marketing: ["marketing", "seo", "content", "growth", "livestream", "digital", "campaign"],
+            Sales: ["sales", "business development", "account"],
+            HR: ["hr", "recruiter", "human resource", "talent"],
+        };
+        const detectGroup = (title = "") => {
+            const t = title.toLowerCase();
+            for (const [g, kws] of Object.entries(groupKeywords)) {
+                if (kws.some(k => t.includes(k))) return g;
+            }
+            return "Other";
+        };
+        const cvGroup = detectGroup(cv.currentTitle);
+        const jdGroup = jd.jobGroup !== "Other" ? jd.jobGroup : detectGroup(jd.jobTitle);
+        const sameGroup = cvGroup !== "Other" && jdGroup !== "Other" && cvGroup === jdGroup;
+        if (!sameGroup) return buildEmptyResult(
+            "Job title và CV title khác lĩnh vực",
+            { job: jd.jobTitle || "", cv: cv.currentTitle || "", score: 0 }
+        );
+        const schema = `{"score":0,"title":{"job":"","cv":"","score":0},"experience":{"job":"","cv":"","score":0},"position":{"job":"","cv":"","score":0},"skills":{"job":[],"cv":[],"matched":[],"missing":[],"score":0},"projectSkills":{"skills":[],"matchedWithJob":[],"missingFromJob":[],"score":0},"softSkills":{"scores":{"communication":0,"teamwork":0,"problemSolving":0,"leadership":0,"adaptability":0},"cv":[],"relevantToJob":[],"score":0},"cvPresentation":{"scores":{"clarity":0,"experienceDesc":0,"logicFlow":0,"projectDesc":0},"structure":"","clarity":"","score":0},"projects":[],"education":{"cv":"","score":0},"language":{"cv":"","score":0},"summary":""}`;
+        const data = await groqJSON(
+            `You are a CV scoring system. Score each criterion 0-10. Return ONLY a JSON object, nothing else before or after.
+0-2=Missing, 3-5=Weak, 6-8=Good, 9-10=Excellent. Be objective.
+Output this exact schema with real values: ${schema}`,
+            `CV_DATA: ${JSON.stringify(cv)}\nJD_DATA: ${JSON.stringify(jd)}`,
+            0.1
+        );
+        if (!data) return buildEmptyResult("AI trả sai format");
 
         return {
-            score: 0,
-            title: {},
-            experience: {},
-            position: {},
-            skills: {},
-            projectSkills: {},
-            projects: [],
-            education: {},
-            language: {},
-            summary: "Lỗi hệ thống khi phân tích"
+            score: calcScore(data),
+            title: data.title || { job: jd.jobTitle, cv: cv.currentTitle, score: 0 },
+            experience: data.experience || {},
+            position: data.position || {},
+            skills: data.skills || {},
+            projectSkills: data.projectSkills || {},
+            projects: data.projects || [],
+            softSkills: data.softSkills || {},
+            cvPresentation: data.cvPresentation || {},
+            education: data.education || {},
+            language: data.language || {},
+            summary: data.summary || ""
         };
+
+    } catch (error) {
+        console.error("Error matching CV:", error);
+        return buildEmptyResult("Lỗi hệ thống khi phân tích");
     }
 };
 
 const uploadCVPostjobs = async (idp, id, req) => {
     if (!req.file) throw new Error("Không nhận được file!");
+    if (req.file.mimetype !== "application/pdf") throw new Error("Chỉ chấp nhận file PDF!");
 
     const post = await usePostJobs.findByOne({ _id: idp });
     if (!post) throw new Error("Không tìm thấy bài đăng!");
+    if (post.status === "pendding") throw new Error("Bài đăng chưa được kiểm duyệt!");
+    if (post.statusPause) throw new Error("Bài đăng đang trong trạng thái tạm ẩn!");
 
-    if (post.status == "pendding") {
-        throw new Error("Bài đăng chưa được kiểm duyệt!");
-    }
-
-    if (post.statusPause) {
-        throw new Error("Bài đăng đang trong trạng thái tạm ẩn!");
-    }
-
-    const hasApplied = post.listCV.some(cv => cv.idUser.toString() === id.toString());
-
-    if (hasApplied) {
-        throw new Error("Bạn đã nộp CV cho công việc này rồi! Không thể nộp thêm.");
-    }
-
-    const now = new Date();
-    if (post.deadline && new Date(post.deadline) < now) {
-        throw new Error("Công việc này đã hết hạn nộp CV!");
-    }
+    const existingCV = (post.listCV || []).find(cv => cv.idUser.toString() === id.toString());
+    console.log(existingCV?.status);
+    if (existingCV?.status !== "pendding") throw new Error("CV đã được xử lý, không thể cập nhật!");
+    if (post.deadline && new Date(post.deadline) < new Date()) throw new Error("Công việc này đã hết hạn nộp CV!");
 
     const cloud = await uploadToCloudinary(req.file.buffer);
-    const numberUploadNext = (post.numberUpload || 0) + 1;
+
     let pdfText = "";
     try {
         const pdfData = await pdf(req.file.buffer);
@@ -655,48 +604,65 @@ const uploadCVPostjobs = async (idp, id, req) => {
         console.log("Lỗi parse PDF:", err.message);
     }
 
-    const aiAnalysis = await matchCVWithJD(pdfText, post || "");
-    let evaluate = "";
-    if (aiAnalysis.score >= 90) {
-        evaluate = "Xuất sắc (Ưu tiên)";
-    } else if (aiAnalysis.score >= 75) {
-        evaluate = "Rất tốt (Phù hợp)";
-    } else if (aiAnalysis.score >= 50) {
-        evaluate = "Tiềm năng (Cần xem xét)";
-    } else if (aiAnalysis.score >= 25) {
-        evaluate = "Trung bình (Cân nhắc)";
-    } else if (aiAnalysis.score >= 10) {
-        evaluate = "Kém (Không khớp)";
-    } else {
-        evaluate = "Rất tệ / Dữ liệu không liên quan";
+    const cleanText = cleanCV(pdfText).slice(0, 8000);
+    const jdText = cleanCV(post.description || post.title || "").slice(0, 2000);
+
+    let aiAnalysis = { score: 0 };
+    try {
+        aiAnalysis = await matchCVWithJD(cleanText, jdText);
+    } catch {
+        aiAnalysis = buildEmptyResult("Lỗi AI");
     }
+    console.log("AI Analysis Result:", aiAnalysis);
+    const score = Number(aiAnalysis?.score) || 0;
+    let evaluate = "";
+    if (score >= 90) evaluate = "Xuất sắc (Ưu tiên)";
+    else if (score >= 75) evaluate = "Rất tốt (Phù hợp)";
+    else if (score >= 50) evaluate = "Tiềm năng (Cần xem xét)";
+    else if (score >= 25) evaluate = "Trung bình (Cân nhắc)";
+    else if (score >= 10) evaluate = "Kém (Không khớp)";
+    else evaluate = "Rất tệ / Dữ liệu không liên quan";
 
-    const updatedPost = await usePostJobs.updatebyOne(
-        { _id: idp },
-        {
-            $push: {
-                listCV: {
-                    idUser: id,
-                    description: req.body.description || "",
-                    fileCV: cloud.secure_url,
-                    pdfText: pdfText,
-                    ratio: aiAnalysis.score,
-                    evaluate,
-                    createdAt: new Date()
+    if (existingCV) {
+        await usePostJobs.updatebyOne(
+            { _id: idp, "listCV._id": existingCV._id },
+            {
+                $set: {
+                    "listCV.$.fileCV": cloud.secure_url,
+                    "listCV.$.pdfText": cleanText,
+                    "listCV.$.ratio": score,
+                    "listCV.$.evaluate": evaluate,
+                    "listCV.$.status": "pendding",
+                    "listCV.$.updatedAt": new Date()
                 }
-            },
-            $set: {
-                numberUpload: numberUploadNext
             }
-        }
-    );
-
-    console.log(aiAnalysis)
+        );
+    } else {
+        await usePostJobs.updatebyOne(
+            { _id: idp },
+            {
+                $push: {
+                    listCV: {
+                        idUser: id,
+                        description: req.body?.description || "",
+                        fileCV: cloud.secure_url,
+                        pdfText: cleanText,
+                        ratio: score,
+                        evaluate,
+                        status: "pendding",
+                        createdAt: new Date(),
+                        updatedAt: new Date()
+                    }
+                },
+                $set: { numberUpload: (post.numberUpload || 0) + 1 }
+            }
+        );
+    }
 
     return {
         success: true,
-        mes: "Ứng tuyển thành công!",
-        aiScore: aiAnalysis?.score || 0 // Trả về điểm cho FE hiển thị
+        mes: existingCV ? "Cập nhật CV thành công!" : "Ứng tuyển thành công!",
+        aiScore: score
     };
 };
 
@@ -711,7 +677,6 @@ const getCVPostJobsPostjobs = async (idp, params = {}) => {
     if (!post) {
         throw new Error("Không tìm thấy bài đăng hoặc bài đăng đã bị xóa!");
     }
-
     const page = parseInt(params.page) || 1;
     const limit = parseInt(params.limit) || 10;
     const skip = (page - 1) * limit;
@@ -733,21 +698,77 @@ const getCVPostJobsPostjobs = async (idp, params = {}) => {
     };
 };
 
-const ChangeStatusCVPostjobs = async (idp, idcv, data) => {
-    const { status } = data
-    const update = await usePostJobs.updatebyOne(
+const ChangeStatusCVPostjobs = async (idp, idUser, idcv, data) => {
+    const { status } = data;
+    const { message } = data;
+    await usePostJobs.updatebyOne(
         { _id: idp, "listCV._id": idcv },
         {
             $set: { "listCV.$.status": status }
         }
     );
+    const userBusiness = await useUser.findByOne({ _id: idUser });
+    const postJob = await usePostJobs.findByOne({ _id: idp })
+        .populate("listCV.idUser", "email")
+        .populate("business", "nameBusiness");
+    if (!postJob) {
+        throw new Error("Không tìm thấy bài đăng");
+    }
+    const cv = postJob.listCV.find(
+        item => item._id.toString() === idcv
+    );
+    const companyName = postJob.business?.nameBusiness || "Công ty";
+    const jobTitle = postJob.title || "Vị trí tuyển dụng";
+    if (message != null && message.trim() !== "") {
+        const html = `
+    <h3>Thông báo kết quả ứng tuyển</h3>
+    <p>Xin chào ${cv.idUser?.username || "Ứng viên"},</p>
+    <p>Bạn đã ứng tuyển vào vị trí <b>${jobTitle}</b> tại <b>${companyName}</b>.</p>
+    <p>Chúng tôi rất tiếc phải thông báo rằng CV của bạn hiện chưa phù hợp với yêu cầu của vị trí này.</p>
+    ${message ? `<p><b>Lý do:</b> ${message}</p>` : ""}
+    <p>Hy vọng sẽ có cơ hội hợp tác với bạn trong tương lai.</p>
+    <br/>
+    <p>Trân trọng,</p>
+    <p><b>${companyName}</b></p>
+`;
+        await sendMail({
+            email: cv.idUser?.email,
+            subject: "Kết quả ứng tuyển",
+            html: html
+        });
+    }
+
+    if (status !== "pending") {
+        const notify = {
+            title: "Phản hồi về ứng tuyển",
+            message: `Ứng tuyển "${postJob.title}" ${status === "unactive" ? "đã bị từ chối" : "đã được duyệt"}. ${message || ""}`,
+        };
+
+        await useUser.updatebyOne(
+            { _id: cv.idUser?._id },
+            {
+                $push: {
+                    notifications: {
+                        $each: [notify],
+                        $position: 0
+                    }
+                }
+            }
+        );
+    }
+
+    if (!cv) {
+        throw new Error("Không tìm thấy CV");
+    }
 
     return {
         success: true,
         message: "Cập nhật trạng thái CV thành công",
-        data: update
+        businessEmail: userBusiness?.email || null,
+        userEmail: cv.idUser?.email || null,
+        data: cv
     };
-}
+};
 
 module.exports = {
     createPostjobs,

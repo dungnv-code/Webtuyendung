@@ -5,7 +5,7 @@ const Loading = () => {
         <>
             <div
                 style={{
-                    position: "fixed",       // ⭐ CHUẨN ĐỂ FULL MÀN
+                    position: "fixed",
                     left: 0,
                     top: 0,
                     right: 0,
@@ -13,7 +13,7 @@ const Loading = () => {
                     backgroundColor: "rgba(0, 0, 0, 0.6)",
                     width: "100%",
                     height: "100%",
-                    zIndex: 9999,            // ⭐ nằm trên mọi thứ
+                    zIndex: 9999,
                     display: "flex",
                     justifyContent: "center",
                     alignItems: "center",

@@ -2,22 +2,13 @@ const mongoose = require("mongoose");
 const SalaryRangeSchema = new mongoose.Schema(
     {
         salaryRange: {
-            type: String,
-            required: true,
-            trim: true,
+            type: String, required: true, trim: true,
         },
-
         slug: {
-            type: String,
-            unique: true,
-            lowercase: true,
+            type: String, unique: true, lowercase: true,
         },
-
         min: {
-            type: Number,
-            required: true,
-            default: 0,
-            min: 0
+            type: Number, required: true, default: 0, min: 0
         },
 
         max: {
@@ -30,7 +21,6 @@ const SalaryRangeSchema = new mongoose.Schema(
                 message: "max phải lớn hơn min"
             }
         },
-
     },
     { timestamps: true }
 );

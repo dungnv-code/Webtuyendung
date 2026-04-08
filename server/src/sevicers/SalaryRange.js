@@ -14,9 +14,9 @@ const createSalaryRange = async (data) => {
 
 const updateSalaryRange = async (idl, data) => {
     const isSalaryRange = await useSalaryRange.findByOne({ salaryRange: data.salaryRange });
-    // if (isSalaryRange) {
-    //     throw new Error("Khoảng lương đã tồn tại");
-    // }
+    if (isSalaryRange) {
+        throw new Error("Khoảng lương đã tồn tại");
+    }
     const updatedSalaryRange = await useSalaryRange.updatebyOne({ _id: idl }, { ...data });
     return {
         success: true,
@@ -67,9 +67,6 @@ const getAllSalaryRange = async (queryParams) => {
     const fields = queryParams.fields?.split(",").join(" ");
     const isRandom = queryParams.random === "true";
     const seed = queryParams.seed || "default-seed";
-
-    // Job populate ví dụ
-    // const populate = { path: "business", select: "name logo" };
 
     if (isRandom) {
         const rng = seedrandom(seed);

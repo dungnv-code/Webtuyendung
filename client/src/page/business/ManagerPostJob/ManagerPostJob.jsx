@@ -69,7 +69,7 @@ const ManagerPostJob = () => {
                 .mpj-page {
                     min-height: 100vh;
                     background: linear-gradient(160deg, #f0f4ff 0%, #fafafa 55%, #f0fdf4 100%);
-                    padding: 3rem 1rem;
+                    padding: 1rem 1rem;
                     font-family: 'Inter', sans-serif;
                     display: flex;
                     flex-direction: column;
@@ -86,7 +86,7 @@ const ManagerPostJob = () => {
                 .mpj-sub {
                     text-align: center; font-size: 0.8rem;
                     color: #9ca3af; letter-spacing: 0.1em;
-                    text-transform: uppercase; margin-bottom: 2rem;
+                    text-transform: uppercase; margin-bottom: 1rem;
                 }
 
                 /* ── Card ── */
@@ -109,7 +109,7 @@ const ManagerPostJob = () => {
                 /* ── Search bar ── */
                 .mpj-search-row {
                     display: flex; gap: 0.75rem;
-                    align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap;
+                    align-items: center; margin-bottom: 0rem; flex-wrap: wrap;
                 }
 
                 .mpj-input-wrap { flex: 1; min-width: 180px; position: relative; }

@@ -102,6 +102,12 @@ class BusinessController {
         const reponse = await BusinessSevicer.getInvoidsBusiness(businessId, req.query);
         res.status(200).json(reponse);
     })
+
+    getDashboard = asyncHandler(async (req, res) => {
+        const { businessId } = req.user;
+        const reponse = await BusinessSevicer.getDashboardBusiness(businessId);
+        res.status(200).json(reponse);
+    })
 }
 
 module.exports = new BusinessController();

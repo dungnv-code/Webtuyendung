@@ -5,13 +5,12 @@ const sendMail = asyncHandler(async ({ email, html, subject }) => {
     let transporter = nodemailer.createTransport({
         host: "smtp.gmail.com",
         port: 587,
-        secure: false, // true for 465, false for other ports
+        secure: false,
         auth: {
-            user: process.env.EMAIL_NAME, // generated ethereal user
-            pass: process.env.EMAIL_APP_PASSWORD, // generated ethereal password
+            user: process.env.EMAIL_NAME,
+            pass: process.env.EMAIL_APP_PASSWORD,
         },
     });
-
 
     let info = await transporter.sendMail({
         from: '"Tuyển dụng" <no-relply@tuyendung.com>',

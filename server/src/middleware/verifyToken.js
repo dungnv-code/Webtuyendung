@@ -3,7 +3,6 @@ const asyncHandler = require('express-async-handler')
 const VerifyToken = asyncHandler((req, res, next) => {
     const authHeader = req.headers['authorization'];
     const accessToken = authHeader && authHeader.split(' ')[1];
-
     if (!accessToken) {
         throw new Error('Vui lòng đăng nhập để tiếp tục!!!');
     }

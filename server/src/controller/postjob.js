@@ -2,6 +2,7 @@ const { validationResult } = require("express-validator");
 const asyncHandler = require('express-async-handler');
 const slugify = require('slugify');
 const PostjobsSevicer = require("../sevicers/Postjobs");
+const useUser = require("../repository/User");
 class PostJobController {
     create = asyncHandler(async (req, res) => {
         const { businessId } = req.user;
@@ -13,6 +14,7 @@ class PostJobController {
         const { title } = req.body;
         const slug = slugify(title, { lower: true, strict: true });
         const reponse = await PostjobsSevicer.createPostjobs(businessId, id, { ...req.body, slug });
+
         res.status(200).json(reponse);
     });
 
@@ -81,7 +83,8 @@ class PostJobController {
 
     ChangeStatusCV = asyncHandler(async (req, res) => {
         const { idcv, idp } = req.params;
-        const response = await PostjobsSevicer.ChangeStatusCVPostjobs(idp, idcv, req.body);
+        const { id } = req.user;
+        const response = await PostjobsSevicer.ChangeStatusCVPostjobs(idp, id, idcv, req.body);
         res.status(200).json(response);
     });
 }

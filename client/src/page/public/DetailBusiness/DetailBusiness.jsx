@@ -68,7 +68,7 @@ const DetailBusiness = () => {
         <div style={{ background: "#f8fffe", minHeight: "100vh" }}>
 
             {/* ── COVER + PROFILE CARD ── */}
-            <div className="position-relative" style={{ marginBottom: "80px" }}>
+            <div className="position-relative" style={{ marginBottom: "20px" }}>
                 {/* Cover image */}
                 <div style={{ height: "300px", overflow: "hidden" }}>
                     <img

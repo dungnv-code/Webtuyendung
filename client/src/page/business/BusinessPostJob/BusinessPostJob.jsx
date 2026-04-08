@@ -160,7 +160,7 @@ const BusinessPostJob = () => {
                 .bpj-page {
                     min-height: 100vh;
                     background: linear-gradient(160deg, #f0f4ff 0%, #fafafa 55%, #f0fdf4 100%);
-                    padding: 3rem 1rem;
+                    padding: 1rem 1rem;
                     font-family: 'Inter', sans-serif;
                 }
 
@@ -180,7 +180,7 @@ const BusinessPostJob = () => {
                     color: #9ca3af;
                     letter-spacing: 0.1em;
                     text-transform: uppercase;
-                    margin-bottom: 2rem;
+                    margin-bottom: 1rem;
                 }
 
                 /* ── Quota bar ── */
@@ -389,7 +389,6 @@ const BusinessPostJob = () => {
 
                 <div className="bpj-card">
 
-                    {/* ── Section 1: Thông tin cơ bản ── */}
                     <p className="bpj-section"><i className="fa-solid fa-briefcase" />Thông tin công việc</p>
 
                     {/* Title */}
@@ -511,7 +510,6 @@ const BusinessPostJob = () => {
 
                     <hr className="bpj-divider" />
 
-                    {/* ── Section 2: Gói đăng ── */}
                     <p className="bpj-section"><i className="fa-solid fa-box-open" />Gói đăng bài</p>
 
                     <div className="bpj-pkg-row" style={{ marginBottom: "1.5rem" }}>
@@ -539,7 +537,7 @@ const BusinessPostJob = () => {
 
                     <hr className="bpj-divider" />
 
-                    {/* ── Section 3: Mô tả ── */}
+
                     <p className="bpj-section"><i className="fa-solid fa-align-left" />Mô tả công việc</p>
 
                     <Editor

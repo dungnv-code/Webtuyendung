@@ -9,7 +9,6 @@ import { LogIn } from "../../../redux/userUser/userSlice";
 import { getCurrent } from "../../../redux/userUser/asyncActionUser";
 import Swal from "sweetalert2";
 import Loading from "../../../component/loading/Loading";
-
 import { jwtDecode } from "jwt-decode";
 const styles = {
 
@@ -166,6 +165,7 @@ const Login = () => {
                     icon: "success",
                 });
                 setInputValue({ email: "", password: "" });
+                localStorage.setItem("accessToken", res.data.accessToken);
                 dispatch(LogIn(res.data));
                 const decoded = jwtDecode(res.data.accessToken);
                 const role = decoded.role;
@@ -178,9 +178,11 @@ const Login = () => {
                         dispatch(getCurrent())
                     }, 100);
                     const redirectPath = localStorage.getItem("redirectAfterLogin");
-                    if (redirectPath) {
+                    if (redirectPath && redirectPath !== "/login") {
                         localStorage.removeItem("redirectAfterLogin");
-                        navigate(redirectPath);
+                        setTimeout(() => {
+                            navigate(redirectPath);
+                        }, 300);
                     } else {
                         navigate(path.HOME);
                     }
@@ -228,38 +230,90 @@ const Login = () => {
         <div style={styles.container}>
             {loading && <Loading />}
             <div className="modal fade" id="loginModal" tabIndex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
-                <div className="modal-dialog ">
-                    <div className="modal-content shadow-lg border-0 rounded-3">
+                <div className="modal-dialog modal-dialog-centered">
+                    <div className="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
 
-                        <div className="modal-header text-white rounded-top-3" style={{ backgroundColor: "#00b14f" }}>
-                            <h5 className="modal-title" id="loginModalLabel">
-                                <i className="bi bi-envelope-check"></i>Vui lòng nhập email xác nhận
-                            </h5>
-                            <button type="button" className="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        {/* Header */}
+                        <div
+                            className="modal-header border-0 px-4 pt-4 pb-3"
+                            style={{ background: "linear-gradient(135deg, #00b14f 0%, #007a35 100%)" }}
+                        >
+                            <div className="d-flex align-items-center gap-3">
+                                <div
+                                    className="d-flex align-items-center justify-content-center rounded-circle bg-white bg-opacity-25"
+                                    style={{ width: 44, height: 44, minWidth: 44 }}
+                                >
+                                    <i className="bi bi-envelope-at-fill text-white fs-5"></i>
+                                </div>
+                                <div>
+                                    <h5 className="modal-title text-white fw-bold mb-0" id="loginModalLabel">
+                                        Xác nhận email
+                                    </h5>
+                                    <small className="text-white opacity-75">Đặt lại mật khẩu qua email</small>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                className="btn-close btn-close-white ms-auto"
+                                data-bs-dismiss="modal"
+                                aria-label="Close"
+                            ></button>
                         </div>
 
-                        <div className="modal-body">
-                            <p className="text-muted mb-2">
-                                Hệ thống sẽ gửi mã xác nhận đến email của bạn. Vui lòng nhập email của bạn bên dưới:
-                            </p>
+                        {/* Body */}
+                        <div className="modal-body px-4 py-4">
+                            <div className="alert alert-success border-0 rounded-3 d-flex align-items-start gap-2 py-2 px-3 mb-3"
+                                style={{ backgroundColor: "#f0fdf4", color: "#166534" }}>
+                                <i className="bi bi-info-circle-fill mt-1 flex-shrink-0" style={{ color: "#00b14f" }}></i>
+                                <small>
+                                    Hệ thống sẽ gửi mã xác nhận đến email của bạn. Vui lòng kiểm tra hộp thư sau khi gửi.
+                                </small>
+                            </div>
 
-                            <input type="text" value={email} onChange={(e) => setEmail(e.target.value)} className="form-control form-control-lg text-center fw-semibold"
-                                placeholder="Nhập email xác nhận" />
-                            {erremail && <p className="text-danger mt-2">{erremail}</p>}
+                            <label className="form-label fw-semibold text-secondary small text-uppercase mb-2">
+                                Địa chỉ email
+                            </label>
+                            <div className="input-group">
+                                <span className="input-group-text bg-light border-end-0">
+                                    <i className="bi bi-envelope-fill text-secondary"></i>
+                                </span>
+                                <input
+                                    type="text"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className={`form-control bg-light border-start-0 ${erremail ? "is-invalid" : email ? "is-valid" : ""}`}
+                                    placeholder="example@email.com"
+                                />
+                                {erremail && (
+                                    <div className="invalid-feedback d-flex align-items-center gap-1">
+                                        <i className="bi bi-exclamation-circle-fill"></i> {erremail}
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
-                        <div className="modal-footer d-flex justify-content-between">
-                            <button type="button" className="btn btn-light border" data-bs-dismiss="modal">
-                                <i className="bi bi-x-circle"></i> Huỷ
+                        <div className="modal-footer border-0 px-4 pb-4 pt-0 gap-2">
+                            <button
+                                type="button"
+                                className="btn btn-light border rounded-3 fw-semibold px-4"
+                                data-bs-dismiss="modal"
+                            >
+                                <i className="bi bi-x-circle me-1"></i> Huỷ
                             </button>
-
-                            <button type="button" onClick={hanleForgotEmail} className="btn" style={{ backgroundColor: "#00b14f" }}>
-                                <i className="bi bi-check2-circle"></i> Xác nhận
+                            <button
+                                type="button"
+                                onClick={hanleForgotEmail}
+                                className="btn fw-semibold text-white rounded-3 px-4 flex-grow-1"
+                                style={{ background: "linear-gradient(135deg, #00b14f 0%, #007a35 100%)", border: "none" }}
+                            >
+                                <i className="bi bi-send-fill me-1"></i> Gửi mã xác nhận
                             </button>
                         </div>
+
                     </div>
                 </div>
             </div>
+
             <img src={imglogin} alt="Login" style={styles.bgImage} />
 
             <div style={styles.overlay}>

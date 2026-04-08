@@ -1,6 +1,7 @@
 import axios from "../ultils/axios"
 
 const login = (data) => {
+    console.log("Login data:", data);
     return axios.post("/user/Login", data, { withCredentials: true });
 }
 
@@ -72,6 +73,14 @@ const chatboxUser = async (data) => {
     return await axios.post(`/user/chatbox`, data);
 }
 
+const getNotifications = async () => {
+    return await axios.get(`/user/getNotifications`);
+}
+
+const markNotificationAsRead = async () => {
+    return await axios.post(`/user/markNotificationAsRead`);
+}
+
 export {
     login,
     refreshToken,
@@ -91,4 +100,6 @@ export {
     wishlistbusiness,
     listCVupload,
     chatboxUser,
+    getNotifications,
+    markNotificationAsRead,
 }

@@ -34,7 +34,7 @@ const CVList = () => {
                 .cv-page {
                     min-height: 100vh;
                     background: linear-gradient(160deg, #f0f4ff 0%, #fafafa 60%, #fff0f6 100%);
-                    padding: 3rem 1rem;
+                    padding: 1rem 1rem;
                     font-family: 'Inter', sans-serif;
                 }
 
@@ -54,7 +54,7 @@ const CVList = () => {
                     color: #9ca3af;
                     letter-spacing: 0.1em;
                     text-transform: uppercase;
-                    margin-bottom: 2.5rem;
+                    margin-bottom: 1rem;
                 }
 
                 /* ── Card ── */

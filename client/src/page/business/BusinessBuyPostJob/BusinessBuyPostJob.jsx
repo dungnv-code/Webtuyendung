@@ -64,7 +64,7 @@ const BusinessBuyPostJob = () => {
                 .bbp-page {
                     min-height: 100vh;
                     background: linear-gradient(160deg, #f0f4ff 0%, #fafafa 55%, #fff7ed 100%);
-                    padding: 3rem 1rem;
+                    padding: 1rem 1rem;
                     font-family: 'Inter', sans-serif;
                     display: flex;
                     flex-direction: column;
@@ -87,7 +87,7 @@ const BusinessBuyPostJob = () => {
                     color: #9ca3af;
                     letter-spacing: 0.1em;
                     text-transform: uppercase;
-                    margin-bottom: 2.5rem;
+                    margin-bottom: 0rem;
                 }
 
                 /* ── Card ── */
@@ -98,7 +98,7 @@ const BusinessBuyPostJob = () => {
                     border-radius: 20px;
                     border: 1px solid #eef0f6;
                     box-shadow: 0 8px 32px rgba(99,102,241,0.08);
-                    padding: 2.5rem 2rem;
+                    padding: 1rem 1rem;
                     position: relative;
                     overflow: hidden;
                 }

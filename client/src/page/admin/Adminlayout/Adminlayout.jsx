@@ -11,7 +11,7 @@ const AdminLayout = () => {
             <div>
                 <Adminsibar />
             </div>
-            <div className="admin-content" style={{ marginLeft: "25%" }}>
+            <div className="admin-content" style={{ marginLeft: "23%" }}>
                 <Outlet />
             </div>
             <div className="admin-footer">

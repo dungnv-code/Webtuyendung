@@ -56,8 +56,8 @@ const Businesssibar = () => {
         {
             show: true,
             to: path.DASHBOARDBUSINESS,
-            icon: <HomeOutlined />,
-            label: "Trang chủ",
+            icon: <i className="fa-solid fa-gauge-high " />,
+            label: "Dashboard",
         },
         {
             show: isOwner && !hasBusiness,
@@ -351,7 +351,6 @@ const Businesssibar = () => {
                     ))}
                 </ul>
 
-                {/* Logout */}
                 <div className="bsb-footer">
                     <NavLink
                         to={path.LOGIN}

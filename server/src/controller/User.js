@@ -11,7 +11,6 @@ myEvent.on("event.Register.user", (param) => {
 
 class ControllerUser {
     Login = asyncHandler(async (req, res) => {
-        // const { email, password } = req.body;
 
         const err = validationResult(req);
         if (!err.isEmpty()) {
@@ -216,6 +215,18 @@ class ControllerUser {
 
     chatbox = asyncHandler(async (req, res) => {
         const reponse = await userSevicer.chatboxUser(req.body);
+        res.status(200).json(reponse);
+    })
+
+    getNotifications = asyncHandler(async (req, res) => {
+        const { id } = req.user;
+        const reponse = await userSevicer.getNotificationsUser(id);
+        res.status(200).json(reponse);
+    })
+
+    markNotificationAsRead = asyncHandler(async (req, res) => {
+        const { id } = req.user;
+        const reponse = await userSevicer.markNotificationAsReadUser(id);
         res.status(200).json(reponse);
     })
 }

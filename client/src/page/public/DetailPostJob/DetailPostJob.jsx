@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 import path from "../../../ultils/path";
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
-
+import Swal from "sweetalert2";
 const DetailPostJob = () => {
     const { idp } = useParams();
     const [detail, setDetail] = useState(null);
@@ -56,6 +56,57 @@ const DetailPostJob = () => {
         modal.classList.remove("show", "d-block");
         modal.style.backgroundColor = "transparent";
     };
+
+    const hanleCheckLike = () => {
+
+        if (!isLogIn) {
+            const currentPath =
+                window.location.pathname + window.location.search;
+            localStorage.setItem("redirectAfterLogin", currentPath);
+            Swal.fire({
+                icon: "warning",
+                title: "Bạn chưa đăng nhập",
+                text: "Vui lòng đăng nhập lại để tiếp tục",
+                confirmButtonText: "OK",
+                showCancelButton: true,
+                cancelButtonText: "Huỷ",
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.replace("/login");
+                }
+            });
+            return;
+        } else {
+            showModal();
+        }
+    }
+
+    const hanleCheckLikeLT = () => {
+        if (!isLogIn) {
+            const currentPath =
+                window.location.pathname + window.location.search;
+            localStorage.setItem("redirectAfterLogin", currentPath);
+            Swal.fire({
+                icon: "warning",
+                title: "Bạn chưa đăng nhập",
+                text: "Vui lòng đăng nhập lại để tiếp tục",
+                confirmButtonText: "OK",
+                showCancelButton: true,
+                cancelButtonText: "Huỷ",
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.replace("/login");
+                }
+            });
+            return;
+        } else {
+            hanleCreateWishlistJob();
+        }
+    }
 
     const handleChangeFile = (e) => {
         const file = e.target.files[0];
@@ -180,12 +231,12 @@ const DetailPostJob = () => {
                         </div>
                         <div className="col-md-auto">
                             <div className="d-flex flex-column gap-2 align-items-stretch">
-                                <button onClick={showModal}
+                                <button onClick={hanleCheckLike}
                                     className="btn btn-light fw-bold px-4 py-2 rounded-pill"
                                     style={{ color: "#1b5e20", minWidth: "160px" }}>
                                     <i className="fa-solid fa-paper-plane me-2"></i>Ứng tuyển ngay
                                 </button>
-                                <button onClick={hanleCreateWishlistJob}
+                                <button onClick={hanleCheckLikeLT}
                                     className="btn fw-semibold px-4 py-2 rounded-pill"
                                     style={{ background: "rgba(255,255,255,0.15)", color: "#fff", border: "1px solid rgba(255,255,255,0.3)" }}>
                                     {isLiked
@@ -194,7 +245,13 @@ const DetailPostJob = () => {
                                 </button>
                                 <p className="text-center mb-0 small" style={{ color: "#a5d6a7" }}>
                                     <i className="fa-regular fa-clock me-1"></i>
-                                    Hạn nộp: {new Date(detail.deadline).toLocaleDateString("vi-VN")}
+                                    Hạn nộp: {
+                                        new Date(detail.deadline).toLocaleDateString("vi-VN", {
+                                            day: "2-digit",
+                                            month: "long",
+                                            year: "numeric"
+                                        })
+                                    }
                                 </p>
                             </div>
                         </div>
@@ -202,14 +259,11 @@ const DetailPostJob = () => {
                 </div>
             </div>
 
-            {/* ── MAIN BODY ── */}
             <div className="container py-4">
                 <div className="row g-4">
 
-                    {/* ── LEFT COLUMN ── */}
                     <div className="col-lg-8">
 
-                        {/* Job description */}
                         <div className="card border-0 shadow-sm rounded-3 mb-4">
                             <div className="card-body px-4 py-4">
                                 <h5 className="fw-bold mb-4 pb-2 border-bottom"
@@ -246,15 +300,21 @@ const DetailPostJob = () => {
                                         <i className="fa-regular fa-calendar me-2"></i>
                                         Hạn nộp hồ sơ:{" "}
                                         <span className="text-danger">
-                                            {new Date(detail.deadline).toLocaleDateString("vi-VN")}
+                                            {
+                                                new Date(detail.deadline).toLocaleDateString("vi-VN", {
+                                                    day: "2-digit",
+                                                    month: "long",
+                                                    year: "numeric"
+                                                })
+                                            }
                                         </span>
                                     </p>
                                     <div className="d-flex gap-2">
-                                        <button onClick={showModal}
+                                        <button onClick={hanleCheckLike}
                                             className="btn btn-success rounded-pill px-4 fw-semibold">
                                             <i className="fa-solid fa-paper-plane me-1"></i> Ứng tuyển ngay
                                         </button>
-                                        <button onClick={hanleCreateWishlistJob}
+                                        <button onClick={hanleCheckLikeLT}
                                             className="btn btn-outline-success rounded-pill px-4 fw-semibold">
                                             {isLiked
                                                 ? <><i className="fa-solid fa-heart text-danger me-1"></i>Đã lưu</>

@@ -9,8 +9,7 @@ export const getCurrent = createAsyncThunk(
             if (!response.success) {
                 return rejectWithValue(response);
             }
-
-            return response.data; // ⭐ Chỉ trả về user
+            return response.data;
         } catch (error) {
             return rejectWithValue(error.response?.data || error.message);
         }

@@ -55,5 +55,6 @@ Route.get("/wishlistjob", [VerifyToken], userController.wishlistjob)
 Route.get("/wishlistbusiness", [VerifyToken], userController.wishlistbusiness)
 Route.get("/listCVupload", [VerifyToken], userController.listCVupload)
 Route.post("/chatbox", userController.chatbox)
-
+Route.get("/getNotifications", [VerifyToken], userController.getNotifications)
+Route.post("/markNotificationAsRead", [VerifyToken], userController.markNotificationAsRead)
 module.exports = Route;

@@ -126,6 +126,10 @@ const PostJobSchema = new mongoose.Schema({
                 type: String,
                 enum: ["unactive", "pendding", "active"],
                 default: "pendding"
+            },
+            createdAt: {
+                type: Date,
+                default: Date.now
             }
         }
     ]

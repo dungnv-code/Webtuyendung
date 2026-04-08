@@ -14,7 +14,15 @@ const UserSchema = new Schema({
     resetpasswordOtpExpire: { type: Date, default: null },
     business: { type: Schema.Types.ObjectId, ref: "Business", default: null },
     wishlistJob: [{ type: Schema.Types.ObjectId, ref: "PostJob", default: [] }],
-    wishlistJBusiness: [{ type: Schema.Types.ObjectId, ref: "Business", default: [] }]
+    wishlistJBusiness: [{ type: Schema.Types.ObjectId, ref: "Business", default: [] }],
+    notifications: [
+        {
+            title: String,
+            message: String,
+            isRead: { type: Boolean, default: false },
+            createdAt: { type: Date, default: Date.now }
+        }
+    ]
 }, { timestamps: true })
 
 module.exports = mongoose.model("User", UserSchema);

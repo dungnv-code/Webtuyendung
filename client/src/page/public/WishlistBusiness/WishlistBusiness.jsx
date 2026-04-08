@@ -267,7 +267,6 @@ const WishlistBusiness = () => {
 
                                         <hr className="wb-divider" />
 
-                                        {/* Meta */}
                                         <div className="wb-meta">
                                             <span className="wb-chip">
                                                 <i className="fa-solid fa-users" />

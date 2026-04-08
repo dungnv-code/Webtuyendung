@@ -62,7 +62,6 @@ const SECTION_TOGGLES = {
     showAwards: "Giải thưởng", showHobbies: "Sở thích", showExtra: "Thông tin thêm",
 };
 
-/* ── Small reusable inputs (unchanged logic) ── */
 function SInput({ value, onChange, placeholder, style = {} }) {
     return <input value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
         style={{
@@ -183,7 +182,6 @@ function PhotoUpload({ photo, onUpload, onRemove, color }) {
     );
 }
 
-/* ── TOOLBAR ── */
 function Toolbar({ cv, setCV }) {
     const [tab, setTab] = useState("design");
     const c = cv.accentColor;
@@ -193,14 +191,13 @@ function Toolbar({ cv, setCV }) {
     return (
         <div className="d-flex flex-column h-100">
 
-            {/* Sidebar header */}
+
             <div className="px-3 py-3 sticky-top bg-white" style={{ borderBottom: "1px solid #f0f0f0", zIndex: 2 }}>
                 <div className="fw-bold mb-2" style={{ fontSize: 13, color: "#1a1a1a" }}>
                     <i className="fa-solid fa-pen-to-square me-2" style={{ color: c }}></i>
                     Chỉnh sửa CV
                 </div>
 
-                {/* Tab pills */}
                 <div className="d-flex flex-wrap gap-1">
                     {TABS.map(s => (
                         <button key={s.key} onClick={() => setTab(s.key)}
@@ -219,14 +216,12 @@ function Toolbar({ cv, setCV }) {
                 </div>
             </div>
 
-            {/* Tab content */}
             <div className="p-3 flex-grow-1" style={{ overflowY: "auto" }}>
 
                 {tab === "design" && (
                     <div className="d-flex flex-column gap-3">
                         <PhotoUpload photo={cv.photo} color={c} onUpload={v => set("photo", v)} onRemove={() => set("photo", null)} />
 
-                        {/* Accent color */}
                         <div>
                             <label className="form-label fw-semibold" style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.05em", color: "#444" }}>
                                 <i className="fa-solid fa-droplet me-1"></i> Màu chủ đề
@@ -500,7 +495,7 @@ function Toolbar({ cv, setCV }) {
     );
 }
 
-/* ── CV PREVIEW (unchanged logic, same as original) ── */
+
 function CVPreview({ cv, setCV, cvRef, cvHRef }) {
     const col = cv.accentColor;
     const up = (k, v) => setCV(p => ({ ...p, [k]: v }));
@@ -544,7 +539,7 @@ function CVPreview({ cv, setCV, cvRef, cvHRef }) {
                     <EF value={cv.name} onChange={v => up("name", v)} style={{ fontSize: cv.fontSize * 1.9, fontWeight: 700, color: "#1a1a1a", display: "block", marginBottom: 2 }} />
                     <EF value={cv.position} onChange={v => up("position", v)} style={{ fontSize: cv.fontSize * 1.05, color: col, fontWeight: 600, display: "block", marginBottom: 10 }} />
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "3px 14px", fontSize: cv.fontSize * 0.88 }}>
-                        {[["📅", "Ngày sinh", "dob"], ["⚧", "Giới tính", "gender"], ["📞", "Điện thoại", "phone"], ["✉️", "Email", "email"], ["🌐", "Website", "website"], ["📍", "Địa chỉ", "address"]].map(([icon, label, key]) => (
+                        {[[<i class="fa-solid fa-calendar"></i>, "Ngày sinh", "dob"], [<i class="fa-solid fa-venus-mars"></i>, "Giới tính", "gender"], [<i class="fa-solid fa-phone"></i>, "Điện thoại", "phone"], [<i class="fa-solid fa-envelope"></i>, "Email", "email"], [<i class="fa-solid fa-globe"></i>, "Website", "website"], [<i class="fa-solid fa-location-dot"></i>, "Địa chỉ", "address"]].map(([icon, label, key]) => (
                             <div key={key} style={{ display: "flex", gap: 4, alignItems: "center" }}>
                                 <span style={{ color: "#aaa", whiteSpace: "nowrap", fontSize: cv.fontSize * 0.82 }}>{icon} {label}:</span>
                                 <EF value={cv[key]} onChange={v => up(key, v)} style={{ fontSize: cv.fontSize * 0.88, flex: 1 }} />
@@ -589,7 +584,6 @@ function PageBreaks({ height }) {
     </>;
 }
 
-/* ── MAIN EXPORT ── */
 export default function Introduction() {
     const [cv, setCV] = useState(defaultCV);
     const [cvH, setCvH] = useState(A4_H);
@@ -684,20 +678,16 @@ export default function Introduction() {
     return (
         <div className="d-flex" style={{ height: "100vh", background: "#dde1e7", overflow: "hidden" }}>
 
-            {/* ── SIDEBAR ── */}
             <div className="bg-white d-flex flex-column"
                 style={{ width: 272, flexShrink: 0, height: "100vh", overflowY: "auto", borderRight: "1px solid #e5e7eb" }}>
                 <Toolbar cv={cv} setCV={setCV} />
             </div>
 
-            {/* ── CANVAS AREA ── */}
             <div className="flex-grow-1 d-flex flex-column align-items-center"
                 style={{ overflowY: "auto", padding: "24px 28px" }}>
 
-                {/* Top action bar */}
                 <div className="d-flex justify-content-between align-items-center mb-3" style={{ width: A4_W }}>
 
-                    {/* Left badges */}
                     <div className="d-flex align-items-center gap-2">
                         <span className="badge rounded-pill px-3 py-2"
                             style={{ background: "#fff", border: "1px solid #e5e7eb", color: "#888", fontSize: 11, fontWeight: 400 }}>
@@ -714,7 +704,6 @@ export default function Introduction() {
                         </span>
                     </div>
 
-                    {/* Right action buttons */}
                     <div className="d-flex gap-2">
                         <button onClick={() => setCV(defaultCV)}
                             className="btn btn-sm btn-light border fw-semibold"
@@ -761,7 +750,6 @@ export default function Introduction() {
                         <CVPreview cv={cv} setCV={setCV} cvRef={cvPreviewRef} cvHRef={cvRef} />
                     </div>
                 </div>
-
                 <div style={{ height: 48 }} />
             </div>
         </div>

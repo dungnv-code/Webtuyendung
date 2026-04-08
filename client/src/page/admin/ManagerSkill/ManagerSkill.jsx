@@ -1,40 +1,20 @@
-
 import { useState, useEffect } from "react";
 import PaginationCustom from "../../../component/pagination/pagination";
-import { getAllSkill, createSkill, updateSkill, deleteSkill, getAllJob } from "../../../api/job"
-import { DeleteTwoTone, EditTwoTone, EditOutlined, PlusOutlined, SearchOutlined, RedoOutlined } from '@ant-design/icons';
+import { getAllSkill, createSkill, updateSkill, deleteSkill, getAllJob } from "../../../api/job";
+import { DeleteTwoTone, EditTwoTone, PlusOutlined, SearchOutlined, RedoOutlined } from '@ant-design/icons';
 import { toast } from "react-toastify";
 
 const ManagerSkill = () => {
-    const styles = {
-        container: {
-            width: "100%",
-            padding: "20px",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-        },
-        error: {
-            color: "#ffb3b3",
-            fontSize: "13px",
-            marginTop: "8px",
-            textAlign: "left",
-        },
-    }
-
     const [currentPage, setCurrentPage] = useState(1);
-    const [limit, setLimit] = useState(10);
+    const [limit] = useState(10);
     const [totalPages, setTotalPages] = useState(0);
     const [listJob, setListJob] = useState([]);
     const [listJobSelect, setListJobSelect] = useState([]);
-    const [inputValue, setInputValue] = useState({
-        nameskill: "",
-        job: ""
-    });
-    const [inputSearch, setinputSearch] = useState("");
+    const [inputValue, setInputValue] = useState({ nameskill: "", job: "" });
+    const [inputSearch, setInputSearch] = useState("");
     const [error, setError] = useState({});
-    const [loaddata, setLoaddata] = useState(false)
-    const [currentIndex, setCurrentIndex] = useState("")
+    const [loaddata, setLoaddata] = useState(false);
+    const [currentIndex, setCurrentIndex] = useState("");
 
     useEffect(() => {
         const fetchData = async () => {
@@ -42,397 +22,412 @@ const ManagerSkill = () => {
                 const response = await getAllSkill({ page: currentPage, limit, populate: "job:title,slug", flatten: true });
                 setListJob(response.data);
                 setTotalPages(response.totalPages);
-            } catch (error) {
-                console.error("Error fetching jobs:", error);
-            }
+            } catch (error) { console.error(error); }
         };
         fetchData();
     }, [currentPage, limit, loaddata]);
 
     useEffect(() => {
-        const fetchData = async () => {
+        const fetchJobs = async () => {
             try {
                 const response = await getAllJob();
                 setListJobSelect(response.data);
-            } catch (error) {
-                console.error("Error fetching jobs:", error);
-            }
+            } catch (error) { console.error(error); }
         };
-        fetchData();
-    }, [])
+        fetchJobs();
+    }, []);
+
+    const validate = () => {
+        const newError = {};
+        if (!inputValue.nameskill.trim()) newError.nameskill = "Vui lòng nhập tên kỹ năng!";
+        if (!inputValue.job.trim()) newError.job = "Vui lòng chọn nhóm công việc!";
+        setError(newError);
+        return Object.keys(newError).length === 0;
+    };
 
     const hanleCreateJob = async () => {
-        const newError = {};
-
-        if (!inputValue.nameskill.trim()) {
-            newError.nameskill = "Vui lòng nhập tên kĩ năng!";
-        }
-        if (!inputValue.job.trim()) {
-            newError.job = "Vui lòng chọn nhóm công việc!";
-        }
-        setError(newError);
-        if (Object.keys(newError).length === 0) {
-            try {
-                await createSkill(inputValue);
-                setInputValue({ job: "", nameskill: "" });
-                setCurrentPage(1);
-                toast.success("Thêm kĩ năng thành công!")
-                setLoaddata(!loaddata)
-            } catch (error) {
-                // toast.error("Lỗi khi tạo công việc");
-            }
-        }
+        if (!validate()) return;
+        try {
+            await createSkill(inputValue);
+            setInputValue({ job: "", nameskill: "" }); setCurrentPage(1);
+            toast.success("Thêm kỹ năng thành công!"); setLoaddata(!loaddata);
+        } catch (error) { }
     };
 
     const hanleUpdateJob = async () => {
-        const newError = {};
-        if (!inputValue.nameskill.trim()) {
-            newError.nameskill = "Vui lòng nhập tên kĩ năng!";
-        }
-        if (!inputValue.job.trim()) {
-            newError.job = "Vui lòng chọn nhóm công việc!";
-        }
-        setError(newError);
-        if (Object.keys(newError).length === 0) {
-            try {
-                await updateSkill(currentIndex, inputValue);
-                setInputValue({ job: "", nameskill: "" });
-                setCurrentPage(1);
-                toast.success("Sửa kĩ năng thành công!")
-                setLoaddata(!loaddata)
-            } catch (error) {
-                // toast.error("Lỗi khi sửa công việc");
-            }
-        }
-    }
+        if (!validate()) return;
+        try {
+            await updateSkill(currentIndex, inputValue);
+            setInputValue({ job: "", nameskill: "" }); setCurrentIndex(""); setCurrentPage(1);
+            toast.success("Sửa kỹ năng thành công!"); setLoaddata(!loaddata);
+        } catch (error) { }
+    };
 
     const hanleDeleteJob = async (id) => {
         try {
             await deleteSkill(id);
-            setInputValue({ job: "", nameskill: "" });
-            setCurrentPage(1);
-            toast.success("Xoá kĩ năng thành công!")
-            setLoaddata(!loaddata)
-        } catch (error) {
-            // toast.error("Lỗi khi sửa công việc");
-        }
-    }
+            setInputValue({ job: "", nameskill: "" }); setCurrentPage(1);
+            toast.success("Xoá kỹ năng thành công!"); setLoaddata(!loaddata);
+        } catch (error) { }
+    };
 
     const hanleSearch = async () => {
         try {
             const response = await getAllSkill({ page: currentPage, limit, populate: "job:title,slug", flatten: true, nameskill: inputSearch });
-            setinputSearch("")
-            setListJob(response.data);
-            setTotalPages(response.totalPages);
-        } catch (error) {
-            // console.error("Error fetching jobs:", error);
-        }
-
-    }
+            setListJob(response.data); setTotalPages(response.totalPages);
+        } catch (error) { }
+    };
 
     const hanleReset = async () => {
-        const fetchData = async () => {
-            try {
-                const response = await getAllSkill({ page: currentPage, limit });
-                setListJob(response.data);
-                setTotalPages(response.totalPages);
-                setLoaddata(!loaddata)
-            } catch (error) {
-                console.error("Error fetching jobs:", error);
-            }
-        };
-        fetchData();
-        setInputValue({ job: "", nameskill: "" });
-    }
+        setInputValue({ job: "", nameskill: "" }); setInputSearch(""); setCurrentIndex(""); setError({});
+        try {
+            const response = await getAllSkill({ page: currentPage, limit, populate: "job:title,slug", flatten: true });
+            setListJob(response.data); setTotalPages(response.totalPages);
+        } catch (error) { }
+    };
 
     return (
-        <div style={styles.container}
-        >
-            <h1 style={{ marginTop: "10px", marginBottom: "20px", fontSize: "28px" }}>
-                Quản lí kĩ năng
-            </h1>
+        <>
+            <style>{`
+                @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Inter:wght@300;400;500&display=swap');
 
-            <div
-                style={{
-                    width: "80%",
-                    maxWidth: "800px",
-                    background: "rgba(255,255,255,0.05)",
-                    borderRadius: "16px",
-                    padding: "30px",
-                    boxShadow: "0 8px 25px rgba(0,0,0,0.2)",
-                    backdropFilter: "blur(8px)",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                }}
-            >
-                <form style={{ width: "100%" }}>
-                    <div
-                        style={{
-                            display: "flex",
-                            flexDirection: "row",
-                            alignItems: "center",
-                            gap: "12px",
-                            marginBottom: "20px",
-                            width: "100%",
-                        }}
-                    >
-                        {/* WRAP INPUT + ERROR */}
-                        <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+                .msk-page {
+                    min-height: 100vh;
+                    background: linear-gradient(160deg, #f0f4ff 0%, #fafafa 55%, #fff7ed 100%);
+                    padding: 1rem 1rem;
+                    font-family: 'Inter', sans-serif;
+                    display: flex; flex-direction: column; align-items: center;
+                }
+
+                .msk-heading {
+                    font-family: 'Sora', sans-serif;
+                    font-size: 1.6rem; font-weight: 700; color: #1e1b4b;
+                    text-align: center; margin-bottom: 0.35rem; letter-spacing: -0.02em;
+                }
+
+                .msk-sub {
+                    text-align: center; font-size: 0.8rem; color: #9ca3af;
+                    letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 2rem;
+                }
+
+                .msk-card {
+                    width: 100%; max-width: 860px;
+                    background: #fff; border-radius: 20px;
+                    border: 1px solid #eef0f6;
+                    box-shadow: 0 8px 32px rgba(99,102,241,0.08);
+                    padding: 2rem 1.75rem 1.5rem;
+                    position: relative; overflow: hidden;
+                }
+
+                .msk-card::before {
+                    content: ''; position: absolute;
+                    top: 0; left: 0; right: 0; height: 3px;
+                    background: linear-gradient(90deg, #6366f1, #f97316);
+                    border-radius: 20px 20px 0 0;
+                }
+
+                /* ── Section label ── */
+                .msk-section {
+                    font-family: 'Sora', sans-serif; font-size: 0.69rem; font-weight: 600;
+                    letter-spacing: 0.12em; text-transform: uppercase; color: #6366f1;
+                    margin: 0 0 1.1rem; display: flex; align-items: center; gap: 0.5rem;
+                }
+
+                .msk-section::after {
+                    content: ''; flex: 1; height: 1px;
+                    background: linear-gradient(90deg, #e0e7ff, transparent);
+                }
+
+                /* ── Search row ── */
+                .msk-search-row {
+                    display: flex; gap: 0.75rem; align-items: center;
+                    margin-bottom: 0rem; flex-wrap: wrap;
+                }
+
+                .msk-input-wrap { flex: 1; min-width: 180px; position: relative; }
+
+                .msk-input-wrap .anticon {
+                    position: absolute; left: 0.85rem; top: 50%;
+                    transform: translateY(-50%); color: #a5b4fc; font-size: 0.8rem; pointer-events: none;
+                }
+
+                .msk-input-search {
+                    width: 100%; background: #f9fafb;
+                    border: 1.5px solid #e5e7eb; border-radius: 10px;
+                    padding: 0.62rem 0.95rem 0.62rem 2.3rem;
+                    color: #111827; font-family: 'Inter', sans-serif;
+                    font-size: 0.88rem; outline: none;
+                    transition: border-color 0.22s, box-shadow 0.22s, background 0.22s;
+                }
+
+                .msk-input-search:focus {
+                    background: #fff; border-color: #6366f1;
+                    box-shadow: 0 0 0 3px rgba(99,102,241,0.11);
+                }
+
+                .msk-input-search::placeholder { color: #c4c9d4; }
+
+                /* ── Form grid ── */
+                .msk-form-grid {
+                    display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+                    margin-bottom: 1rem;
+                }
+
+                @media (max-width: 560px) { .msk-form-grid { grid-template-columns: 1fr; } }
+
+                .msk-field { display: flex; flex-direction: column; }
+
+                .msk-label {
+                    display: flex; align-items: center; gap: 0.35rem;
+                    font-size: 0.72rem; letter-spacing: 0.09em;
+                    text-transform: uppercase; color: #6b7280;
+                    font-weight: 500; margin-bottom: 0.4rem;
+                }
+
+                .msk-label i { color: #a5b4fc; font-size: 0.68rem; }
+
+                .msk-input, .msk-select {
+                    width: 100%; background: #f9fafb;
+                    border: 1.5px solid #e5e7eb; border-radius: 10px;
+                    padding: 0.65rem 0.95rem; color: #111827;
+                    font-family: 'Inter', sans-serif; font-size: 0.88rem;
+                    outline: none; appearance: none;
+                    transition: border-color 0.22s, box-shadow 0.22s, background 0.22s;
+                }
+
+                .msk-input:focus, .msk-select:focus {
+                    background: #fff; border-color: #6366f1;
+                    box-shadow: 0 0 0 3px rgba(99,102,241,0.11);
+                }
+
+                .msk-input.err, .msk-select.err {
+                    border-color: #f43f5e; box-shadow: 0 0 0 3px rgba(244,63,94,0.09);
+                }
+
+                .msk-input::placeholder { color: #c4c9d4; }
+
+                .msk-select-wrap { position: relative; }
+
+                .msk-select-wrap::after {
+                    content: '▾'; position: absolute;
+                    right: 0.85rem; top: 50%; transform: translateY(-50%);
+                    color: #9ca3af; font-size: 0.75rem; pointer-events: none;
+                }
+
+                .msk-err { font-size: 0.71rem; color: #f43f5e; margin-top: 0.28rem; }
+
+                /* editing badge */
+                .msk-editing-badge {
+                    display: inline-flex; align-items: center; gap: 0.4rem;
+                    background: rgba(99,102,241,0.1); color: #6366f1;
+                    border-radius: 999px; padding: 0.22rem 0.75rem;
+                    font-size: 0.72rem; font-weight: 600; margin-bottom: 0.75rem;
+                }
+
+                /* ── Button row ── */
+                .msk-btn-row {
+                    display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0rem;
+                }
+
+                .msk-btn {
+                    display: inline-flex; align-items: center; gap: 0.4rem;
+                    padding: 0.58rem 1.1rem; border-radius: 10px; border: none;
+                    font-family: 'Inter', sans-serif; font-size: 0.82rem; font-weight: 500;
+                    cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; white-space: nowrap;
+                }
+
+                .msk-btn:hover { transform: translateY(-1px); }
+                .msk-btn:active { transform: translateY(0); }
+
+                .msk-btn-add  { background: linear-gradient(135deg,#6366f1,#f97316); color:#fff; box-shadow:0 4px 14px rgba(99,102,241,0.22); }
+                .msk-btn-edit { background: linear-gradient(135deg,#f59e0b,#f97316); color:#fff; box-shadow:0 4px 14px rgba(245,158,11,0.22); }
+                .msk-btn-reset{ background: #f3f4f6; color: #6b7280; border: 1.5px solid #e5e7eb; }
+                .msk-btn-reset:hover { background: #e5e7eb; }
+
+                /* ── Divider ── */
+                .msk-divider { border: none; border-top: 1px dashed #e5e7eb; margin: 0 0 1.25rem; }
+
+                /* ── Table ── */
+                .msk-table-wrap { width: 100%; overflow-x: auto; }
+
+                .msk-table {
+                    width: 100%; min-width: 480px;
+                    border-collapse: separate; border-spacing: 0; font-size: 0.83rem;
+                }
+
+                .msk-table thead tr { background: #f5f3ff; }
+
+                .msk-table th {
+                    font-family: 'Sora', sans-serif; font-size: 0.67rem; font-weight: 600;
+                    letter-spacing: 0.1em; text-transform: uppercase; color: #6366f1;
+                    padding: 0.72rem 1rem; text-align: left;
+                    border-bottom: 1.5px solid #e0e7ff; white-space: nowrap;
+                }
+
+                .msk-table th:first-child { border-radius: 10px 0 0 0; text-align: center; }
+                .msk-table th:last-child  { border-radius: 0 10px 0 0; text-align: center; }
+
+                .msk-table tbody tr { transition: background 0.15s; }
+                .msk-table tbody tr:hover { background: #fafafa; }
+                .msk-table tbody tr.selected { background: #eef2ff; }
+
+                .msk-table td {
+                    padding: 0.72rem 1rem; color: #374151;
+                    vertical-align: middle; border-bottom: 1px solid #f3f4f6;
+                }
+
+                .msk-table td:first-child { text-align: center; color: #9ca3af; font-weight: 500; }
+
+                .msk-job-chip {
+                    display: inline-block; background: rgba(99,102,241,0.1);
+                    color: #6366f1; border-radius: 999px;
+                    padding: 0.18rem 0.65rem; font-size: 0.72rem; font-weight: 500;
+                }
+
+                .msk-actions { display: flex; align-items: center; justify-content: center; gap: 0.35rem; }
+
+                .msk-action-btn {
+                    background: none; border: none; cursor: pointer;
+                    width: 30px; height: 30px; border-radius: 8px;
+                    display: flex; align-items: center; justify-content: center;
+                    font-size: 0.9rem; transition: background 0.15s;
+                }
+
+                .msk-action-btn.edit:hover { background: rgba(99,102,241,0.1); }
+                .msk-action-btn.del:hover  { background: rgba(244,63,94,0.08); }
+
+                .msk-empty { text-align: center; padding: 3rem 0; color: #9ca3af; }
+                .msk-empty i { font-size: 2rem; display: block; margin-bottom: 0.6rem; color: #d1d5db; }
+
+                .msk-pagination { display: flex; justify-content: center; margin-top: 1.25rem; }
+            `}</style>
+
+            <div className="msk-page">
+                <h2 className="msk-heading mb-2">Quản lý kỹ năng</h2>
+
+                <div className="msk-card">
+                    <p className="msk-section"><i className="fa-solid fa-magnifying-glass" />Tìm kiếm</p>
+                    <div className="msk-search-row">
+                        <div className="msk-input-wrap">
+                            <SearchOutlined />
                             <input
-                                type="text"
-                                placeholder="Tìm kiếm..."
-                                style={{
-                                    padding: "12px 16px",
-                                    width: "100%",
-                                    borderRadius: "10px",
-                                    border: "1px solid rgba(255,255,255,0.25)",
-                                    background: "rgba(255,255,255,0.15)",
-                                    backdropFilter: "blur(6px)",
-                                    color: "black",
-                                    fontSize: "1rem",
-                                    outline: "none",
-                                    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                                    transition: "0.25s ease",
-                                }}
+                                type="text" className="msk-input-search"
+                                placeholder="Tìm theo tên kỹ năng..."
                                 value={inputSearch}
-                                onChange={(e) => setinputSearch(e.target.value)}
-                                onFocus={(e) => (e.target.style.border = "1px solid #38bdf8")}
-                                onBlur={(e) => (e.target.style.border = "1px solid rgba(255,255,255,0.25)")}
+                                onChange={e => setInputSearch(e.target.value)}
+                                onKeyDown={e => e.key === "Enter" && hanleSearch()}
                             />
-
                         </div>
-
-                        {/* BUTTON */}
-                        <button
-                            type="button"
-                            style={{
-                                padding: "12px 26px",
-                                borderRadius: "10px",
-                                border: "none",
-                                fontSize: "1rem",
-                                background: "linear-gradient(90deg,#06b6d4,#3b82f6)",
-                                color: "#fff",
-                                cursor: "pointer",
-                                fontWeight: "600",
-                                boxShadow: "0 4px 14px rgba(59,130,246,0.4)",
-                                transition: "0.25s ease",
-                                whiteSpace: "nowrap",
-                            }}
-                            onMouseEnter={(e) => (e.target.style.transform = "translateY(-2px)")}
-                            onMouseLeave={(e) => (e.target.style.transform = "translateY(0)")}
-                            onClick={hanleSearch}
-                        >
+                        <button type="button" className="msk-btn msk-btn-add" style={{ background: "linear-gradient(135deg,#06b6d4,#6366f1)" }} onClick={hanleSearch}>
                             <SearchOutlined /> Tìm kiếm
                         </button>
                     </div>
 
-                    <div style={{ marginBottom: "20px" }}>
-                        {/* LABEL + INPUT NAME SKILL */}
-                        <label
-                            style={{
-                                display: "block",
-                                fontWeight: "600",
-                                marginBottom: "6px",
-                                color: "#0ea5e9",
-                            }}
-                        >
-                            Tên kỹ năng
-                        </label>
+                    <hr className="msk-divider" />
 
-                        <input
-                            type="text"
-                            placeholder="Nhập tên kỹ năng..."
-                            style={{
-                                padding: "12px 16px",
-                                width: "100%",
-                                borderRadius: "10px",
-                                border: "1px solid rgba(255,255,255,0.25)",
-                                background: "rgba(255,255,255,0.15)",
-                                backdropFilter: "blur(6px)",
-                                color: "black",
-                                fontSize: "1rem",
-                                outline: "none",
-                                boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                                transition: "0.25s ease",
-                            }}
-                            value={inputValue.nameskill}
-                            onChange={(e) =>
-                                setInputValue({
-                                    ...inputValue,
-                                    nameskill: e.target.value,
-                                })
-                            }
-                            onFocus={(e) => (e.target.style.border = "1px solid #38bdf8")}
-                            onBlur={(e) => (e.target.style.border = "1px solid rgba(255,255,255,0.25)")}
-                        />
+                    {/* Form */}
+                    <p className="msk-section"><i className="fa-solid fa-lightbulb" />Thông tin kỹ năng</p>
 
-                        {error?.nameskill && (
-                            <p style={{ color: "red", fontSize: "12px", marginTop: "6px" }}>
-                                {error.nameskill}
-                            </p>
-                        )}
+                    {currentIndex && (
+                        <p className="msk-editing-badge">
+                            <i className="fa-solid fa-pen" style={{ fontSize: "0.65rem" }} />
+                            Đang chỉnh sửa kỹ năng đã chọn
+                        </p>
+                    )}
 
-                        {/* LABEL SELECT JOB */}
-                        <label
-                            style={{
-                                display: "block",
-                                fontWeight: "600",
-                                marginTop: "15px",
-                                marginBottom: "6px",
-                                color: "#0ea5e9",
-                            }}
-                        >
-                            Nhóm công việc
-                        </label>
+                    <div className="msk-form-grid">
+                        {/* Name */}
+                        <div className="msk-field">
+                            <label className="msk-label"><i className="fa-solid fa-tag" />Tên kỹ năng</label>
+                            <input
+                                type="text"
+                                className={`msk-input ${error.nameskill ? "err" : ""}`}
+                                placeholder="VD: React, Python, Figma..."
+                                value={inputValue.nameskill}
+                                onChange={e => { setInputValue({ ...inputValue, nameskill: e.target.value }); setError(prev => ({ ...prev, nameskill: "" })); }}
+                            />
+                            {error.nameskill && <p className="msk-err">✕ {error.nameskill}</p>}
+                        </div>
 
-                        <select
-                            className="form-select"
-                            style={{
-                                padding: "12px",
-                                borderRadius: "10px",
-                                border: "1px solid rgba(255,255,255,0.3)",
-                                background: "rgba(255,255,255,0.3)",
-                                color: "black",
-                                fontWeight: "500",
-                                boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                                transition: "0.25s ease",
-                            }}
-                            value={inputValue.job}
-                            onChange={(e) =>
-                                setInputValue({
-                                    ...inputValue,
-                                    job: e.target.value,
-                                })
-                            }
-                            onFocus={(e) => {
-                                e.target.style.outline = "2px solid #38bdf8";
-                                e.target.style.boxShadow = "0 0 8px #38bdf8";
-                            }}
-                            onBlur={(e) => {
-                                e.target.style.outline = "none";
-                                e.target.style.boxShadow = "none";
-                            }}
-                        >
-                            <option value="">Chọn một nhóm</option>
-                            {listJobSelect?.map((item) => (
-                                <option key={item._id} value={item._id}>
-                                    {item.title}
-                                </option>
-                            ))}
-                        </select>
-                        {error?.job && (
-                            <p style={{ color: "red", fontSize: "12px", marginTop: "6px" }}>
-                                {error.job}
-                            </p>
-                        )}
+                        {/* Job group */}
+                        <div className="msk-field">
+                            <label className="msk-label"><i className="fa-solid fa-briefcase" />Ngành nghề</label>
+                            <div className="msk-select-wrap">
+                                <select
+                                    className={`msk-select ${error.job ? "err" : ""}`}
+                                    value={inputValue.job}
+                                    onChange={e => { setInputValue({ ...inputValue, job: e.target.value }); setError(prev => ({ ...prev, job: "" })); }}
+                                >
+                                    <option value="">-- Chọn ngành nghề --</option>
+                                    {listJobSelect?.map(item => (
+                                        <option key={item._id} value={item._id}>{item.title}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            {error.job && <p className="msk-err">✕ {error.job}</p>}
+                        </div>
                     </div>
-                    {/* BUTTON HÀNG DƯỚI */}
-                    <div
-                        style={{
-                            display: "flex",
-                            justifyContent: "center",
-                            gap: "12px",
-                            flexWrap: "wrap",
-                        }}
-                    >
-                        <button
-                            type="button"
-                            style={{
-                                padding: "12px 26px",
-                                borderRadius: "10px",
-                                border: "none",
-                                fontSize: "1rem",
-                                background: "linear-gradient(90deg,#06b6d4,#3b82f6)",
-                                color: "#fff",
-                                cursor: "pointer",
-                                fontWeight: "600",
-                                boxShadow: "0 4px 14px rgba(59,130,246,0.4)",
-                                transition: "0.25s ease",
-                            }}
-                            onMouseEnter={(e) => (e.target.style.transform = "translateY(-2px)")}
-                            onMouseLeave={(e) => (e.target.style.transform = "translateY(0)")}
-                            onClick={hanleCreateJob}
-                        >
-                            <PlusOutlined />
-                            Thêm
-                        </button>
-                        <button
-                            type="button"
-                            style={{
-                                padding: "12px 26px",
-                                borderRadius: "10px",
-                                border: "none",
-                                fontSize: "1rem",
-                                background: "linear-gradient(90deg,#06b6d4,#3b82f6)",
-                                color: "#fff",
-                                cursor: "pointer",
-                                fontWeight: "600",
-                                boxShadow: "0 4px 14px rgba(59,130,246,0.4)",
-                                transition: "0.25s ease",
-                            }}
-                            onMouseEnter={(e) => (e.target.style.transform = "translateY(-2px)")}
-                            onMouseLeave={(e) => (e.target.style.transform = "translateY(0)")}
-                            onClick={hanleUpdateJob}
-                        >
-                            <EditOutlined />
-                            Sửa
-                        </button>
 
-                        <button
-                            type="button"
-                            style={{
-                                padding: "12px 26px",
-                                borderRadius: "10px",
-                                border: "none",
-                                fontSize: "1rem",
-                                background: "linear-gradient(90deg,#06b6d4,#3b82f6)",
-                                color: "#fff",
-                                cursor: "pointer",
-                                fontWeight: "600",
-                                boxShadow: "0 4px 14px rgba(59,130,246,0.4)",
-                                transition: "0.25s ease",
-
-                            }}
-                            onMouseEnter={(e) => (e.target.style.transform = "translateY(-2px)")}
-                            onMouseLeave={(e) => (e.target.style.transform = "translateY(0)")}
-                            onClick={hanleReset}
-                        >
-                            <RedoOutlined />
-                            Huỷ
+                    <div className="msk-btn-row">
+                        <button type="button" className="msk-btn msk-btn-add" onClick={hanleCreateJob}>
+                            <PlusOutlined /> Thêm
+                        </button>
+                        <button type="button" className="msk-btn msk-btn-edit" onClick={hanleUpdateJob}>
+                            <i className="fa-solid fa-pen" /> Sửa
+                        </button>
+                        <button type="button" className="msk-btn msk-btn-reset" onClick={hanleReset}>
+                            <RedoOutlined /> Đặt lại
                         </button>
                     </div>
-                </form>
 
-                {/* table */}
-                <div className="container mt-4">
-                    <table className="table table-dark table-hover table-bordered align-middle text-center rounded-3 overflow-hidden">
-                        <thead className="table-primary text-dark">
-                            <tr>
-                                <th scope="col">STT</th>
-                                <th scope="col">Tên kĩ năng</th>
-                                <th scope="col">Nhóm công việc</th>
-                                <th scope="col">Sửa</th>
-                                <th scope="col">Xóa</th>
-                            </tr>
-                        </thead>
+                    <hr className="msk-divider" />
+                    <p className="msk-section"><i className="fa-solid fa-list-ul" />Danh sách kỹ năng</p>
 
-                        <tbody>
-                            {listJob?.map((job, index) => (
-                                <tr key={job._id}>
-                                    <td>{(currentPage - 1) * limit + (index + 1)}</td>
-                                    <td>{job.nameskill}</td>
-                                    <td>{job.job_title}</td>
-                                    <td className="text-primary fs-5" onClick={() => { setCurrentIndex(job._id), setInputValue({ job: job.job__id, nameskill: job.nameskill }) }} role="button">
-                                        <EditTwoTone />
-                                    </td>
-                                    <td className="text-danger fs-5" onClick={() => { hanleDeleteJob(job._id) }} role="button">
-                                        <DeleteTwoTone />
-                                    </td>
+                    <div className="msk-table-wrap">
+                        <table className="msk-table">
+                            <thead>
+                                <tr>
+                                    <th>STT</th>
+                                    <th>Tên kỹ năng</th>
+                                    <th>Nhóm công việc</th>
+                                    <th style={{ textAlign: "center" }}>Thao tác</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {listJob?.length === 0 ? (
+                                    <tr><td colSpan={4}><div className="msk-empty"><i className="fa-regular fa-folder-open" /><p>Chưa có dữ liệu.</p></div></td></tr>
+                                ) : (
+                                    listJob?.map((job, index) => (
+                                        <tr key={job._id} className={currentIndex === job._id ? "selected" : ""}>
+                                            <td>{(currentPage - 1) * limit + (index + 1)}</td>
+                                            <td style={{ fontWeight: 600, color: "#1e1b4b" }}>{job.nameskill}</td>
+                                            <td><span className="msk-job-chip">{job.job_title}</span></td>
+                                            <td>
+                                                <div className="msk-actions">
+                                                    <button
+                                                        className="msk-action-btn edit"
+                                                        title="Chọn để sửa"
+                                                        onClick={() => { setCurrentIndex(job._id); setInputValue({ job: job.job__id, nameskill: job.nameskill }); setError({}); }}
+                                                    >
+                                                        <EditTwoTone twoToneColor="#6366f1" />
+                                                    </button>
+                                                    <button
+                                                        className="msk-action-btn del"
+                                                        title="Xoá"
+                                                        onClick={() => hanleDeleteJob(job._id)}
+                                                    >
+                                                        <DeleteTwoTone twoToneColor="#f43f5e" />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
 
-                    <div className="d-flex justify-content-center">
+                    <div className="msk-pagination">
                         <PaginationCustom
                             currentPage={currentPage}
                             setCurrentPage={setCurrentPage}
@@ -441,9 +436,8 @@ const ManagerSkill = () => {
                         />
                     </div>
                 </div>
-            </div >
-
-        </div >
+            </div>
+        </>
     );
 };
 

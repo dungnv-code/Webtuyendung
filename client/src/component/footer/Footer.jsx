@@ -1,24 +1,23 @@
+import logo from '../../assets/icon_logo.png';
+
 const Footer = () => {
     return (
         <footer style={{ background: "#1b5e20" }}>
 
-            {/* Main footer content */}
             <div className="container py-5">
                 <div className="row g-5">
 
-                    {/* Brand col */}
                     <div className="col-lg-4 col-md-6">
                         <div className="d-flex align-items-center gap-2 mb-3">
                             <div className="rounded-2 d-flex align-items-center justify-content-center"
-                                style={{ width: "36px", height: "36px", background: "#69f0ae" }}>
-                                <i className="fa-solid fa-briefcase" style={{ color: "#1b5e20", fontSize: "1rem" }}></i>
+                            >
+                                <img src={logo} style={{ width: "100px", height: "70px", background: "#69f0ae", borderRadius: "5px" }}></img>
                             </div>
-                            <span className="fw-bold fs-5 text-white">TopViệc</span>
+                            <span className="fw-bold fs-5 text-white">NextJob</span>
                         </div>
                         <p style={{ color: "#a5d6a7", fontSize: "0.9rem", lineHeight: 1.8 }}>
                             Nền tảng tuyển dụng hàng đầu Việt Nam — kết nối hàng nghìn ứng viên tài năng với các doanh nghiệp uy tín trên toàn quốc.
                         </p>
-                        {/* Social icons */}
                         <div className="d-flex gap-2 mt-3">
                             {[
                                 { icon: "fa-facebook-f", href: "#" },
@@ -50,7 +49,6 @@ const Footer = () => {
                         </div>
                     </div>
 
-                    {/* Links col */}
                     <div className="col-lg-2 col-md-6 col-6">
                         <h6 className="fw-bold text-white mb-3 text-uppercase"
                             style={{ fontSize: "0.78rem", letterSpacing: "0.1em" }}>
@@ -80,7 +78,6 @@ const Footer = () => {
                         </ul>
                     </div>
 
-                    {/* Support col */}
                     <div className="col-lg-2 col-md-6 col-6">
                         <h6 className="fw-bold text-white mb-3 text-uppercase"
                             style={{ fontSize: "0.78rem", letterSpacing: "0.1em" }}>
@@ -109,7 +106,6 @@ const Footer = () => {
                         </ul>
                     </div>
 
-                    {/* Contact col */}
                     <div className="col-lg-4 col-md-6">
                         <h6 className="fw-bold text-white mb-3 text-uppercase"
                             style={{ fontSize: "0.78rem", letterSpacing: "0.1em" }}>
@@ -133,7 +129,6 @@ const Footer = () => {
                             ))}
                         </div>
 
-                        {/* Newsletter */}
                         <div>
                             <p className="text-white fw-semibold mb-2" style={{ fontSize: "0.85rem" }}>
                                 Nhận thông báo việc làm mới
@@ -160,7 +155,6 @@ const Footer = () => {
                 </div>
             </div>
 
-            {/* Bottom bar */}
             <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)" }}>
                 <div className="container py-3">
                     <div className="d-flex flex-column flex-md-row align-items-center justify-content-between gap-2">
@@ -182,7 +176,6 @@ const Footer = () => {
                     </div>
                 </div>
             </div>
-
         </footer>
     );
 };

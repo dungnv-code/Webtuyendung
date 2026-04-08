@@ -27,9 +27,8 @@ const UpdatePostJob = () => {
 
     const { idp } = useParams();
 
-    // ===== deadline mặc định +4 tuần =====
     const defaultDeadline = new Date();
-    defaultDeadline.setDate(defaultDeadline.getDate() + 4 * 7);
+    defaultDeadline.setDate(defaultDeadline.getDate() + 6 * 7);
     const formatDate = defaultDeadline.toISOString().split("T")[0];
 
     const [formData, setFormData] = useState({
@@ -58,7 +57,6 @@ const UpdatePostJob = () => {
         fetchCities();
     }, []);
 
-    // ============ GET 6 API ============
     useEffect(() => {
         const fetchAllData = async () => {
             try {
@@ -85,8 +83,6 @@ const UpdatePostJob = () => {
 
         fetchAllData();
     }, []);
-
-    // ============ HANDLE CHANGE ============
     const handleChange = async (e) => {
         const { name, value } = e.target;
         if (name == "jobs") {
@@ -368,7 +364,6 @@ const UpdatePostJob = () => {
                 </div>
             </div>
 
-            {/* CSS */}
             <style>{`
               /* Thu nhỏ đồng bộ input + select */
 .form-control-lg,

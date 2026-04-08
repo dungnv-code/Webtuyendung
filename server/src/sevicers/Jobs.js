@@ -26,49 +26,31 @@ const updateJob = async (idj, data) => {
 }
 
 const buildFilter = (queries) => {
-
     const filter = {};
-
     for (const key in queries) {
-
         const match = key.match(/^([a-zA-Z0-9_]+)\[(gte|gt|lte|lt)\]$/);
-
         if (match) {
-
             const [, field, op] = match;
-
             filter[field] = filter[field] || {};
             filter[field][`$${op}`] = Number(queries[key]);
-
         }
 
         else if (key === "title") {
-
             filter.title = { $regex: queries[key], $options: "i" };
-
         }
-
         else {
-
             const value = queries[key];
-
             if (typeof value === "string" && value.includes(",")) {
-
                 filter[key] = {
                     $in: value.split(",").map(v => isNaN(v) ? v : Number(v))
                 };
 
             } else {
-
                 const num = Number(value);
                 filter[key] = !isNaN(num) ? num : value;
-
             }
-
         }
-
     }
-
     return filter;
 
 };
@@ -119,7 +101,6 @@ const getAllJobs = async (queryParams) => {
     };
 
 };
-
 
 const deleteJob = async (idj) => {
     const existJob = await useJob.findByOne({ _id: idj });

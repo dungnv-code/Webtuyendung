@@ -30,7 +30,6 @@ const updatebyOne = (condition, data) => {
     return Jobs.findOneAndUpdate(condition, data, { new: true });
 };
 
-
 module.exports = {
     findByOne,
     create,

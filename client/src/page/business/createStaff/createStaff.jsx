@@ -49,7 +49,7 @@ const createStaff = () => {
                 .cs-page {
                     min-height: 100vh;
                     background: linear-gradient(160deg, #f0f4ff 0%, #fafafa 55%, #f0fdf4 100%);
-                    padding: 3rem 1rem;
+                    padding: 1rem 1rem;
                     font-family: 'Inter', sans-serif;
                     display: flex;
                     flex-direction: column;
@@ -72,7 +72,7 @@ const createStaff = () => {
                     color: #9ca3af;
                     letter-spacing: 0.1em;
                     text-transform: uppercase;
-                    margin-bottom: 2.5rem;
+                    margin-bottom: 1rem;
                 }
 
                 /* ── Card ── */
@@ -261,7 +261,7 @@ const createStaff = () => {
                     <form onSubmit={handleSubmit}>
                         <p className="cs-section"><i className="fa-solid fa-id-card" />Thông tin nhân viên</p>
 
-                        {/* Username — full width */}
+
                         <div className="cs-field">
                             <label className={`cs-label ${focused === "username" ? "active" : ""}`}>
                                 <i className="fa-solid fa-user" /> Tên nhân viên
@@ -279,7 +279,6 @@ const createStaff = () => {
                             {error.username && <p className="cs-err">✕ {error.username}</p>}
                         </div>
 
-                        {/* Email + Phone — 2 cols */}
                         <div className="cs-grid">
                             <div>
                                 <label className={`cs-label ${focused === "email" ? "active" : ""}`}>

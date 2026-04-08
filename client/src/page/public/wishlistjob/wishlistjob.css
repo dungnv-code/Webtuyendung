@@ -1,4 +1,3 @@
-/* Card tổng */
 .wishlist-card {
     border: 1px solid #e5e7eb;
     border-radius: 12px;
@@ -11,7 +10,7 @@
     transform: translateY(-3px);
 }
 
-/* Avatar hình ảnh */
+
 .wishlist-img {
     width: 100%;
     height: 60px;

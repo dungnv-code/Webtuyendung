@@ -40,7 +40,7 @@ const HistoryBuy = () => {
                 .hb-page {
                     min-height: 100vh;
                     background: linear-gradient(160deg, #f0f4ff 0%, #fafafa 55%, #fff7ed 100%);
-                    padding: 3rem 1rem;
+                    padding: 1rem 1rem;
                     font-family: 'Inter', sans-serif;
                     display: flex;
                     flex-direction: column;
@@ -63,14 +63,14 @@ const HistoryBuy = () => {
                     color: #9ca3af;
                     letter-spacing: 0.1em;
                     text-transform: uppercase;
-                    margin-bottom: 2rem;
+                    margin-bottom: 0rem;
                 }
 
                 /* ── Stats row ── */
                 .hb-stats {
                     display: flex;
                     gap: 1rem;
-                    margin-bottom: 1.5rem;
+                    margin-bottom: 0.5rem;
                     width: 100%;
                     max-width: 900px;
                     flex-wrap: wrap;
@@ -272,8 +272,6 @@ const HistoryBuy = () => {
             <div className="hb-page">
                 <h2 className="hb-heading">Lịch sử giao dịch</h2>
                 <p className="hb-sub">Tổng hợp các hoá đơn đã thanh toán</p>
-
-                {/* ── Stats ── */}
                 <div className="hb-stats">
                     <div className="hb-stat">
                         <div className="hb-stat-icon purple">
@@ -303,8 +301,6 @@ const HistoryBuy = () => {
                         </div>
                     </div>
                 </div>
-
-                {/* ── Table card ── */}
                 <div className="hb-card">
                     <p className="hb-section"><i className="fa-solid fa-clock-rotate-left" />Danh sách giao dịch</p>
                     <hr className="hb-divider" />

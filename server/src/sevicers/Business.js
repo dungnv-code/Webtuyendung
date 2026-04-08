@@ -2,7 +2,8 @@ const useBusiness = require("../repository/Business.js");
 const usePostJobs = require("../repository/PostJobs.js");
 const useInvoid = require("../repository/Invoid.js")
 const useUser = require("../repository/User.js")
-
+const seedrandom = require("seedrandom");
+const mongoose = require("mongoose");
 const createBusiness = async (id, data) => {
     const existBusiness = await useBusiness.findByOne({ nameBusiness: data.nameBusiness });
     if (existBusiness) {
@@ -163,7 +164,7 @@ const buildFilterUser = (queries) => {
             if (typeof value === "string" && value.includes(",")) {
                 filter[key] = { $in: value.split(",") };
             } else {
-                // ❗ GIỮ NGUYÊN string, KHÔNG ép số
+
                 filter[key] = value;
             }
         }
@@ -180,7 +181,6 @@ const getStaffsUser = async (businessId, queryParams = {}) => {
 
     const filter = buildFilterUser(queries);
 
-    // Không cần override thêm username nữa
     filter.business = businessId;
     filter.role = "STAFF";
 
@@ -213,21 +213,16 @@ const getStaffsUser = async (businessId, queryParams = {}) => {
 const getPostJobsBusiness = async (businessId, query) => {
     const { page = 1, limit = 10, title } = query;
 
-    // Tạo filter
     let filter = { business: businessId };
 
-    // Nếu có tìm kiếm theo title
     if (title) {
-        filter.title = { $regex: title, $options: "i" }; // không phân biệt hoa thường
+        filter.title = { $regex: title, $options: "i" };
     }
 
-    // Đếm tổng số bài viết
+
     const total = await usePostJobs.countDocuments(filter);
 
-    // Tính skip
     const skip = (page - 1) * limit;
-
-    // Truy vấn phân trang
     const Business = await usePostJobs
         .findAll(filter)
         .select("-refreshToken -password")
@@ -235,7 +230,7 @@ const getPostJobsBusiness = async (businessId, query) => {
         .limit(Number(limit))
         .sort({ createdAt: -1 });
 
-    // Nếu không có bài đăng nào
+
     if (Business.length === 0) {
         return {
             success: true,
@@ -303,9 +298,7 @@ const getInvoidsBusiness = async (businessId, params = {}) => {
     const limit = Number(params.limit) || 10;
     const skip = (currentPage - 1) * limit;
 
-    // Tổng số hóa đơn
     const total = await useInvoid.countDocuments({ business: businessId });
-
 
     const invoices = await useInvoid
         .findAll({ business: businessId })
@@ -324,16 +317,15 @@ const getInvoidsBusiness = async (businessId, params = {}) => {
 };
 
 const changeStatusBusiness = async (idb) => {
-    // 1. Tìm business
+
     const business = await useBusiness.findByOne({ _id: idb });
     if (!business) {
         throw new Error("Không tìm thấy doanh nghiệp!");
     }
 
-    // 2. Toggle status
     const newStatus = !business.statusBusiness;
 
-    // 3. Update
+
     const updatedBusiness = await useBusiness.updatebyOne(
         { _id: idb },
         { statusBusiness: newStatus }
@@ -344,6 +336,17 @@ const changeStatusBusiness = async (idb) => {
         data: updatedBusiness,
     };
 };
+
+const getDashboardBusiness = async (idb) => {
+    const invoid = await useInvoid.findAll({ business: idb });
+    const staff = await useUser.findAll({ business: idb });
+    const postJobs = await usePostJobs.findAll({ business: idb });
+    return {
+        invoid: invoid,
+        staff: staff,
+        postJobs,
+    }
+}
 
 
 module.exports = {
@@ -358,4 +361,5 @@ module.exports = {
     getInvoidsBusiness,
     changeStatusBusiness,
     getPostJobsUserBusiness,
+    getDashboardBusiness,
 };

@@ -36,7 +36,6 @@ const buildFilter = (queries = {}, populate = []) => {
 
         if (!value) continue;
 
-        // ignore populate filter (job.title)
         if (key.includes(".") || key.includes("_")) {
 
             const [path] = key.split(/[._]/);
@@ -45,8 +44,6 @@ const buildFilter = (queries = {}, populate = []) => {
 
             if (isPopulate) continue;
         }
-
-        // _id filter
         if (key === "_id") {
 
             if (mongoose.Types.ObjectId.isValid(value)) {
@@ -56,7 +53,6 @@ const buildFilter = (queries = {}, populate = []) => {
             continue;
         }
 
-        // normal regex filter
         filter[key] = {
             $regex: value,
             $options: "i"
@@ -67,8 +63,6 @@ const buildFilter = (queries = {}, populate = []) => {
 };
 
 
-
-// ---------------------- FLATTEN POPULATE ----------------------
 const flattenPopulate = (item, populations = []) => {
 
     const newItem = { ...item };
@@ -96,9 +90,6 @@ const flattenPopulate = (item, populations = []) => {
     return newItem;
 };
 
-
-
-// ---------------------- FLATTEN ARRAY ----------------------
 const flattenPopulateArray = (items, populations = []) => {
 
     if (!Array.isArray(items)) return items;
@@ -106,16 +97,12 @@ const flattenPopulateArray = (items, populations = []) => {
     return items.map(item => flattenPopulate(item, populations));
 };
 
-
-
-// ---------------------- PARSE FLATTEN QUERY ----------------------
 const convertFlattenQuery = (queryParams, populate = []) => {
 
     const flatFilters = {};
 
     for (const key in queryParams) {
 
-        // case job.title
         if (key.includes(".")) {
 
             const [path, field] = key.split(".");
@@ -129,7 +116,6 @@ const convertFlattenQuery = (queryParams, populate = []) => {
             continue;
         }
 
-        // case job_title
         if (key.includes("_")) {
 
             const [path] = key.split("_");
@@ -145,9 +131,6 @@ const convertFlattenQuery = (queryParams, populate = []) => {
     return flatFilters;
 };
 
-
-
-// ---------------------- APPLY FLATTEN FILTER ----------------------
 const applyFlattenFilter = (items, flatFilters = {}) => {
 
     return items.filter(item => {
@@ -187,9 +170,6 @@ const getAllSkill = async (queryParams) => {
 
     excludeFields.forEach(el => delete queries[el]);
 
-
-
-    // ---------------------- PARSE POPULATE ----------------------
     let populate = null;
 
     if (queryParams.populate) {
@@ -206,14 +186,8 @@ const getAllSkill = async (queryParams) => {
         });
     }
 
-
-
-    // ---------------------- BUILD FILTER ----------------------
     const filter = buildFilter(queries, populate);
 
-
-
-    // ---------------------- PAGINATION ----------------------
     const limit = Number(queryParams.limit) || 20;
     const sort = queryParams.sort || "-createdAt";
     const page = Number(queryParams.page) || 1;
@@ -225,18 +199,12 @@ const getAllSkill = async (queryParams) => {
         queryParams.flatten === true ||
         queryParams.flatten === "true";
 
-
-
-    // ---------------------- FETCH DATA ----------------------
     let jobs = await useSkill.findAll(filter, {
         fields,
         sort,
         populate
     });
 
-
-
-    // ---------------------- FLATTEN PROCESS ----------------------
     if (flatten && populate) {
 
         jobs = flattenPopulateArray(jobs, populate);
@@ -250,14 +218,9 @@ const getAllSkill = async (queryParams) => {
         }
     }
 
-
-
-    // ---------------------- PAGINATION AFTER FILTER ----------------------
     const total = jobs.length;
 
     const paginatedJobs = jobs.slice(skip, skip + limit);
-
-
 
     return {
         data: paginatedJobs,

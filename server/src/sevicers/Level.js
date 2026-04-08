@@ -69,9 +69,6 @@ const getAllLevel = async (queryParams) => {
     const isRandom = queryParams.random === "true";
     const seed = queryParams.seed || "default-seed";
 
-    // Job populate ví dụ
-    // const populate = { path: "business", select: "name logo" };
-
     if (isRandom) {
         const rng = seedrandom(seed);
 
