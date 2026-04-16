@@ -430,14 +430,19 @@ const changeStatusPausePostjobs = async (idp) => {
     };
 };
 
+
 function cleanCV(text) {
     return text
         .replace(/\[.*?\]\(.*?\)/g, "")
         .replace(/mailto:/gi, "")
         .replace(/https?:\/\/\S+/g, "")
-        .replace(/\t/g, " ")
-        .replace(/[ ]{3,}/g, "  ")
+        .replace(/\r\n/g, "\n")
+        .replace(/\r/g, "\n")
+        .replace(/[^\S\n]{3,}/g, "  ")
         .replace(/\n{3,}/g, "\n\n")
+        .replace(/[•·●▪▸►→\-–—]{1,2}\s*/g, "- ")
+        .replace(/[\u200B-\u200D\uFEFF]/g, "")
+        .replace(/(\d{4})\s*[-–—]\s*(present|now|hiện tại|nay)/gi, "$1 - Present")
         .trim();
 }
 
@@ -458,52 +463,17 @@ function safeParseJSON(raw = "") {
     }
 }
 
-function calcScore(data) {
-    const g = (obj, key) => Number(obj?.[key]) || 0;
-    const s = {
-        skills: g(data.skills, "score"),
-        projectSkills: g(data.projectSkills, "score"),
-        experience: g(data.experience, "score"),
-        softSkills: g(data.softSkills, "score"),
-        cvPresentation: g(data.cvPresentation, "score"),
-        education: g(data.education, "score"),
-        language: g(data.language, "score"),
-    };
-    return Math.round(
-        s.skills * 2.5 +
-        s.projectSkills * 2.5 +
-        s.experience * 2.0 +
-        s.softSkills * 1.0 +
-        s.cvPresentation * 1.0 +
-        s.education * 0.5 +
-        s.language * 0.5
-    );
-}
+const clampScore = (v) => Math.min(10, Math.max(0, Number(v) || 0));
 
-function buildEmptyResult(summary, title = { job: "", cv: "", score: 0 }) {
-    return {
-        score: 0, title,
-        experience: {}, position: {}, skills: {},
-        projectSkills: {}, projects: [], softSkills: {},
-        cvPresentation: {}, education: {}, language: {},
-        summary
-    };
-}
+const safeScore = (obj) =>
+    obj && typeof obj.score === "number" ? clampScore(obj.score) : 0;
 
-async function groqJSON(systemPrompt, userContent, temperature = 0) {
-    const res = await groq.chat.completions.create({
-        model: "llama-3.3-70b-versatile",
-        temperature,
-
-        messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userContent }
-        ]
-    });
-    const raw = res.choices?.[0]?.message?.content || "";
-    return safeParseJSON(raw);
-}
-
+const normalizeSkill = (s = "") =>
+    s.toLowerCase()
+        .replace(/\.js$/, "")
+        .replace(/js$/, "")
+        .replace(/[.\-_\s]+/g, "")
+        .trim();
 const SCORE_WEIGHTS = {
     skills: 0.25,
     experience: 0.25,
@@ -526,18 +496,6 @@ const GROUP_KEYWORDS = {
     HR: ["hr", "recruiter", "human resource", "talent", "people ops"],
     PM: ["product manager", "project manager", "scrum master", "agile"],
 };
-
-const clampScore = (v) => Math.min(10, Math.max(0, Number(v) || 0));
-
-const safeScore = (obj) =>
-    obj && typeof obj.score === "number" ? clampScore(obj.score) : 0;
-
-const normalizeSkill = (s = "") =>
-    s.toLowerCase()
-        .replace(/\.js$/, "")
-        .replace(/js$/, "")
-        .replace(/[.\-_\s]+/g, "")
-        .trim();
 
 const detectGroup = (title = "") => {
     const t = title.toLowerCase();
@@ -573,6 +531,29 @@ const calcWeightedScore = (data) => {
     return Math.round(clampScore(raw) * 10) / 10;
 };
 
+function buildEmptyResult(summary, title = { job: "", cv: "", score: 0 }) {
+    return {
+        score: 0, title,
+        experience: {}, position: {}, skills: {},
+        projectSkills: {}, projects: [], softSkills: {},
+        cvPresentation: {}, education: {}, language: {},
+        summary
+    };
+}
+
+async function groqJSON(systemPrompt, userContent, temperature = 0) {
+    const res = await groq.chat.completions.create({
+        model: "llama-3.3-70b-versatile",
+        temperature,
+        messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userContent }
+        ]
+    });
+    const raw = res.choices?.[0]?.message?.content || "";
+    return safeParseJSON(raw);
+}
+
 const CV_JD_PARSE_SCHEMA = `{
   "cv": {
     "currentTitle": "string max 6 words",
@@ -587,7 +568,24 @@ const CV_JD_PARSE_SCHEMA = `{
     "hasProjects": false,
     "projectCount": 0,
     "experienceSummary": "string 1 sentence",
-    "projectSummary": "string 1 sentence"
+    "projectSummary": "string 1 sentence",
+    "experienceEntries": [
+      {
+        "company": "string",
+        "title": "string",
+        "from": "YYYY-MM or year",
+        "to": "YYYY-MM or year or Present",
+        "durationMonths": 0,
+        "responsibilities": ["string"],
+        "technologiesUsed": ["string"]
+      }
+    ],
+    "highestEducation": "High School|Associate|Bachelor|Master|PhD|Other",
+    "gpa": "string or null",
+    "certifications": ["string"],
+    "achievementKeywords": ["string"],
+    "careerGap": false,
+    "lastActiveYear": 0
   },
   "jd": {
     "jobTitle": "string max 6 words",
@@ -597,116 +595,235 @@ const CV_JD_PARSE_SCHEMA = `{
     "requiredYearsExp": 0,
     "requiredEducation": "string",
     "requiredLanguages": ["string"],
-    "seniorityLevel": "Intern|Junior|Mid|Senior|Lead|Manager"
+    "seniorityLevel": "Intern|Junior|Mid|Senior|Lead|Manager",
+    "keyResponsibilities": ["string"],
+    "domainKeywords": ["string"]
   }
 }`;
 
 const SCORE_SCHEMA = `{
   "score": 0,
-  "title":          { "job":"","cv":"","score":0,"reasoning":"" },
-  "experience":     { "job":"","cv":"","score":0,"reasoning":"" },
-  "position":       { "job":"","cv":"","score":0,"reasoning":"" },
-  "skills": {
-    "job":[], "cv":[], "matched":[], "missing":[], "score":0,
-    "semanticMatches": [{"jd":"","cv":""}]
+  "title": {
+    "job": "", "cv": "", "score": 0, "reasoning": ""
   },
-  "projectSkills":  { "skills":[],"matchedWithJob":[],"missingFromJob":[],"score":0 },
-  "softSkills":     { "scores":{"communication":0,"teamwork":0,"problemSolving":0,"leadership":0,"adaptability":0},"cv":[],"relevantToJob":[],"score":0 },
-  "cvPresentation": { "scores":{"clarity":0,"experienceDesc":0,"logicFlow":0,"projectDesc":0},"structure":"","clarity":"","score":0 },
-  "projects":       [],
-  "education":      { "cv":"","score":0 },
-  "language":       { "cv":"","score":0 },
-  "summary":        ""
+  "experience": {
+    "job": "", "cv": "", "score": 0, "reasoning": "",
+    "relevantYears": 0,
+    "seniorityMatch": "Under|Match|Over",
+    "careerProgression": "Ascending|Flat|Descending|Mixed"
+  },
+  "position": { "job": "", "cv": "", "score": 0, "reasoning": "" },
+  "skills": {
+    "job": [], "cv": [], "matched": [], "missing": [], "score": 0,
+    "semanticMatches": [{ "jd": "", "cv": "" }],
+    "coveragePercent": 0
+  },
+  "projectSkills": {
+    "skills": [], "matchedWithJob": [], "missingFromJob": [], "score": 0,
+    "projectComplexity": "Low|Medium|High"
+  },
+  "softSkills": {
+    "scores": {
+      "communication": 0, "teamwork": 0,
+      "problemSolving": 0, "leadership": 0, "adaptability": 0
+    },
+    "cv": [], "relevantToJob": [], "score": 0,
+    "evidencedSoftSkills": ["string"]
+  },
+  "cvPresentation": {
+    "scores": {
+      "clarity": 0, "experienceDesc": 0,
+      "logicFlow": 0, "projectDesc": 0
+    },
+    "structure": "", "clarity": "", "score": 0,
+    "weaknesses": ["string"]
+  },
+  "projects": [],
+  "education": { "cv": "", "score": 0, "meetsRequirement": true },
+  "language":  { "cv": "", "score": 0, "detectedLanguages": [] },
+  "summary":   "",
+  "redFlags":  ["string"],
+  "strengths": ["string"]
 }`;
+
+function smartTruncateCV(text, maxChars = 10000) {
+    if (text.length <= maxChars) return text;
+    const headSize = Math.round(maxChars * 0.6);
+    const tailSize = maxChars - headSize;
+    const head = text.slice(0, headSize);
+    const tail = text.slice(-tailSize);
+    return `${head}\n\n...[section truncated for length]...\n\n${tail}`;
+}
+
+
+function validateCVSections(cv) {
+    if (!cv.hasPersonalInfo) {
+        return "CV thiếu thông tin cá nhân (tên, liên hệ)";
+    }
+    if (!cv.hasExperience && !cv.hasProjects) {
+        return "CV cần có ít nhất kinh nghiệm làm việc hoặc dự án";
+    }
+    if (!cv.hasSkills) {
+        return "CV thiếu mục kỹ năng";
+    }
+    return null;
+}
+
+const clampSection = (obj) => {
+    if (!obj) return {};
+    const result = { ...obj };
+    if ("score" in result) result.score = clampScore(result.score);
+    if ("scores" in result && typeof result.scores === "object") {
+        result.scores = Object.fromEntries(
+            Object.entries(result.scores).map(([k, v]) => [k, clampScore(v)])
+        );
+    }
+    return result;
+};
+
 
 const matchCVWithJD = async (cvText, jdText) => {
     try {
-        const cvRaw = cleanCV(cvText).slice(0, 8000);
-        const jdRaw = cleanCV(jdText).slice(0, 4000);
+
+        const cvCleaned = cleanCV(cvText);
+        const jdCleaned = cleanCV(jdText);
+
+        const cvRaw = smartTruncateCV(cvCleaned, 10000);
+        const jdRaw = jdCleaned.slice(0, 4000);
 
         const parsed = await groqJSON(
-            `You are a CV and JD parser. Read both documents carefully and return ONLY a JSON object.
-Output this exact schema: ${CV_JD_PARSE_SCHEMA}`,
-            `CV:\n${cvRaw}\n\nJD:\n${jdRaw}`
+            `You are an expert CV and Job Description parser.
+Read both documents carefully and extract structured data.
+Rules:
+- Extract ALL skills mentioned anywhere (summary, experience, projects, skills section)
+- For experienceEntries: estimate durationMonths from date ranges; if "Present" use current month
+- For technologiesUsed: include tools, frameworks, languages mentioned in that role
+- achievementKeywords: look for numbers, %, KPIs, awards, scale (e.g. "10x", "1M users")
+- careerGap: true if any gap > 12 months between roles
+- lastActiveYear: year of most recent role or project
+- hasPersonalInfo: true if name or contact info present
+- hasExperience: true if any work history section found
+- hasProjects: true if any personal/academic/freelance projects found
+
+Return ONLY valid JSON matching this exact schema:
+${CV_JD_PARSE_SCHEMA}`,
+            `CV:\n${cvRaw}\n\nJOB DESCRIPTION:\n${jdRaw}`
         );
 
-        if (!parsed?.cv || !parsed?.jd) return buildEmptyResult("Lỗi parse CV/JD");
+        if (!parsed?.cv || !parsed?.jd) {
+            return buildEmptyResult("Lỗi parse CV/JD — AI trả về dữ liệu không hợp lệ");
+        }
 
         const { cv, jd } = parsed;
 
-        const validSections = [
-            cv.hasPersonalInfo, cv.hasExperience, cv.hasSkills,
-            cv.hasEducation, cv.hasProjects,
-        ].filter(Boolean).length;
-
-        if (validSections < 3) return buildEmptyResult("Tài liệu không phải CV cá nhân");
+        const validationError = validateCVSections(cv);
+        if (validationError) {
+            return buildEmptyResult(validationError);
+        }
 
         const cvGroup = detectGroup(cv.currentTitle);
         const jdGroup = jd.jobGroup !== "Other" ? jd.jobGroup : detectGroup(jd.jobTitle);
         const similarity = fieldSimilarity(cvGroup, jdGroup);
 
         if (similarity === 0) {
-            return buildEmptyResult("Job title và CV title khác lĩnh vực", {
-                job: jd.jobTitle || "", cv: cv.currentTitle || "", score: 0,
+            return buildEmptyResult("Lĩnh vực CV và JD không tương đồng", {
+                job: jd.jobTitle || "",
+                cv: cv.currentTitle || "",
+                score: 0,
             });
         }
 
         const cvSkillsNorm = cv.skills.map(normalizeSkill);
         const jdSkillsNorm = jd.requiredSkills.map(normalizeSkill);
 
-        const fieldPenalty = similarity;
 
         const data = await groqJSON(
-            `You are a CV scoring expert. Score each criterion 0-10 objectively.
-Rules:
-- 0-2 = Missing/irrelevant
-- 3-5 = Weak match
-- 6-8 = Good match
-- 9-10 = Excellent match
-- For skills: treat aliases as equivalent (e.g. "ReactJS" = "React", "NodeJS" = "Node.js")
-- Be consistent: same evidence → same score
-Return ONLY a JSON object matching this schema: ${SCORE_SCHEMA}`,
-            `CV_DATA: ${JSON.stringify({ ...cv, skills_normalized: cvSkillsNorm })}
-JD_DATA: ${JSON.stringify({ ...jd, requiredSkills_normalized: jdSkillsNorm })}`,
+            `You are a senior technical recruiter scoring a CV against a Job Description.
+
+Scoring scale (0-10):
+- 0-2 = Missing or completely irrelevant
+- 3-5 = Weak or partial match
+- 6-8 = Good match with minor gaps
+- 9-10 = Excellent or perfect match
+
+Scoring rules:
+- Skill aliases count as matches: ReactJS=React, NodeJS=Node.js, Postgres=PostgreSQL, K8s=Kubernetes
+- Project experience counts as ~60% of formal work experience if no full-time role exists
+- Penalize unexplained career gaps > 12 months in experience score
+- Reward measurable achievements (%, numbers, user scale, revenue impact)
+- For experience score: compare jd.requiredYearsExp vs cv.totalYearsExp in relevant domain
+- coveragePercent in skills = (matched.length / jd.requiredSkills.length) * 100
+- For softSkills: only count if there is written evidence in CV (not just claimed)
+- For cvPresentation: score based on clarity, quantity of detail, logical flow, use of metrics
+- projectComplexity: Low = simple CRUD, Medium = real users/integrations, High = scale/architecture
+- seniorityMatch: compare jd.seniorityLevel vs cv experience level
+- careerProgression: look at title changes across experienceEntries
+
+Fill redFlags array with any of:
+- Unexplained employment gaps > 12 months
+- Job hopping (< 12 months average per role with 3+ roles)
+- CV title unrelated to JD
+- No measurable results mentioned
+- Skills listed but no evidence in experience
+
+Fill strengths array with any of:
+- Strong skill coverage (>80% matched)
+- Impressive project scale or complexity
+- Relevant domain experience
+- Measurable achievements
+- Matching seniority level
+
+Return ONLY valid JSON matching this exact schema:
+${SCORE_SCHEMA}`,
+            `CV_PARSED:
+${JSON.stringify({ ...cv, skills_normalized: cvSkillsNorm }, null, 2)}
+
+JD_PARSED:
+${JSON.stringify({ ...jd, requiredSkills_normalized: jdSkillsNorm }, null, 2)}`,
             0.1
         );
 
-        if (!data) return buildEmptyResult("AI trả sai format");
+        if (!data) {
+            return buildEmptyResult("AI trả sai format khi scoring");
+        }
 
-        const clampSection = (obj) => {
-            if (!obj) return {};
-            const result = { ...obj };
-            if ("score" in result) result.score = clampScore(result.score);
-            if ("scores" in result && typeof result.scores === "object") {
-                result.scores = Object.fromEntries(
-                    Object.entries(result.scores).map(([k, v]) => [k, clampScore(v)])
-                );
-            }
-            return result;
-        };
-
-        const finalScore = Math.round(calcWeightedScore(data) * fieldPenalty * 100) / 10;
+        const fieldPenalty = similarity;
+        const weightedScore = calcWeightedScore(data);
+        const finalScore = Math.round(weightedScore * fieldPenalty * 100) / 10;
 
         return {
             score: finalScore,
             fieldSimilarity: similarity,
+
             title: clampSection(data.title) || { job: jd.jobTitle, cv: cv.currentTitle, score: 0 },
             experience: clampSection(data.experience) || {},
             position: clampSection(data.position) || {},
             skills: clampSection(data.skills) || {},
             projectSkills: clampSection(data.projectSkills) || {},
-            projects: data.projects || [],
             softSkills: clampSection(data.softSkills) || {},
             cvPresentation: clampSection(data.cvPresentation) || {},
             education: clampSection(data.education) || {},
             language: clampSection(data.language) || {},
+
+            projects: data.projects || [],
+            redFlags: data.redFlags || [],
+            strengths: data.strengths || [],
             summary: data.summary || "",
-            _meta: { cvGroup, jdGroup, fieldPenalty },
+
+            _meta: {
+                cvGroup,
+                jdGroup,
+                fieldPenalty,
+                cvEntries: cv.experienceEntries?.length ?? 0,
+                cvCertCount: cv.certifications?.length ?? 0,
+                careerGap: cv.careerGap ?? false,
+                lastActive: cv.lastActiveYear ?? null,
+            },
         };
 
     } catch (error) {
         console.error("Error matching CV:", error);
-        return buildEmptyResult("Lỗi hệ thống khi phân tích");
+        return buildEmptyResult("Lỗi hệ thống khi phân tích CV");
     }
 };
 

@@ -288,16 +288,26 @@ const getAllUser = async (queryParams) => {
 
 const deletebyadminUser = async (idu) => {
     const user = await userRepository.findByOne({ _id: idu });
+
     if (!user) {
         throw new Error("Không tìm thấy user để xóa");
     }
+
+    const existedInCV = await PostJob.findByOne({
+        "listCV.idUser": idu
+    });
+
+    if (existedInCV) {
+        throw new Error("Người dùng đã ứng tuyển không thể xóa");
+    }
+
     await userRepository.deletebyOne({ _id: idu });
+
     return {
         success: true,
         mes: "Xóa user thành công",
     };
 };
-
 const changeStatusUser = async (idu) => {
     const user = await userRepository.findByOne({ _id: idu });
     if (!user) {
