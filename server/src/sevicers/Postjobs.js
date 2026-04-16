@@ -504,74 +504,204 @@ async function groqJSON(systemPrompt, userContent, temperature = 0) {
     return safeParseJSON(raw);
 }
 
+const SCORE_WEIGHTS = {
+    skills: 0.25,
+    experience: 0.25,
+    title: 0.15,
+    projectSkills: 0.20,
+    softSkills: 0.05,
+    cvPresentation: 0.05,
+    education: 0.03,
+    language: 0.02,
+};
+
+const FIELD_SIMILARITY_THRESHOLD = 0.25;
+
+const GROUP_KEYWORDS = {
+    Developer: ["developer", "engineer", "frontend", "backend", "fullstack", "web", "mobile", "software", "devops", "cloud", "platform"],
+    Analyst: ["analyst", "data analyst", "business analyst", "system analyst", "data scientist", "bi"],
+    Design: ["designer", "ui", "ux", "graphic", "product design"],
+    Marketing: ["marketing", "seo", "content", "growth", "livestream", "digital", "campaign", "brand", "copywriter"],
+    Sales: ["sales", "business development", "account", "presales"],
+    HR: ["hr", "recruiter", "human resource", "talent", "people ops"],
+    PM: ["product manager", "project manager", "scrum master", "agile"],
+};
+
+const clampScore = (v) => Math.min(10, Math.max(0, Number(v) || 0));
+
+const safeScore = (obj) =>
+    obj && typeof obj.score === "number" ? clampScore(obj.score) : 0;
+
+const normalizeSkill = (s = "") =>
+    s.toLowerCase()
+        .replace(/\.js$/, "")
+        .replace(/js$/, "")
+        .replace(/[.\-_\s]+/g, "")
+        .trim();
+
+const detectGroup = (title = "") => {
+    const t = title.toLowerCase();
+    for (const [g, kws] of Object.entries(GROUP_KEYWORDS)) {
+        if (kws.some((k) => t.includes(k))) return g;
+    }
+    return "Other";
+};
+
+const fieldSimilarity = (cvGroup, jdGroup) => {
+    if (cvGroup === jdGroup) return 1;
+    if (cvGroup === "Other" || jdGroup === "Other") return 0.5;
+    return 0;
+};
+
+const calcWeightedScore = (data) => {
+    const components = {
+        skills: safeScore(data.skills),
+        experience: safeScore(data.experience),
+        title: safeScore(data.title),
+        projectSkills: safeScore(data.projectSkills),
+        softSkills: safeScore(data.softSkills),
+        cvPresentation: safeScore(data.cvPresentation),
+        education: safeScore(data.education),
+        language: safeScore(data.language),
+    };
+
+    const raw = Object.entries(SCORE_WEIGHTS).reduce(
+        (sum, [key, weight]) => sum + (components[key] ?? 0) * weight,
+        0
+    );
+
+    return Math.round(clampScore(raw) * 10) / 10;
+};
+
+const CV_JD_PARSE_SCHEMA = `{
+  "cv": {
+    "currentTitle": "string max 6 words",
+    "totalYearsExp": 0,
+    "skills": ["string"],
+    "education": "string",
+    "languages": ["string"],
+    "hasPersonalInfo": false,
+    "hasExperience": false,
+    "hasSkills": false,
+    "hasEducation": false,
+    "hasProjects": false,
+    "projectCount": 0,
+    "experienceSummary": "string 1 sentence",
+    "projectSummary": "string 1 sentence"
+  },
+  "jd": {
+    "jobTitle": "string max 6 words",
+    "jobGroup": "Developer|Analyst|Design|Marketing|Sales|HR|PM|Other",
+    "requiredSkills": ["string"],
+    "niceToHaveSkills": ["string"],
+    "requiredYearsExp": 0,
+    "requiredEducation": "string",
+    "requiredLanguages": ["string"],
+    "seniorityLevel": "Intern|Junior|Mid|Senior|Lead|Manager"
+  }
+}`;
+
+const SCORE_SCHEMA = `{
+  "score": 0,
+  "title":          { "job":"","cv":"","score":0,"reasoning":"" },
+  "experience":     { "job":"","cv":"","score":0,"reasoning":"" },
+  "position":       { "job":"","cv":"","score":0,"reasoning":"" },
+  "skills": {
+    "job":[], "cv":[], "matched":[], "missing":[], "score":0,
+    "semanticMatches": [{"jd":"","cv":""}]
+  },
+  "projectSkills":  { "skills":[],"matchedWithJob":[],"missingFromJob":[],"score":0 },
+  "softSkills":     { "scores":{"communication":0,"teamwork":0,"problemSolving":0,"leadership":0,"adaptability":0},"cv":[],"relevantToJob":[],"score":0 },
+  "cvPresentation": { "scores":{"clarity":0,"experienceDesc":0,"logicFlow":0,"projectDesc":0},"structure":"","clarity":"","score":0 },
+  "projects":       [],
+  "education":      { "cv":"","score":0 },
+  "language":       { "cv":"","score":0 },
+  "summary":        ""
+}`;
+
 const matchCVWithJD = async (cvText, jdText) => {
     try {
         const cvRaw = cleanCV(cvText).slice(0, 8000);
-        const jdRaw = cleanCV(jdText).slice(0, 2000);
-        const cv = await groqJSON(
-            `You are a CV parser. Read the CV and return ONLY a JSON object, nothing else before or after.
-Output this exact schema with real values:
-{"currentTitle":"string max 5 words","totalYearsExp":0,"skills":["string"],"education":"string","languages":["string"],"hasPersonalInfo":false,"hasExperience":false,"hasSkills":false,"hasEducation":false,"hasProjects":false,"projectCount":0,"experienceSummary":"string 1 sentence","projectSummary":"string 1 sentence"}`,
-            cvRaw
+        const jdRaw = cleanCV(jdText).slice(0, 4000);
+
+        const parsed = await groqJSON(
+            `You are a CV and JD parser. Read both documents carefully and return ONLY a JSON object.
+Output this exact schema: ${CV_JD_PARSE_SCHEMA}`,
+            `CV:\n${cvRaw}\n\nJD:\n${jdRaw}`
         );
-        if (!cv) return buildEmptyResult("Lỗi extract CV");
+
+        if (!parsed?.cv || !parsed?.jd) return buildEmptyResult("Lỗi parse CV/JD");
+
+        const { cv, jd } = parsed;
+
         const validSections = [
             cv.hasPersonalInfo, cv.hasExperience, cv.hasSkills,
-            cv.hasEducation, cv.hasProjects
+            cv.hasEducation, cv.hasProjects,
         ].filter(Boolean).length;
+
         if (validSections < 3) return buildEmptyResult("Tài liệu không phải CV cá nhân");
-        const jd = await groqJSON(
-            `You are a JD parser. Read the job description and return ONLY a JSON object, nothing else before or after.
-Output this exact schema with real values:
-{"jobTitle":"string max 5 words","jobGroup":"Developer|Analyst|Design|Marketing|Sales|HR|Other","requiredSkills":["string"],"requiredYearsExp":0,"requiredEducation":"string","requiredLanguages":["string"]}`,
-            jdRaw
-        );
-        if (!jd) return buildEmptyResult("Lỗi extract JD");
-        const groupKeywords = {
-            Developer: ["developer", "engineer", "frontend", "backend", "fullstack", "web", "mobile", "software"],
-            Analyst: ["analyst", "data analyst", "business analyst", "system analyst"],
-            Design: ["designer", "ui", "ux", "graphic"],
-            Marketing: ["marketing", "seo", "content", "growth", "livestream", "digital", "campaign"],
-            Sales: ["sales", "business development", "account"],
-            HR: ["hr", "recruiter", "human resource", "talent"],
-        };
-        const detectGroup = (title = "") => {
-            const t = title.toLowerCase();
-            for (const [g, kws] of Object.entries(groupKeywords)) {
-                if (kws.some(k => t.includes(k))) return g;
-            }
-            return "Other";
-        };
+
         const cvGroup = detectGroup(cv.currentTitle);
         const jdGroup = jd.jobGroup !== "Other" ? jd.jobGroup : detectGroup(jd.jobTitle);
-        const sameGroup = cvGroup !== "Other" && jdGroup !== "Other" && cvGroup === jdGroup;
-        if (!sameGroup) return buildEmptyResult(
-            "Job title và CV title khác lĩnh vực",
-            { job: jd.jobTitle || "", cv: cv.currentTitle || "", score: 0 }
-        );
-        const schema = `{"score":0,"title":{"job":"","cv":"","score":0},"experience":{"job":"","cv":"","score":0},"position":{"job":"","cv":"","score":0},"skills":{"job":[],"cv":[],"matched":[],"missing":[],"score":0},"projectSkills":{"skills":[],"matchedWithJob":[],"missingFromJob":[],"score":0},"softSkills":{"scores":{"communication":0,"teamwork":0,"problemSolving":0,"leadership":0,"adaptability":0},"cv":[],"relevantToJob":[],"score":0},"cvPresentation":{"scores":{"clarity":0,"experienceDesc":0,"logicFlow":0,"projectDesc":0},"structure":"","clarity":"","score":0},"projects":[],"education":{"cv":"","score":0},"language":{"cv":"","score":0},"summary":""}`;
+        const similarity = fieldSimilarity(cvGroup, jdGroup);
+
+        if (similarity === 0) {
+            return buildEmptyResult("Job title và CV title khác lĩnh vực", {
+                job: jd.jobTitle || "", cv: cv.currentTitle || "", score: 0,
+            });
+        }
+
+        const cvSkillsNorm = cv.skills.map(normalizeSkill);
+        const jdSkillsNorm = jd.requiredSkills.map(normalizeSkill);
+
+        const fieldPenalty = similarity;
+
         const data = await groqJSON(
-            `You are a CV scoring system. Score each criterion 0-10. Return ONLY a JSON object, nothing else before or after.
-0-2=Missing, 3-5=Weak, 6-8=Good, 9-10=Excellent. Be objective.
-Output this exact schema with real values: ${schema}`,
-            `CV_DATA: ${JSON.stringify(cv)}\nJD_DATA: ${JSON.stringify(jd)}`,
+            `You are a CV scoring expert. Score each criterion 0-10 objectively.
+Rules:
+- 0-2 = Missing/irrelevant
+- 3-5 = Weak match
+- 6-8 = Good match
+- 9-10 = Excellent match
+- For skills: treat aliases as equivalent (e.g. "ReactJS" = "React", "NodeJS" = "Node.js")
+- Be consistent: same evidence → same score
+Return ONLY a JSON object matching this schema: ${SCORE_SCHEMA}`,
+            `CV_DATA: ${JSON.stringify({ ...cv, skills_normalized: cvSkillsNorm })}
+JD_DATA: ${JSON.stringify({ ...jd, requiredSkills_normalized: jdSkillsNorm })}`,
             0.1
         );
+
         if (!data) return buildEmptyResult("AI trả sai format");
 
+        const clampSection = (obj) => {
+            if (!obj) return {};
+            const result = { ...obj };
+            if ("score" in result) result.score = clampScore(result.score);
+            if ("scores" in result && typeof result.scores === "object") {
+                result.scores = Object.fromEntries(
+                    Object.entries(result.scores).map(([k, v]) => [k, clampScore(v)])
+                );
+            }
+            return result;
+        };
+
+        const finalScore = Math.round(calcWeightedScore(data) * fieldPenalty * 100) / 10;
+
         return {
-            score: calcScore(data),
-            title: data.title || { job: jd.jobTitle, cv: cv.currentTitle, score: 0 },
-            experience: data.experience || {},
-            position: data.position || {},
-            skills: data.skills || {},
-            projectSkills: data.projectSkills || {},
+            score: finalScore,
+            fieldSimilarity: similarity,
+            title: clampSection(data.title) || { job: jd.jobTitle, cv: cv.currentTitle, score: 0 },
+            experience: clampSection(data.experience) || {},
+            position: clampSection(data.position) || {},
+            skills: clampSection(data.skills) || {},
+            projectSkills: clampSection(data.projectSkills) || {},
             projects: data.projects || [],
-            softSkills: data.softSkills || {},
-            cvPresentation: data.cvPresentation || {},
-            education: data.education || {},
-            language: data.language || {},
-            summary: data.summary || ""
+            softSkills: clampSection(data.softSkills) || {},
+            cvPresentation: clampSection(data.cvPresentation) || {},
+            education: clampSection(data.education) || {},
+            language: clampSection(data.language) || {},
+            summary: data.summary || "",
+            _meta: { cvGroup, jdGroup, fieldPenalty },
         };
 
     } catch (error) {
@@ -591,7 +721,7 @@ const uploadCVPostjobs = async (idp, id, req) => {
 
     const existingCV = (post.listCV || []).find(cv => cv.idUser.toString() === id.toString());
     console.log(existingCV?.status);
-    if (existingCV?.status !== "pendding") throw new Error("CV đã được xử lý, không thể cập nhật!");
+    if (existingCV && existingCV.status !== "pendding") throw new Error("CV đã được xử lý, không thể cập nhật!");
     if (post.deadline && new Date(post.deadline) < new Date()) throw new Error("Công việc này đã hết hạn nộp CV!");
 
     const cloud = await uploadToCloudinary(req.file.buffer);
