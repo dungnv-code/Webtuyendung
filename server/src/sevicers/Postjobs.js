@@ -430,7 +430,6 @@ const changeStatusPausePostjobs = async (idp) => {
     };
 };
 
-
 function cleanCV(text) {
     return text
         .replace(/\[.*?\]\(.*?\)/g, "")
@@ -454,9 +453,7 @@ function safeParseJSON(raw = "") {
             .trim();
         const start = clean.indexOf("{");
         const end = clean.lastIndexOf("}");
-        if (start !== -1 && end > start) {
-            clean = clean.slice(start, end + 1);
-        }
+        if (start !== -1 && end > start) clean = clean.slice(start, end + 1);
         return JSON.parse(clean);
     } catch {
         return null;
@@ -474,27 +471,33 @@ const normalizeSkill = (s = "") =>
         .replace(/js$/, "")
         .replace(/[.\-_\s]+/g, "")
         .trim();
+
+function smartTruncateCV(text, maxChars = 10000) {
+    if (text.length <= maxChars) return text;
+    const headSize = Math.round(maxChars * 0.6);
+    const tailSize = maxChars - headSize;
+    return `${text.slice(0, headSize)}\n\n...[section truncated]...\n\n${text.slice(-tailSize)}`;
+}
+
 const SCORE_WEIGHTS = {
     skills: 0.25,
     experience: 0.25,
-    title: 0.15,
+    title: 0.12,
     projectSkills: 0.20,
-    softSkills: 0.05,
-    cvPresentation: 0.05,
-    education: 0.03,
-    language: 0.02,
+    softSkills: 0.06,
+    cvPresentation: 0.04,
+    education: 0.05,
+    language: 0.03,
 };
 
-const FIELD_SIMILARITY_THRESHOLD = 0.25;
-
 const GROUP_KEYWORDS = {
-    Developer: ["developer", "engineer", "frontend", "backend", "fullstack", "web", "mobile", "software", "devops", "cloud", "platform"],
-    Analyst: ["analyst", "data analyst", "business analyst", "system analyst", "data scientist", "bi"],
-    Design: ["designer", "ui", "ux", "graphic", "product design"],
-    Marketing: ["marketing", "seo", "content", "growth", "livestream", "digital", "campaign", "brand", "copywriter"],
-    Sales: ["sales", "business development", "account", "presales"],
-    HR: ["hr", "recruiter", "human resource", "talent", "people ops"],
-    PM: ["product manager", "project manager", "scrum master", "agile"],
+    Developer: ["developer", "engineer", "frontend", "backend", "fullstack", "web", "mobile", "software", "devops", "cloud", "platform", "firmware", "embedded", "qa", "test", "automation"],
+    Analyst: ["analyst", "data analyst", "business analyst", "system analyst", "data scientist", "bi", "quantitative", "research"],
+    Design: ["designer", "ui", "ux", "graphic", "product design", "motion", "visual"],
+    Marketing: ["marketing", "seo", "content", "growth", "livestream", "digital", "campaign", "brand", "copywriter", "social media"],
+    Sales: ["sales", "business development", "account", "presales", "partnership"],
+    HR: ["hr", "recruiter", "human resource", "talent", "people ops", "compensation", "c&b"],
+    PM: ["product manager", "project manager", "scrum master", "agile", "po ", "program manager"],
 };
 
 const detectGroup = (title = "") => {
@@ -505,29 +508,48 @@ const detectGroup = (title = "") => {
     return "Other";
 };
 
+
+const ADJACENT_GROUPS = new Set([
+    "Developer|Analyst", "Analyst|Developer",
+    "Developer|PM", "PM|Developer",
+    "PM|Analyst", "Analyst|PM",
+    "Design|Marketing", "Marketing|Design",
+    "Sales|Marketing", "Marketing|Sales",
+    "HR|PM", "PM|HR",
+]);
+
 const fieldSimilarity = (cvGroup, jdGroup) => {
-    if (cvGroup === jdGroup) return 1;
-    if (cvGroup === "Other" || jdGroup === "Other") return 0.5;
-    return 0;
+    if (cvGroup === jdGroup) return 1.0;
+    if (cvGroup === "Other") return 0.7;
+    if (jdGroup === "Other") return 0.8;
+    if (ADJACENT_GROUPS.has(`${cvGroup}|${jdGroup}`)) return 0.6;
+    return 0.0;
 };
 
-const calcWeightedScore = (data) => {
-    const components = {
-        skills: safeScore(data.skills),
-        experience: safeScore(data.experience),
-        title: safeScore(data.title),
-        projectSkills: safeScore(data.projectSkills),
-        softSkills: safeScore(data.softSkills),
-        cvPresentation: safeScore(data.cvPresentation),
-        education: safeScore(data.education),
-        language: safeScore(data.language),
-    };
 
-    const raw = Object.entries(SCORE_WEIGHTS).reduce(
-        (sum, [key, weight]) => sum + (components[key] ?? 0) * weight,
-        0
-    );
+function jobHoppingPenalty(experienceEntries = []) {
+    if (!Array.isArray(experienceEntries) || experienceEntries.length < 3) return 1.0;
+    const shortRoles = experienceEntries.filter(
+        (e) => typeof e.durationMonths === "number" && e.durationMonths < 12
+    ).length;
+    if (shortRoles >= experienceEntries.length * 0.6) return 0.82;
+    if (shortRoles >= 3) return 0.90;
+    return 1.0;
+}
 
+
+function careerGapDeduction(hasGap) {
+    return hasGap ? 0.5 : 0;
+}
+
+const calcWeightedScore = (data, meta = {}) => {
+    const raw = Object.entries(SCORE_WEIGHTS).reduce((sum, [key, weight]) => {
+        let s = safeScore(data[key]);
+        if (key === "experience" && meta.careerGap) {
+            s = Math.max(0, s - careerGapDeduction(true));
+        }
+        return sum + s * weight;
+    }, 0);
     return Math.round(clampScore(raw) * 10) / 10;
 };
 
@@ -537,7 +559,8 @@ function buildEmptyResult(summary, title = { job: "", cv: "", score: 0 }) {
         experience: {}, position: {}, skills: {},
         projectSkills: {}, projects: [], softSkills: {},
         cvPresentation: {}, education: {}, language: {},
-        summary
+        redFlags: [], strengths: [],
+        summary,
     };
 }
 
@@ -547,8 +570,8 @@ async function groqJSON(systemPrompt, userContent, temperature = 0) {
         temperature,
         messages: [
             { role: "system", content: systemPrompt },
-            { role: "user", content: userContent }
-        ]
+            { role: "user", content: userContent },
+        ],
     });
     const raw = res.choices?.[0]?.message?.content || "";
     return safeParseJSON(raw);
@@ -646,26 +669,10 @@ const SCORE_SCHEMA = `{
   "strengths": ["string"]
 }`;
 
-function smartTruncateCV(text, maxChars = 10000) {
-    if (text.length <= maxChars) return text;
-    const headSize = Math.round(maxChars * 0.6);
-    const tailSize = maxChars - headSize;
-    const head = text.slice(0, headSize);
-    const tail = text.slice(-tailSize);
-    return `${head}\n\n...[section truncated for length]...\n\n${tail}`;
-}
-
-
 function validateCVSections(cv) {
-    if (!cv.hasPersonalInfo) {
-        return "CV thiếu thông tin cá nhân (tên, liên hệ)";
-    }
-    if (!cv.hasExperience && !cv.hasProjects) {
-        return "CV cần có ít nhất kinh nghiệm làm việc hoặc dự án";
-    }
-    if (!cv.hasSkills) {
-        return "CV thiếu mục kỹ năng";
-    }
+    if (!cv.hasPersonalInfo) return "CV thiếu thông tin cá nhân (tên, liên hệ)";
+    if (!cv.hasExperience && !cv.hasProjects) return "CV cần có ít nhất kinh nghiệm làm việc hoặc dự án";
+    if (!cv.hasSkills) return "CV thiếu mục kỹ năng";
     return null;
 }
 
@@ -681,31 +688,28 @@ const clampSection = (obj) => {
     return result;
 };
 
-
 const matchCVWithJD = async (cvText, jdText) => {
     try {
-
         const cvCleaned = cleanCV(cvText);
         const jdCleaned = cleanCV(jdText);
-
         const cvRaw = smartTruncateCV(cvCleaned, 10000);
         const jdRaw = jdCleaned.slice(0, 4000);
-
         const parsed = await groqJSON(
             `You are an expert CV and Job Description parser.
 Read both documents carefully and extract structured data.
+
 Rules:
 - Extract ALL skills mentioned anywhere (summary, experience, projects, skills section)
-- For experienceEntries: estimate durationMonths from date ranges; if "Present" use current month
+- For experienceEntries: estimate durationMonths from date ranges; if "Present" treat as current month
 - For technologiesUsed: include tools, frameworks, languages mentioned in that role
 - achievementKeywords: look for numbers, %, KPIs, awards, scale (e.g. "10x", "1M users")
-- careerGap: true if any gap > 12 months between roles
+- careerGap: true if any gap > 12 months between consecutive roles
 - lastActiveYear: year of most recent role or project
-- hasPersonalInfo: true if name or contact info present
+- hasPersonalInfo: true if name or contact info is present
 - hasExperience: true if any work history section found
 - hasProjects: true if any personal/academic/freelance projects found
 
-Return ONLY valid JSON matching this exact schema:
+Return ONLY valid JSON matching this exact schema — no extra text:
 ${CV_JD_PARSE_SCHEMA}`,
             `CV:\n${cvRaw}\n\nJOB DESCRIPTION:\n${jdRaw}`
         );
@@ -717,10 +721,7 @@ ${CV_JD_PARSE_SCHEMA}`,
         const { cv, jd } = parsed;
 
         const validationError = validateCVSections(cv);
-        if (validationError) {
-            return buildEmptyResult(validationError);
-        }
-
+        if (validationError) return buildEmptyResult(validationError);
         const cvGroup = detectGroup(cv.currentTitle);
         const jdGroup = jd.jobGroup !== "Other" ? jd.jobGroup : detectGroup(jd.jobTitle);
         const similarity = fieldSimilarity(cvGroup, jdGroup);
@@ -736,64 +737,123 @@ ${CV_JD_PARSE_SCHEMA}`,
         const cvSkillsNorm = cv.skills.map(normalizeSkill);
         const jdSkillsNorm = jd.requiredSkills.map(normalizeSkill);
 
-
         const data = await groqJSON(
             `You are a senior technical recruiter scoring a CV against a Job Description.
+All scores are on a scale of 0-10. Be OBJECTIVE and CALIBRATED.
+Score anchors (use these as fixed reference points):
+| Score | Meaning                                          |
+|-------|--------------------------------------------------|
+|  0-1  | Not present at all / completely irrelevant       |
+|  2-3  | Mentioned but no evidence of actual usage        |
+|  4-5  | Partial match — missing key elements             |
+|  6-7  | Good match — minor gaps only                     |
+|  8-9  | Strong match — nearly all criteria met           |
+|   10  | Perfect match — exceeds all criteria             |
+Scoring rules per dimension:
+skills (weight: 28%)
+- Count normalized matched skills vs requiredSkills
+- Alias matches count (ReactJS=React, Node=NodeJS, Postgres=PostgreSQL, K8s=Kubernetes)
+- coveragePercent = (matched.length / jd.requiredSkills.length) * 100
+- score = coveragePercent / 10 (linear, capped at 10)
+- niceToHaveSkills matches can add at most +0.5 bonus
+experience (weight: 27%)
+- Base: compare cv.totalYearsExp vs jd.requiredYearsExp
+  - Equal or more → 8
+  - Within 1 year less → 6
+  - 2+ years less → 4
+  - 0 years in domain → 1-2
+- Boost +1 if achievementKeywords present (measurable impact)
+- Penalize -1 if careerGap = true
+- Penalize -1 if job-hopping detected (avg tenure < 12 months across 3+ roles)
+- Cap at 10
 
-Scoring scale (0-10):
-- 0-2 = Missing or completely irrelevant
-- 3-5 = Weak or partial match
-- 6-8 = Good match with minor gaps
-- 9-10 = Excellent or perfect match
+### title (weight: 12%)
+- Compare cv.currentTitle vs jd.jobTitle semantically
+- Exact same role family → 9-10
+- Related role (e.g., Frontend → Full-stack) → 6-7
+- Adjacent role (e.g., Engineer → Technical PM) → 4-5
+- Unrelated → 1-2
 
-Scoring rules:
-- Skill aliases count as matches: ReactJS=React, NodeJS=Node.js, Postgres=PostgreSQL, K8s=Kubernetes
-- Project experience counts as ~60% of formal work experience if no full-time role exists
-- Penalize unexplained career gaps > 12 months in experience score
-- Reward measurable achievements (%, numbers, user scale, revenue impact)
-- For experience score: compare jd.requiredYearsExp vs cv.totalYearsExp in relevant domain
-- coveragePercent in skills = (matched.length / jd.requiredSkills.length) * 100
-- For softSkills: only count if there is written evidence in CV (not just claimed)
-- For cvPresentation: score based on clarity, quantity of detail, logical flow, use of metrics
-- projectComplexity: Low = simple CRUD, Medium = real users/integrations, High = scale/architecture
-- seniorityMatch: compare jd.seniorityLevel vs cv experience level
-- careerProgression: look at title changes across experienceEntries
+### projectSkills (weight: 15%)
+- Only count skills demonstrated in actual project descriptions
+- Project experience = 60% of formal work experience value
+- projectComplexity: Low = basic CRUD, Medium = real users/integrations, High = scale/architecture
+- score reflects: complexity x skill relevance to JD
 
-Fill redFlags array with any of:
-- Unexplained employment gaps > 12 months
-- Job hopping (< 12 months average per role with 3+ roles)
-- CV title unrelated to JD
-- No measurable results mentioned
-- Skills listed but no evidence in experience
+### softSkills (weight: 6%)
+- ONLY score if there is written EVIDENCE in CV (not just claimed)
+- "Led a team of 5" → leadership evidence
+- "Communicated requirements to stakeholders" → communication evidence
+- Do NOT score softSkills based on generic phrases like "team player" alone
 
-Fill strengths array with any of:
+### cvPresentation (weight: 4%)
+- Clarity of writing, use of action verbs, quantified results, logical flow
+- 9-10: concise, metric-rich, well-structured
+- 5-7: decent but missing metrics or detail
+- 1-4: vague, poorly structured, or very sparse
+
+### education (weight: 5%)
+- meetsRequirement: true if cv.highestEducation >= jd.requiredEducation level
+- Meets requirement → base 7; does not meet → base 4
+- Relevant major adds +1; prestigious institution adds +0.5; certifications add +0.5 each (max +1.5)
+
+### language (weight: 3%)
+- Match cv languages against jd.requiredLanguages
+- All required languages covered → 10
+- Partial match → proportional
+- No language requirement in JD → score 7 (neutral)
+
+## Red flags — include if applicable:
+- Unexplained employment gap > 12 months
+- Job hopping (< 12 months per role, 3+ roles)
+- CV title completely unrelated to JD
+- No measurable results anywhere in CV
+- Required skills listed but zero evidence in experience/projects
+
+## Strengths — include if applicable:
 - Strong skill coverage (>80% matched)
 - Impressive project scale or complexity
-- Relevant domain experience
-- Measurable achievements
-- Matching seniority level
+- Measurable achievements with numbers
+- Matching or exceeding seniority level
+- Relevant domain certifications
 
-Return ONLY valid JSON matching this exact schema:
+Return ONLY valid JSON matching this exact schema — no extra text:
 ${SCORE_SCHEMA}`,
-            `CV_PARSED:
-${JSON.stringify({ ...cv, skills_normalized: cvSkillsNorm }, null, 2)}
-
-JD_PARSED:
-${JSON.stringify({ ...jd, requiredSkills_normalized: jdSkillsNorm }, null, 2)}`,
+            `CV_PARSED:\n${JSON.stringify({ ...cv, skills_normalized: cvSkillsNorm }, null, 2)}\n\nJD_PARSED:\n${JSON.stringify({ ...jd, requiredSkills_normalized: jdSkillsNorm }, null, 2)}`,
             0.1
         );
 
-        if (!data) {
-            return buildEmptyResult("AI trả sai format khi scoring");
-        }
+        if (!data) return buildEmptyResult("AI trả sai format khi scoring");
 
-        const fieldPenalty = similarity;
-        const weightedScore = calcWeightedScore(data);
-        const finalScore = Math.round(weightedScore * fieldPenalty * 100) / 10;
+        const meta = {
+            cvGroup,
+            jdGroup,
+            fieldPenalty: similarity,
+            careerGap: cv.careerGap ?? false,
+            cvEntries: cv.experienceEntries?.length ?? 0,
+            cvCertCount: cv.certifications?.length ?? 0,
+            lastActive: cv.lastActiveYear ?? null,
+        };
+
+        const weightedRaw = calcWeightedScore(data, meta);
+        const hopPenalty = jobHoppingPenalty(cv.experienceEntries);
+        const finalScore = Math.round(
+            clampScore(weightedRaw) * hopPenalty * similarity * 10 * 10
+        ) / 10;
+        let evaluate;
+        if (finalScore >= 80) evaluate = "Xuất sắc (Ưu tiên)";
+        else if (finalScore >= 65) evaluate = "Rất tốt (Phù hợp)";
+        else if (finalScore >= 45) evaluate = "Tiềm năng (Cần xem xét)";
+        else if (finalScore >= 25) evaluate = "Trung bình (Cân nhắc)";
+        else if (finalScore >= 10) evaluate = "Kém (Không khớp)";
+        else evaluate = "Rất tệ / Dữ liệu không liên quan";
 
         return {
             score: finalScore,
+            evaluate,
+
             fieldSimilarity: similarity,
+            hopPenalty,
 
             title: clampSection(data.title) || { job: jd.jobTitle, cv: cv.currentTitle, score: 0 },
             experience: clampSection(data.experience) || {},
@@ -804,21 +864,12 @@ ${JSON.stringify({ ...jd, requiredSkills_normalized: jdSkillsNorm }, null, 2)}`,
             cvPresentation: clampSection(data.cvPresentation) || {},
             education: clampSection(data.education) || {},
             language: clampSection(data.language) || {},
-
             projects: data.projects || [],
             redFlags: data.redFlags || [],
             strengths: data.strengths || [],
             summary: data.summary || "",
 
-            _meta: {
-                cvGroup,
-                jdGroup,
-                fieldPenalty,
-                cvEntries: cv.experienceEntries?.length ?? 0,
-                cvCertCount: cv.certifications?.length ?? 0,
-                careerGap: cv.careerGap ?? false,
-                lastActive: cv.lastActiveYear ?? null,
-            },
+            _meta: meta,
         };
 
     } catch (error) {
@@ -835,11 +886,14 @@ const uploadCVPostjobs = async (idp, id, req) => {
     if (!post) throw new Error("Không tìm thấy bài đăng!");
     if (post.status === "pendding") throw new Error("Bài đăng chưa được kiểm duyệt!");
     if (post.statusPause) throw new Error("Bài đăng đang trong trạng thái tạm ẩn!");
+    if (post.deadline && new Date(post.deadline) < new Date())
+        throw new Error("Công việc này đã hết hạn nộp CV!");
 
-    const existingCV = (post.listCV || []).find(cv => cv.idUser.toString() === id.toString());
-    console.log(existingCV?.status);
-    if (existingCV && existingCV.status !== "pendding") throw new Error("CV đã được xử lý, không thể cập nhật!");
-    if (post.deadline && new Date(post.deadline) < new Date()) throw new Error("Công việc này đã hết hạn nộp CV!");
+    const existingCV = (post.listCV || []).find(
+        (cv) => cv.idUser.toString() === id.toString()
+    );
+    if (existingCV && existingCV.status !== "pendding")
+        throw new Error("CV đã được xử lý, không thể cập nhật!");
 
     const cloud = await uploadToCloudinary(req.file.buffer);
 
@@ -854,34 +908,34 @@ const uploadCVPostjobs = async (idp, id, req) => {
     const cleanText = cleanCV(pdfText).slice(0, 8000);
     const jdText = cleanCV(post.description || post.title || "").slice(0, 2000);
 
-    let aiAnalysis = { score: 0 };
+    let aiAnalysis = { score: 0, evaluate: "Rất tệ / Dữ liệu không liên quan" };
     try {
         aiAnalysis = await matchCVWithJD(cleanText, jdText);
     } catch {
         aiAnalysis = buildEmptyResult("Lỗi AI");
     }
+
     console.log("AI Analysis Result:", aiAnalysis);
+
     const score = Number(aiAnalysis?.score) || 0;
-    let evaluate = "";
-    if (score >= 90) evaluate = "Xuất sắc (Ưu tiên)";
-    else if (score >= 75) evaluate = "Rất tốt (Phù hợp)";
-    else if (score >= 50) evaluate = "Tiềm năng (Cần xem xét)";
-    else if (score >= 25) evaluate = "Trung bình (Cân nhắc)";
-    else if (score >= 10) evaluate = "Kém (Không khớp)";
-    else evaluate = "Rất tệ / Dữ liệu không liên quan";
+    const evaluate = aiAnalysis?.evaluate || "Rất tệ / Dữ liệu không liên quan";
+
+    const cvPayload = {
+        fileCV: cloud.secure_url,
+        pdfText: cleanText,
+        ratio: score,
+        evaluate,
+        status: "pendding",
+        updatedAt: new Date(),
+    };
 
     if (existingCV) {
         await usePostJobs.updatebyOne(
             { _id: idp, "listCV._id": existingCV._id },
             {
-                $set: {
-                    "listCV.$.fileCV": cloud.secure_url,
-                    "listCV.$.pdfText": cleanText,
-                    "listCV.$.ratio": score,
-                    "listCV.$.evaluate": evaluate,
-                    "listCV.$.status": "pendding",
-                    "listCV.$.updatedAt": new Date()
-                }
+                $set: Object.fromEntries(
+                    Object.entries(cvPayload).map(([k, v]) => [`listCV.$.${k}`, v])
+                )
             }
         );
     } else {
@@ -892,16 +946,11 @@ const uploadCVPostjobs = async (idp, id, req) => {
                     listCV: {
                         idUser: id,
                         description: req.body?.description || "",
-                        fileCV: cloud.secure_url,
-                        pdfText: cleanText,
-                        ratio: score,
-                        evaluate,
-                        status: "pendding",
                         createdAt: new Date(),
-                        updatedAt: new Date()
-                    }
+                        ...cvPayload,
+                    },
                 },
-                $set: { numberUpload: (post.numberUpload || 0) + 1 }
+                $set: { numberUpload: (post.numberUpload || 0) + 1 },
             }
         );
     }
@@ -909,7 +958,8 @@ const uploadCVPostjobs = async (idp, id, req) => {
     return {
         success: true,
         mes: existingCV ? "Cập nhật CV thành công!" : "Ứng tuyển thành công!",
-        aiScore: score
+        aiScore: score,
+        evaluate,
     };
 };
 
@@ -924,6 +974,7 @@ const getCVPostJobsPostjobs = async (idp, params = {}) => {
     if (!post) {
         throw new Error("Không tìm thấy bài đăng hoặc bài đăng đã bị xóa!");
     }
+
     const page = parseInt(params.page) || 1;
     const limit = parseInt(params.limit) || 10;
     const skip = (page - 1) * limit;

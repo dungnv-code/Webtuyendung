@@ -6,7 +6,7 @@ const A4_W = 794;
 const A4_H = 1123;
 
 const defaultCV = {
-    name: "Nguyễn Văn Dũng",
+    name: "Nguyễn Văn Đồ Án",
     position: "Vị trí ứng tuyển",
     dob: "01/01/2000",
     gender: "Nam",
@@ -69,6 +69,7 @@ function SInput({ value, onChange, placeholder, style = {} }) {
             fontSize: 12, outline: "none", boxSizing: "border-box", fontFamily: "inherit", ...style
         }} />;
 }
+
 function STA({ value, onChange, placeholder }) {
     return <textarea value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} rows={3}
         style={{
@@ -76,6 +77,7 @@ function STA({ value, onChange, placeholder }) {
             fontSize: 12, outline: "none", boxSizing: "border-box", fontFamily: "inherit", resize: "none"
         }} />;
 }
+
 function AddBtn({ color, onClick, label }) {
     return (
         <button onClick={onClick}
@@ -85,6 +87,7 @@ function AddBtn({ color, onClick, label }) {
         </button>
     );
 }
+
 function DelBtn({ onClick }) {
     return (
         <button onClick={onClick}
@@ -94,6 +97,7 @@ function DelBtn({ onClick }) {
         </button>
     );
 }
+
 function Toggle({ checked, onChange, label, color }) {
     return (
         <div className="d-flex align-items-center justify-content-between mb-2">
@@ -243,7 +247,6 @@ function Toolbar({ cv, setCV }) {
                             </div>
                         </div>
 
-                        {/* Font */}
                         <div>
                             <label className="form-label fw-semibold" style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.05em", color: "#444" }}>
                                 <i className="fa-solid fa-font me-1"></i> Font chữ
@@ -254,7 +257,6 @@ function Toolbar({ cv, setCV }) {
                             </select>
                         </div>
 
-                        {/* Font size */}
                         <div>
                             <label className="form-label fw-semibold mb-1" style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.05em", color: "#444" }}>
                                 <i className="fa-solid fa-text-height me-1"></i> Cỡ chữ: {cv.fontSize}px
@@ -267,7 +269,6 @@ function Toolbar({ cv, setCV }) {
                             </div>
                         </div>
 
-                        {/* Line height */}
                         <div>
                             <label className="form-label fw-semibold mb-1" style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.05em", color: "#444" }}>
                                 <i className="fa-solid fa-lines-leaning me-1"></i> Khoảng cách dòng: {cv.lineHeight}
