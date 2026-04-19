@@ -697,7 +697,6 @@ const matchCVWithJD = async (cvText, jdText) => {
         const parsed = await groqJSON(
             `You are an expert CV and Job Description parser.
 Read both documents carefully and extract structured data.
-
 Rules:
 - Extract ALL skills mentioned anywhere (summary, experience, projects, skills section)
 - For experienceEntries: estimate durationMonths from date ranges; if "Present" treat as current month
@@ -708,18 +707,14 @@ Rules:
 - hasPersonalInfo: true if name or contact info is present
 - hasExperience: true if any work history section found
 - hasProjects: true if any personal/academic/freelance projects found
-
 Return ONLY valid JSON matching this exact schema — no extra text:
 ${CV_JD_PARSE_SCHEMA}`,
             `CV:\n${cvRaw}\n\nJOB DESCRIPTION:\n${jdRaw}`
         );
-
         if (!parsed?.cv || !parsed?.jd) {
             return buildEmptyResult("Lỗi parse CV/JD — AI trả về dữ liệu không hợp lệ");
         }
-
         const { cv, jd } = parsed;
-
         const validationError = validateCVSections(cv);
         if (validationError) return buildEmptyResult(validationError);
         const cvGroup = detectGroup(cv.currentTitle);
@@ -766,57 +761,48 @@ experience (weight: 27%)
 - Penalize -1 if careerGap = true
 - Penalize -1 if job-hopping detected (avg tenure < 12 months across 3+ roles)
 - Cap at 10
-
 ### title (weight: 12%)
 - Compare cv.currentTitle vs jd.jobTitle semantically
 - Exact same role family → 9-10
 - Related role (e.g., Frontend → Full-stack) → 6-7
 - Adjacent role (e.g., Engineer → Technical PM) → 4-5
 - Unrelated → 1-2
-
 ### projectSkills (weight: 15%)
 - Only count skills demonstrated in actual project descriptions
 - Project experience = 60% of formal work experience value
 - projectComplexity: Low = basic CRUD, Medium = real users/integrations, High = scale/architecture
 - score reflects: complexity x skill relevance to JD
-
 ### softSkills (weight: 6%)
 - ONLY score if there is written EVIDENCE in CV (not just claimed)
 - "Led a team of 5" → leadership evidence
 - "Communicated requirements to stakeholders" → communication evidence
 - Do NOT score softSkills based on generic phrases like "team player" alone
-
 ### cvPresentation (weight: 4%)
 - Clarity of writing, use of action verbs, quantified results, logical flow
 - 9-10: concise, metric-rich, well-structured
 - 5-7: decent but missing metrics or detail
 - 1-4: vague, poorly structured, or very sparse
-
 ### education (weight: 5%)
 - meetsRequirement: true if cv.highestEducation >= jd.requiredEducation level
 - Meets requirement → base 7; does not meet → base 4
 - Relevant major adds +1; prestigious institution adds +0.5; certifications add +0.5 each (max +1.5)
-
 ### language (weight: 3%)
 - Match cv languages against jd.requiredLanguages
 - All required languages covered → 10
 - Partial match → proportional
 - No language requirement in JD → score 7 (neutral)
-
 ## Red flags — include if applicable:
 - Unexplained employment gap > 12 months
 - Job hopping (< 12 months per role, 3+ roles)
 - CV title completely unrelated to JD
 - No measurable results anywhere in CV
 - Required skills listed but zero evidence in experience/projects
-
 ## Strengths — include if applicable:
 - Strong skill coverage (>80% matched)
 - Impressive project scale or complexity
 - Measurable achievements with numbers
 - Matching or exceeding seniority level
 - Relevant domain certifications
-
 Return ONLY valid JSON matching this exact schema — no extra text:
 ${SCORE_SCHEMA}`,
             `CV_PARSED:\n${JSON.stringify({ ...cv, skills_normalized: cvSkillsNorm }, null, 2)}\n\nJD_PARSED:\n${JSON.stringify({ ...jd, requiredSkills_normalized: jdSkillsNorm }, null, 2)}`,

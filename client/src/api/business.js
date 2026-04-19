@@ -73,12 +73,16 @@ const getDashboardBusiness = async () => {
     return await axios.get(`/business/getDashboard`)
 }
 
+const deleteStaff = async (id) => {
+    return await axios.delete(`/user/delete/${id}`)
+}
+
 export {
     creatBusiness,
     updateBusiness,
     getDetailByBusiness,
     getStaffs,
-    deleteUser,
+    deleteStaff,
     createStaffBusiness,
     getInvoidBusiness,
     createInvoidBusiness,

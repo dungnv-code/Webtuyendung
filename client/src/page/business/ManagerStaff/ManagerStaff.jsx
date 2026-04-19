@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import PaginationCustom from "../../../component/pagination/pagination";
-import { getStaffs, deleteUser } from "../../../api/business";
+import { getStaffs, deleteStaff } from "../../../api/business";
 import { DeleteTwoTone, SearchOutlined, RedoOutlined } from '@ant-design/icons';
 import { toast } from "react-toastify";
 
@@ -28,7 +28,7 @@ const ManagerStaff = () => {
 
     const hanleDeleteJob = async (id) => {
         try {
-            await deleteUser(id);
+            await deleteStaff(id);
             setInputValue("");
             setCurrentPage(1);
             toast.success("Xoá nhân viên thành công!");

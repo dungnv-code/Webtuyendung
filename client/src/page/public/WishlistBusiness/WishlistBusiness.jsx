@@ -22,269 +22,83 @@ const WishlistBusiness = () => {
     }, []);
 
     return (
-        <>
-            <style>{`
-                @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Inter:wght@300;400;500&display=swap');
+        <div className="min-vh-100 bg-light py-5 px-3">
+            <h2 className="text-center fw-bold text-dark mb-1" style={{ fontSize: "1.6rem" }}>
+                Doanh nghiệp theo dõi
+            </h2>
+            <p className="text-center text-muted text-uppercase mb-1" style={{ fontSize: "0.78rem", letterSpacing: "0.1em" }}>
+                Danh sách công ty bạn đang quan tâm
+            </p>
 
-                .wb-page {
-                    min-height: 100vh;
-                    background: linear-gradient(160deg, #f0f4ff 0%, #fafafa 60%, #f0fdf4 100%);
-                    padding: 3rem 1rem;
-                    font-family: 'Inter', sans-serif;
-                }
-
-                .wb-heading {
-                    font-family: 'Sora', sans-serif;
-                    font-size: 1.6rem;
-                    font-weight: 700;
-                    color: #1e1b4b;
-                    text-align: center;
-                    margin-bottom: 0.35rem;
-                    letter-spacing: -0.02em;
-                }
-
-                .wb-sub {
-                    text-align: center;
-                    font-size: 0.8rem;
-                    color: #9ca3af;
-                    letter-spacing: 0.1em;
-                    text-transform: uppercase;
-                    margin-bottom: 2.5rem;
-                }
-
-                /* ── Grid ── */
-                .wb-grid {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-                    gap: 1.25rem;
-                    max-width: 1100px;
-                    margin: 0 auto;
-                }
-
-                /* ── Card ── */
-                .wb-card {
-                    background: #fff;
-                    border-radius: 18px;
-                    border: 1px solid #eef0f6;
-                    box-shadow: 0 4px 20px rgba(99,102,241,0.06);
-                    overflow: hidden;
-                    display: flex;
-                    flex-direction: column;
-                    transition: transform 0.22s, box-shadow 0.22s;
-                    position: relative;
-                }
-
-                .wb-card:hover {
-                    transform: translateY(-4px);
-                    box-shadow: 0 14px 36px rgba(99,102,241,0.13);
-                }
-
-                /* ── Cover ── */
-                .wb-cover-wrap {
-                    position: relative;
-                    height: 100px;
-                    overflow: hidden;
-                }
-
-                .wb-cover {
-                    width: 100%;
-                    height: 100%;
-                    object-fit: cover;
-                    display: block;
-                    transition: transform 0.4s;
-                }
-
-                .wb-card:hover .wb-cover { transform: scale(1.05); }
-
-                /* gradient fade over cover */
-                .wb-cover-wrap::after {
-                    content: '';
-                    position: absolute;
-                    inset: 0;
-                    background: linear-gradient(to bottom, transparent 40%, rgba(255,255,255,0.55));
-                }
-
-                /* ── Body ── */
-                .wb-body {
-                    padding: 0 1.2rem 1.2rem;
-                    display: flex;
-                    flex-direction: column;
-                    flex: 1;
-                }
-
-                /* ── Avatar row ── */
-                .wb-avatar-row {
-                    display: flex;
-                    align-items: flex-end;
-                    gap: 0.85rem;
-                    margin-top: -28px;
-                    margin-bottom: 0.75rem;
-                    position: relative;
-                    z-index: 1;
-                }
-
-                .wb-avatar {
-                    width: 56px;
-                    height: 56px;
-                    border-radius: 12px;
-                    object-fit: cover;
-                    border: 3px solid #fff;
-                    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                    flex-shrink: 0;
-                    background: #f3f4f6;
-                }
-
-                .wb-name-block {
-                    padding-bottom: 2px;
-                }
-
-                .wb-name {
-                    font-family: 'Sora', sans-serif;
-                    font-size: 0.92rem;
-                    font-weight: 600;
-                    color: #1e1b4b;
-                    text-decoration: none;
-                    display: block;
-                    line-height: 1.3;
-                    transition: color 0.2s;
-                }
-
-                .wb-name:hover { color: #6366f1; }
-
-                .wb-field {
-                    font-size: 0.75rem;
-                    color: #6366f1;
-                    font-weight: 500;
-                    margin-top: 0.15rem;
-                }
-
-                /* ── Divider ── */
-                .wb-divider {
-                    border: none;
-                    border-top: 1px dashed #e5e7eb;
-                    margin: 0.6rem 0 0.75rem;
-                }
-
-                /* ── Meta chips ── */
-                .wb-meta {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 0.4rem;
-                }
-
-                .wb-chip {
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 0.45rem;
-                    font-size: 0.76rem;
-                    color: #6b7280;
-                    background: #f9fafb;
-                    border-radius: 999px;
-                    padding: 0.22rem 0.7rem;
-                    width: fit-content;
-                    max-width: 100%;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    white-space: nowrap;
-                }
-
-                .wb-chip i {
-                    color: #a5b4fc;
-                    font-size: 0.7rem;
-                    flex-shrink: 0;
-                }
-
-                /* ── Loading ── */
-                .wb-loading {
-                    text-align: center;
-                    padding: 5rem 0;
-                    color: #6366f1;
-                }
-
-                .wb-spinner {
-                    width: 36px;
-                    height: 36px;
-                    border: 3px solid #e0e7ff;
-                    border-top-color: #6366f1;
-                    border-radius: 50%;
-                    animation: wbspin 0.8s linear infinite;
-                    margin: 0 auto 1rem;
-                }
-
-                @keyframes wbspin { to { transform: rotate(360deg); } }
-
-                /* ── Empty ── */
-                .wb-empty {
-                    text-align: center;
-                    color: #9ca3af;
-                    padding: 4rem 0;
-                    grid-column: 1 / -1;
-                }
-
-                .wb-empty i {
-                    font-size: 2.5rem;
-                    display: block;
-                    margin-bottom: 0.75rem;
-                    color: #d1d5db;
-                }
-            `}</style>
-
-            <div className="wb-page">
-                <h2 className="wb-heading">Doanh nghiệp theo dõi</h2>
-                <p className="wb-sub">Danh sách công ty bạn đang quan tâm</p>
-
-                {loading ? (
-                    <div className="wb-loading">
-                        <div className="wb-spinner" />
-                        <p style={{ fontSize: "0.85rem" }}>Đang tải dữ liệu...</p>
+            {loading ? (
+                <div className="text-center py-5">
+                    <div className="spinner-border text-primary mb-3" role="status" style={{ width: "2.2rem", height: "2.2rem" }}>
+                        <span className="visually-hidden">Loading...</span>
                     </div>
-                ) : (
-                    <div className="wb-grid">
-                        {data.length === 0 ? (
-                            <div className="wb-empty">
-                                <i className="fa-regular fa-bookmark" />
-                                <p>Chưa có doanh nghiệp nào được lưu.</p>
-                            </div>
-                        ) : (
-                            data.map((biz) => (
-                                <div className="wb-card" key={biz._id}>
-                                    {/* Cover */}
-                                    <div className="wb-cover-wrap">
-                                        <img src={biz.imageCoverBusiness} className="wb-cover" alt="cover" />
+                    <p className="text-muted" style={{ fontSize: "0.85rem" }}>Đang tải dữ liệu...</p>
+                </div>
+            ) : (
+                <div className="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 g-4" style={{ maxWidth: "1100px", margin: "0 auto" }}>
+                    {data.length === 0 ? (
+                        <div className="col-12 text-center text-muted py-5">
+                            <i className="fa-regular fa-bookmark fs-1 d-block mb-3 text-secondary opacity-50" />
+                            <p>Chưa có doanh nghiệp nào được lưu.</p>
+                        </div>
+                    ) : (
+                        data.map((biz) => (
+                            <div className="col" key={biz._id}>
+                                <div className="row gap-3 h-100 border-0 shadow-sm rounded-4 overflow-hidden">
+
+                                    <div className="overflow-hidden" style={{ height: "100px" }}>
+                                        <img
+                                            src={biz.imageCoverBusiness}
+                                            className="w-100 h-100 object-fit-cover"
+                                            alt="cover"
+                                        />
                                     </div>
 
-                                    <div className="wb-body">
-                                        {/* Avatar + Name */}
-                                        <div className="wb-avatar-row">
-                                            <img src={biz.imageAvatarBusiness} className="wb-avatar" alt="avatar" />
-                                            <div className="wb-name-block">
-                                                <Link to={`${path.COMPANY}/${biz._id}`} className="wb-name">
+                                    <div className="card-body pt-0 px-3 pb-3">
+                                        <div className="d-flex align-items-end gap-3 mb-3" style={{ marginTop: "-28px" }}>
+                                            <img
+                                                src={biz.imageAvatarBusiness}
+                                                alt="avatar"
+                                                className="rounded-3 border border-3 border-white shadow-sm flex-shrink-0 bg-light object-fit-cover"
+                                                style={{ width: "56px", height: "56px" }}
+                                            />
+                                            <div className="pb-1">
+                                                <Link
+                                                    to={`${path.COMPANY}/${biz._id}`}
+                                                    className="fw-semibold text-decoration-none text-dark d-block lh-sm"
+                                                    style={{ fontSize: "0.92rem" }}
+                                                >
                                                     {biz.nameBusiness}
                                                 </Link>
-                                                <p className="wb-field">{biz.FieldBusiness}</p>
+                                                <small className="text-primary fw-medium" style={{ fontSize: "0.75rem" }}>
+                                                    {biz.FieldBusiness}
+                                                </small>
                                             </div>
                                         </div>
 
-                                        <hr className="wb-divider" />
+                                        <hr className="border-dashed my-2 opacity-25" />
 
-                                        <div className="wb-meta">
-                                            <span className="wb-chip">
-                                                <i className="fa-solid fa-users" />
-                                                {biz.numberOfEmployees} nhân viên
+                                        <div className="d-flex flex-column gap-2">
+                                            <span className="badge rounded-pill bg-light text-secondary fw-normal d-inline-flex align-items-center gap-2 px-3 py-2">
+                                                <i className="fa-solid fa-users text-primary-emphasis" style={{ fontSize: "0.7rem" }} />
+                                                <span style={{ fontSize: "0.76rem" }}>{biz.numberOfEmployees} nhân viên</span>
                                             </span>
-                                            <span className="wb-chip">
-                                                <i className="fa-solid fa-location-dot" />
-                                                {biz.addressBusiness}
+                                            <span className="badge rounded-pill bg-light text-secondary fw-normal d-inline-flex align-items-center gap-2 px-3 py-2 text-truncate" style={{ maxWidth: "100%" }}>
+                                                <i className="fa-solid fa-location-dot text-primary-emphasis" style={{ fontSize: "0.7rem" }} />
+                                                <span className="text-truncate" style={{ fontSize: "0.76rem" }}>{biz.addressBusiness}</span>
                                             </span>
                                         </div>
                                     </div>
                                 </div>
-                            ))
-                        )}
-                    </div>
-                )}
-            </div>
-        </>
+                            </div>
+                        ))
+                    )}
+                </div>
+            )}
+        </div>
     );
 };
 

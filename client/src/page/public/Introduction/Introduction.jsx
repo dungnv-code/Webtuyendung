@@ -703,6 +703,16 @@ export default function Introduction() {
                             <i className={`fa-solid ${pages > 1 ? "fa-triangle-exclamation" : "fa-file"} me-1`}></i>
                             {pages} trang A4
                         </span>
+                        <span>
+                            <a
+                                href="/cv-builder.html"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="btn btn-secondary btn-sm fw-semibold"
+                            >
+                                Mẫu CV khác
+                            </a>
+                        </span>
                     </div>
 
                     <div className="d-flex gap-2">

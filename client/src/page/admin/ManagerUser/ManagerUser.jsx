@@ -38,7 +38,9 @@ const ManagerUser = () => {
             setInputValue(""); setCurrentPage(1);
             toast.success("Xoá người dùng thành công!");
             setLoaddata(!loaddata);
-        } catch (error) { }
+        } catch (error) {
+
+        }
     };
 
     const hanleSearch = async () => {

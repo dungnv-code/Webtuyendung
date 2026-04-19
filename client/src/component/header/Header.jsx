@@ -97,20 +97,33 @@ const Header = () => {
                             { label: "Trang chủ", to: path.HOME },
                             { label: "Công việc", to: path.JOB },
                             { label: "Công ty", to: path.COMPANY },
-                            { label: "Tạo CV", to: path.INTRODUCTION },
                         ].map((item) => (
                             <li className="nav-item" key={item.to}>
                                 <Link
+                                    onMouseEnter={e => { e.currentTarget.style.background = "#e8f5e9"; e.currentTarget.style.color = "#1b5e20"; }}
+                                    onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#2e7d32"; }}
                                     className="nav-link px-3 py-2 rounded-2 fw-medium"
                                     to={item.to}
                                     style={{ color: "#2e7d32", fontSize: "0.92rem", transition: "background 0.15s, color 0.15s" }}
-                                    onMouseEnter={e => { e.currentTarget.style.background = "#e8f5e9"; e.currentTarget.style.color = "#1b5e20"; }}
-                                    onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#2e7d32"; }}
                                 >
                                     {item.label}
                                 </Link>
                             </li>
                         ))}
+                        <li className="nav-item"
+                            onMouseEnter={e => { e.currentTarget.style.background = "#e8f5e9"; e.currentTarget.style.color = "#1b5e20"; }}
+                            onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#2e7d32"; }}
+                        >
+                            <a
+                                href="/cv-builder.html"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="nav-link px-3 py-2 rounded-2 fw-medium"
+                                style={{ color: "#2e7d32" }}
+                            >
+                                Mẫu CV
+                            </a>
+                        </li>
                     </ul>
 
                     {User?.isLogIn ? (
@@ -139,7 +152,7 @@ const Header = () => {
                                     className="dropdown-menu dropdown-menu-end border rounded-3 p-0 mt-2"
                                     style={{ width: "340px", borderColor: "rgba(0,0,0,0.1)" }}
                                 >
-                                    {/* Header */}
+
                                     <div className="d-flex align-items-center justify-content-between px-3 py-2 border-bottom">
                                         <div className="d-flex align-items-center gap-2">
                                             <span className="fw-medium" style={{ fontSize: "14px" }}>Thông báo</span>
@@ -252,9 +265,9 @@ const Header = () => {
                                     <li><hr className="dropdown-divider my-1" /></li>
                                     {[
                                         { icon: "fa-user", label: "Thông tin cá nhân", to: path.USERINFO },
-                                        { icon: "fa-file-lines", label: "CV đã nộp", to: path.CVLIST },
+                                        { icon: "fa-file-lines", label: "Hồ sơ đã nộp", to: path.CVLIST },
                                         { icon: "fa-heart", label: "Việc làm yêu thích", to: path.WISHLISTJOB },
-                                        { icon: "fa-building", label: "Công ty yêu thích", to: path.WISHLISTBUSINESS },
+                                        { icon: "fa-building", label: "Doanh nghiệp theo dõi", to: path.WISHLISTBUSINESS },
                                         { icon: "fa-lock", label: "Đổi mật khẩu", to: path.CHANGEPASSWORD },
                                     ].map((item) => (
                                         <li key={item.to}>

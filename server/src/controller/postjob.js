@@ -14,7 +14,6 @@ class PostJobController {
         const { title } = req.body;
         const slug = slugify(title, { lower: true, strict: true });
         const reponse = await PostjobsSevicer.createPostjobs(businessId, id, { ...req.body, slug });
-
         res.status(200).json(reponse);
     });
 

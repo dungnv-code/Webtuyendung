@@ -286,14 +286,29 @@ const getAllUser = async (queryParams) => {
     };
 }
 
+const deleteUser = async (idu) => {
+    const user = await userRepository.findByOne({ _id: idu });
+    if (!user) {
+        throw new Error("Không tìm thấy user để xóa");
+    }
+    await userRepository.deletebyOne({ _id: idu });
+    return {
+        success: true,
+        mes: "Xóa user thành công",
+    };
+};
+
 const deletebyadminUser = async (idu) => {
     const user = await userRepository.findByOne({ _id: idu });
-
     if (!user) {
         throw new Error("Không tìm thấy user để xóa");
     }
 
-    const existedInCV = await PostJob.findByOne({
+    if (user.role === "STAFF") {
+        throw new Error("Không thể xóa tài khoản nhân viên, vui lòng liên hệ doanh nghiệp để xóa");
+    }
+
+    const existedInCV = await userPostJobs.findByOne({
         "listCV.idUser": idu
     });
 
@@ -308,6 +323,8 @@ const deletebyadminUser = async (idu) => {
         mes: "Xóa user thành công",
     };
 };
+
+
 const changeStatusUser = async (idu) => {
     const user = await userRepository.findByOne({ _id: idu });
     if (!user) {
@@ -390,17 +407,13 @@ const createStaffUser = async (businessId, data) => {
     if (exist) {
         throw new Error("Email đã tồn tại");
     }
-
     const count = await userRepository.findAll({ business: businessId });
+    console.log(count.length);
     if (count.length >= 5) {
         throw new Error("Doanh nghiệp đã đạt giới hạn 5 tài khoản");
     }
-
     const generatedPassword = makeNumberToken(8);
-
-
     const hashedPassword = await bcrypt.hash(generatedPassword, 10);
-
     const newUser = await userRepository.createUser({
         username: data.username,
         email,
@@ -656,11 +669,264 @@ async function queryJobs(query, sortOption, limitCount) {
 }
 
 
+
+const CONSTANTS = {
+    MAX_MESSAGE_LENGTH: 500,
+    MIN_MESSAGE_LENGTH: 2,
+    RATE_LIMIT_COUNT: 20,
+    DEFAULT_JOB_LIMIT: 5,
+    MAX_JOB_LIMIT: 10,
+};
+
+const SYNONYMS = {
+    cntt: "công nghệ thông tin",
+    it: "công nghệ thông tin",
+    hcm: "hồ chí minh",
+    sg: "hồ chí minh",
+    "sài gòn": "hồ chí minh",
+    saigon: "hồ chí minh",
+    dn: "đà nẵng",
+    "da nang": "đà nẵng",
+    hn: "hà nội",
+    "ha noi": "hà nội",
+    dev: "developer",
+    fe: "frontend",
+    be: "backend",
+    fs: "full-stack",
+    fullstack: "full-stack",
+    "full stack": "full-stack",
+    ui: "designer",
+    ux: "designer",
+    "ui/ux": "designer",
+    ba: "business analyst",
+    pm: "product manager",
+    po: "product owner",
+    hr: "nhân sự",
+    "nhân sự": "hr",
+    acc: "kế toán",
+    accountant: "kế toán",
+    mk: "marketing",
+    mkt: "marketing",
+    sale: "kinh doanh",
+    "kinh doanh": "sales",
+    "bán hàng": "sales",
+    intern: "thực tập",
+    "thực tập sinh": "intern",
+    tts: "intern",
+    fresher: "fresher",
+    "mới ra trường": "fresher",
+    senior: "senior",
+    "sr.": "senior",
+    junior: "junior",
+    "jr.": "junior",
+    mid: "middle",
+    lead: "team lead",
+    "trưởng nhóm": "team lead",
+};
+
+const KEYWORD_SETS = {
+    job: new Set([
+        "việc", "job", "jobs", "tuyển", "tuyển dụng", "ứng tuyển",
+        "react", "node", "nodejs", "java", "python", "php", "ruby", "golang", "go",
+        "swift", "kotlin", "flutter", "dart", "c#", "dotnet", ".net",
+        "typescript", "javascript", "vue", "angular", "nextjs", "nuxt",
+        "frontend", "backend", "full-stack", "fullstack", "developer", "engineer",
+        "kế toán", "marketing", "designer", "devops", "mobile", "android", "ios",
+        "senior", "junior", "fresher", "intern", "tts", "thực tập",
+        "lập trình", "tester", "qa", "qc", "data", "analyst", "ba",
+        "product manager", "pm", "scrum", "agile", "kinh doanh", "sales", "sale",
+        "nhân sự", "hr", "kế toán", "accountant", "digital", "seo", "content",
+    ]),
+    career: new Set([
+        "nghề", "ngành", "tư vấn", "chọn nghề", "nên học", "ngành hot",
+        "ngành nào", "tương lai", "lương cao", "dễ xin việc", "nghề gì",
+        "career", "học gì", "có nên học", "cơ hội", "lộ trình", "roadmap",
+        "học như thế nào", "bắt đầu từ đâu", "kỹ năng cần", "yêu cầu",
+        "mức lương", "xu hướng", "triển vọng", "nên chọn",
+    ]),
+};
+
+const LOCATION_MAP = [
+    { keys: ["hà nội", " hn ", "ha noi"], label: "Hà Nội" },
+    { keys: ["đà nẵng", " dn ", "da nang"], label: "Đà Nẵng" },
+    { keys: ["hồ chí minh", "hcm", "sài gòn", "saigon", "ho chi minh"], label: "Hồ Chí Minh" },
+    { keys: ["cần thơ", "can tho"], label: "Cần Thơ" },
+    { keys: ["hải phòng", "hai phong"], label: "Hải Phòng" },
+];
+
+const STOP_WORDS = new Set([
+    "các", "job", "jobs", "việc", "làm", "mới", "nhất", "tại",
+    "tìm", "cần", "tuyển", "cho", "tôi", "giúp", "hãy", "một",
+    "những", "có", "và", "hoặc", "ở", "từ", "xem", "hiện",
+    "với", "về", "trong", "của", "là", "được", "đang", "sẽ",
+    "rất", "này", "đó", "vậy", "nào", "nhiều", "ít", "thêm",
+]);
+
+const matchesKeywordSet = (text, keywordSet) => {
+    for (const kw of keywordSet) {
+        if (text.includes(kw)) return true;
+    }
+    return false;
+};
+
+const normalizeInput = (raw) => {
+    let text = raw.toLowerCase().replace(/[?.,!;:""'']/g, " ").replace(/\s+/g, " ").trim();
+    const sortedSynonyms = Object.entries(SYNONYMS).sort((a, b) => b[0].length - a[0].length);
+    for (const [from, to] of sortedSynonyms) {
+        text = text.replace(new RegExp(`\\b${from}\\b`, "g"), to);
+    }
+    return text;
+};
+
+const detectIntent = (normalizedMsg) => {
+    const isJob = matchesKeywordSet(normalizedMsg, KEYWORD_SETS.job);
+    const isCareer = matchesKeywordSet(normalizedMsg, KEYWORD_SETS.career);
+    return { isJob, isCareer, isMixed: isJob && isCareer };
+};
+
+const JOB_SELECT_FIELDS = "title jobs location joblevel salaryRange numberUpload deadline createdAt view";
+
+const buildJobQuery = (normalizedMsg, now) => {
+    const baseQuery = {
+        status: "active",
+        statusPause: false,
+        deadline: { $gte: now },
+    };
+
+    for (const loc of LOCATION_MAP) {
+        if (loc.keys.some((k) => normalizedMsg.includes(k))) {
+            baseQuery.location = { $regex: loc.label, $options: "i" };
+            break;
+        }
+    }
+
+    const levelMap = {
+        senior: "Senior", junior: "Junior", fresher: "Fresher",
+        intern: "Intern", "thực tập": "Intern", middle: "Middle", lead: "Lead",
+    };
+    for (const [key, val] of Object.entries(levelMap)) {
+        if (normalizedMsg.includes(key)) {
+            baseQuery.joblevel = { $regex: val, $options: "i" };
+            break;
+        }
+    }
+
+    if (normalizedMsg.includes("lương cao") || normalizedMsg.includes("lương tốt")) {
+        baseQuery["salaryRange.min"] = { $gte: 15000000 };
+    }
+
+    let sortOption = { createdAt: -1 };
+    if (normalizedMsg.includes("view cao") || normalizedMsg.includes("xem nhiều")) {
+        sortOption = { view: -1 };
+    } else if (normalizedMsg.includes("nộp nhiều") || normalizedMsg.includes("ứng tuyển nhiều")) {
+        sortOption = { numberUpload: -1 };
+    } else if (normalizedMsg.includes("lương cao")) {
+        sortOption = { "salaryRange.max": -1 };
+    }
+
+    const keywords = normalizedMsg
+        .split(/\s+/)
+        .filter((k) => k.length >= 2 && !STOP_WORDS.has(k))
+        .filter((k, i, arr) => arr.indexOf(k) === i);
+
+    const numberMatch = normalizedMsg.match(/\d+/);
+    const limitCount = numberMatch
+        ? Math.min(Math.max(parseInt(numberMatch[0]), 1), CONSTANTS.MAX_JOB_LIMIT)
+        : CONSTANTS.DEFAULT_JOB_LIMIT;
+
+    return { baseQuery, sortOption, limitCount, keywords };
+};
+
+const queryJobsWithFallback = async (baseQuery, keywords, sortOption, limitCount) => {
+    if (keywords.length > 0) {
+        try {
+            const textQuery = { ...baseQuery, $text: { $search: keywords.join(" ") } };
+            const results = await userPostJobs
+                .findAll(textQuery)
+                .sort(sortOption)
+                .limit(limitCount)
+                .select(JOB_SELECT_FIELDS);
+
+            if (results.length > 0) return { jobs: results, strategy: "text" };
+        } catch (err) {
+            if (!err.message?.includes("text index")) {
+                throw err;
+            }
+            console.warn("[queryJobsWithFallback] Text index unavailable, using $regex fallback.");
+        }
+    }
+
+    if (keywords.length > 0) {
+        try {
+            const regexConditions = keywords.map((kw) => {
+                const pattern = { $regex: kw, $options: "i" };
+                return { $or: [{ title: pattern }, { jobs: pattern }] };
+            });
+
+            const regexQuery = {
+                ...baseQuery,
+                $or: regexConditions.flatMap((c) => c.$or),
+            };
+
+            const results = await userPostJobs
+                .findAll(regexQuery)
+                .sort(sortOption)
+                .limit(limitCount)
+                .select(JOB_SELECT_FIELDS);
+
+            if (results.length > 0) return { jobs: results, strategy: "regex" };
+        } catch (err) {
+            console.warn("[queryJobsWithFallback] $regex query failed:", err.message);
+        }
+    }
+
+    try {
+        const results = await userPostJobs
+            .findAll(baseQuery)
+            .sort({ createdAt: -1 })
+            .limit(3)
+            .select(JOB_SELECT_FIELDS);
+
+        return { jobs: results, strategy: "base" };
+    } catch (err) {
+        console.warn("[queryJobsWithFallback] Base query also failed:", err.message);
+        return { jobs: [], strategy: "none" };
+    }
+};
+
+const formatJobContext = (jobs) =>
+    jobs.map((j, i) => {
+        const salary = j.salaryRange
+            ? typeof j.salaryRange === "object"
+                ? `${(j.salaryRange.min / 1e6).toFixed(0)}–${(j.salaryRange.max / 1e6).toFixed(0)}tr`
+                : j.salaryRange.toString()
+            : "Thỏa thuận";
+        const deadline = j.deadline
+            ? new Date(j.deadline).toLocaleDateString("vi-VN")
+            : "Không rõ";
+        return (
+            `[${i + 1}] ${j.title} | ${j.jobs} | ${j.location}\n` +
+            `    Lương: ${salary} | Cấp: ${j.joblevel ?? "—"} | Hạn: ${deadline}`
+        );
+    }).join("\n");
+
+const AI_SYSTEM = {
+    jobAdvisor: `Bạn là chatbot tuyển dụng Việt Nam, thân thiện và ngắn gọn.
+Quy tắc:
+- Chỉ nhận xét về job trong danh sách, không bịa thêm
+- Tối đa 3 câu, tiếng Việt
+- Nêu job nổi bật và lý do ngắn gọn`,
+
+    careerAdvisor: `Bạn là chuyên gia tư vấn nghề nghiệp Việt Nam.
+Quy tắc:
+- Trả lời thực tế, có số liệu nếu biết, tối đa 4 câu
+- Không bịa thông tin, tiếng Việt`,
+};
+
 const chatboxUser = async (data) => {
     try {
-
         const clientId = data.userId ?? data.ip ?? "anon";
-        if (!checkRateLimit(clientId, 20)) {
+        if (!checkRateLimit(clientId, CONSTANTS.RATE_LIMIT_COUNT)) {
             return {
                 success: false,
                 message: "Quá nhiều yêu cầu, vui lòng thử lại sau 1 phút.",
@@ -668,217 +934,115 @@ const chatboxUser = async (data) => {
         }
 
         const raw = data.message ?? "";
-        if (!raw || raw.trim().length < 2) {
+        if (!raw || raw.trim().length < CONSTANTS.MIN_MESSAGE_LENGTH) {
             return {
                 success: true,
-                reply: "Bạn hãy nhập rõ hơn, ví dụ: 'việc React tại Hà Nội'",
+                reply: "Bạn hãy nhập rõ hơn. Ví dụ: 'việc React tại Hà Nội' hoặc 'ngành IT nên học gì'",
                 jobs: [],
             };
         }
 
-        const message = sanitizeInput(raw);
-
-        if (message.length > 500) {
+        const sanitized = sanitizeInput(raw);
+        if (sanitized.length > CONSTANTS.MAX_MESSAGE_LENGTH) {
             return {
                 success: true,
-                reply: "Tin nhắn quá dài, vui lòng rút gọn dưới 500 ký tự.",
+                reply: `Tin nhắn quá dài (tối đa ${CONSTANTS.MAX_MESSAGE_LENGTH} ký tự), vui lòng rút gọn.`,
                 jobs: [],
             };
         }
 
-        const msgLower = message.toLowerCase().replace(/[?.,!]/g, "");
-        const now = new Date();
+        const normalizedMsg = normalizeInput(sanitized);
+        const { isJob, isCareer } = detectIntent(normalizedMsg);
 
-        const synonyms = {
-            cntt: "công nghệ thông tin",
-            it: "công nghệ thông tin",
-            hcm: "hồ chí minh",
-            sg: "hồ chí minh",
-            sài: "hồ chí minh",
-            saigon: "hồ chí minh",
-            dn: "đà nẵng",
-            hn: "hà nội",
-            dev: "developer",
-            fe: "frontend",
-            be: "backend",
-            fs: "full-stack",
-            fullstack: "full-stack",
-        };
-
-        const jobKeywords = [
-            "việc", "job", "tuyển", "react", "node", "java", "python", "php",
-            "frontend", "backend", "full-stack", "fullstack", "developer",
-            "engineer", "kế toán", "marketing", "designer", "devops", "mobile",
-            "senior", "junior", "fresher", "intern", "lập trình", "tester", "qa",
-            "data", "analyst", "pm", "product manager",
-        ];
-
-        const careerKeywords = [
-            "nghề", "ngành", "tư vấn", "chọn nghề", "nên học", "ngành hot",
-            "ngành nào", "tương lai", "lương cao", "dễ xin việc", "nghề gì",
-            "career", "học gì", "có nên học", "cơ hội",
-        ];
-
-        const isJobQuestion = matchesAny(msgLower, jobKeywords);
-        const isCareerQuestion = matchesAny(msgLower, careerKeywords);
-
-        if (!isJobQuestion && !isCareerQuestion) {
+        if (!isJob && !isCareer) {
             return {
                 success: true,
                 reply:
-                    "Tôi có thể giúp tìm việc hoặc tư vấn nghề nghiệp.\n" +
-                    "Ví dụ: 'việc React Hà Nội' hoặc 'ngành nào đang hot 2024'.",
+                    "Tôi có thể giúp bạn:\n" +
+                    "• Tìm việc: 'việc React Hà Nội', 'senior backend lương cao'\n" +
+                    "• Tư vấn nghề: 'ngành IT có nên học không', 'lộ trình trở thành DevOps'",
                 jobs: [],
             };
         }
 
-        if (isCareerQuestion && !isJobQuestion) {
-            const fallback =
-                "Hiện nay các ngành hot gồm: Công nghệ thông tin, Digital Marketing, " +
-                "Thương mại điện tử, Data Analyst và Thiết kế UX/UI.";
+        const now = new Date();
+        let jobs = [];
+        let reply = "";
+
+        if (isCareer) {
+            const careerFallback =
+                "Các ngành hot hiện nay: Công nghệ thông tin (đặc biệt AI/ML, Cloud, Cybersecurity), " +
+                "Digital Marketing, Data Analyst, UX/UI Design và Thương mại điện tử.";
             try {
-                const reply = await callGroq({
+                reply = await callGroq({
                     model: "llama-3.3-70b-versatile",
                     temperature: 0.6,
                     max_tokens: 300,
                     messages: [
-                        {
-                            role: "system",
-                            content:
-                                "Bạn là chuyên gia tư vấn nghề nghiệp cho website tuyển dụng Việt Nam.\n" +
-                                "Quy tắc:\n" +
-                                "- Trả lời bằng tiếng Việt, tối đa 4 câu\n" +
-                                "- Nội dung thực tế, có số liệu nếu biết\n" +
-                                "- Không bịa thông tin",
-                        },
-                        { role: "user", content: message },
+                        { role: "system", content: AI_SYSTEM.careerAdvisor },
+                        { role: "user", content: sanitized },
                     ],
-                });
-                return { success: true, reply: reply ?? fallback, jobs: [] };
+                }) ?? careerFallback;
             } catch {
-                return { success: true, reply: fallback, jobs: [] };
+                reply = careerFallback;
+            }
+
+            if (!isJob) {
+                return { success: true, reply, jobs: [] };
             }
         }
 
-        const query = {
-            status: "active",
-            statusPause: false,
-            deadline: { $gte: now },
-        };
+        const { baseQuery, sortOption, limitCount, keywords } = buildJobQuery(normalizedMsg, now);
+        const { jobs: foundJobs, strategy } = await queryJobsWithFallback(baseQuery, keywords, sortOption, limitCount);
+        jobs = foundJobs;
 
-        const numberMatch = msgLower.match(/\d+/);
-        const limitCount = numberMatch
-            ? Math.min(Math.max(parseInt(numberMatch[0]), 1), 10)
-            : 5;
-
-
-        const locationMap = [
-            { keys: ["hà nội", " hn "], regex: "Hà Nội" },
-            { keys: ["đà nẵng", " dn "], regex: "Đà Nẵng" },
-            { keys: ["hồ chí minh", "hcm", "sài gòn", "saigon"], regex: "Hồ Chí Minh" },
-        ];
-        for (const loc of locationMap) {
-            if (loc.keys.some((k) => msgLower.includes(k))) {
-                query.location = { $regex: loc.regex, $options: "i" };
-                break;
-            }
-        }
-
-        let sortOption = { createdAt: -1 };
-        if (msgLower.includes("view cao") || msgLower.includes("xem nhiều")) {
-            sortOption = { view: -1 };
-        } else if (msgLower.includes("nộp nhiều") || msgLower.includes("ứng tuyển nhiều")) {
-            sortOption = { numberUpload: -1 };
-        }
-
-        const stopWords = new Set([
-            "các", "job", "jobs", "việc", "làm", "mới", "nhất", "tại",
-            "tìm", "cần", "tuyển", "cho", "tôi", "giúp", "hãy", "một",
-            "những", "có", "và", "hoặc", "ở", "từ",
-        ]);
-
-
-        const processedKeywords = msgLower
-            .split(/\s+/)
-            .filter((k) => k.length >= 2 && !stopWords.has(k))
-            .map((k) => synonyms[k] ?? k)
-            .filter((k, i, arr) => arr.indexOf(k) === i);
-        if (processedKeywords.length > 0) {
-            query.$text = { $search: processedKeywords.join(" ") };
-        }
-
-        let jobs = await queryJobs(query, sortOption, limitCount);
-
-        if (jobs.length === 0) {
-            const { $text, $or, ...baseQuery } = query;
-            jobs = await userPostJobs
-                .findAll(baseQuery)
-                .sort({ createdAt: -1 })
-                .limit(3)
-                .select("title jobs location joblevel salaryRange numberUpload deadline createdAt");
+        if (strategy === "regex") {
+            console.info("[chatboxUser] Used $regex fallback (text index unavailable).");
+        } else if (strategy === "base") {
+            console.info("[chatboxUser] No keyword match, returning latest jobs by baseQuery.");
         }
 
         if (jobs.length === 0) {
             return {
                 success: true,
                 reply:
-                    "Hiện chưa tìm thấy công việc phù hợp.\n" +
-                    "Bạn có thể thử: React, Marketing, Kế toán, Designer...",
+                    `Chưa tìm thấy công việc phù hợp với "${sanitized}".\n` +
+                    "Thử từ khóa khác: React, Python, Marketing, Kế toán, Designer...",
                 jobs: [],
             };
         }
 
-
-        const context = jobs
-            .map((j, i) => {
-                const salary = j.salaryRange?.toString() || "Thỏa thuận";
-                const deadline = j.deadline
-                    ? new Date(j.deadline).toLocaleDateString("vi-VN")
-                    : "Không rõ";
-                return (
-                    `[${i + 1}] ${j.title}\n` +
-                    `  Ngành: ${j.jobs} | Địa điểm: ${j.location}\n` +
-                    `  Lương: ${salary} | Hạn nộp: ${deadline} | Lượt xem: ${j.joblevel ?? 0}`
-                );
-            })
-            .join("\n\n");
-
-        let reply = `Tôi tìm thấy ${jobs.length} công việc phù hợp cho bạn.`;
-
-        try {
-            const aiReply = await callGroq({
-                model: "llama-3.3-70b-versatile",
-                temperature: 0.4,
-                max_tokens: 300,
-                messages: [
-                    {
-                        role: "system",
-                        content:
-                            "Bạn là chatbot tuyển dụng thân thiện.\n" +
-                            "Quy tắc:\n" +
-                            "- Chỉ trả lời về việc làm trong danh sách\n" +
-                            "- Không bịa thêm thông tin\n" +
-                            "- Tối đa 3 câu, tiếng Việt\n" +
-                            "- Có thể gợi ý job nổi bật nhất",
-                    },
-                    {
-                        role: "user",
-                        content: `Câu hỏi: ${message}\n\nDanh sách việc làm:\n${context}`,
-                    },
-                ],
-            });
-            if (aiReply) reply = aiReply;
-        } catch (aiErr) {
-            console.warn("[chatboxUser] AI error:", aiErr.message);
+        if (!reply) {
+            const context = formatJobContext(jobs);
+            try {
+                reply = await callGroq({
+                    model: "llama-3.3-70b-versatile",
+                    temperature: 0.4,
+                    max_tokens: 250,
+                    messages: [
+                        { role: "system", content: AI_SYSTEM.jobAdvisor },
+                        {
+                            role: "user",
+                            content: `Câu hỏi: ${sanitized}\n\nJob tìm được:\n${context}`,
+                        },
+                    ],
+                }) ?? `Tìm thấy ${jobs.length} việc làm phù hợp cho bạn.`;
+            } catch {
+                reply = `Tìm thấy ${jobs.length} việc làm phù hợp cho bạn.`;
+            }
+        } else {
+            reply += `\n\nDưới đây là ${jobs.length} công việc liên quan bạn có thể tham khảo:`;
         }
-
         return { success: true, reply, jobs };
-
     } catch (error) {
         console.error("[chatboxUser] Unhandled error:", error);
-        return { success: false, message: error.message };
+        return {
+            success: false,
+            message: "Đã xảy ra lỗi, vui lòng thử lại.",
+        };
     }
 };
+
 
 const getNotificationsUser = async (idUser) => {
     const user = await userRepository.findByOne({ _id: idUser });
@@ -914,6 +1078,7 @@ module.exports = {
     refreshTokenUser,
     getSingleUser,
     getAllUser,
+    deleteUser,
     deletebyadminUser,
     changeStatusUser,
     updateUser,

@@ -229,6 +229,12 @@ class ControllerUser {
         const reponse = await userSevicer.markNotificationAsReadUser(id);
         res.status(200).json(reponse);
     })
+
+    delete = asyncHandler(async (req, res) => {
+        const { idu } = req.params;
+        const reponse = await userSevicer.deleteUser(idu);
+        res.status(200).json(reponse);
+    });
 }
 
 module.exports = new ControllerUser();

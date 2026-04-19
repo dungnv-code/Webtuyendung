@@ -69,13 +69,12 @@ const deleteExp = (id) => {
     return axios.delete(`/experience/delete/${id}`)
 }
 
-// user 
 const getAllUser = (params) => {
     return axios.get(`/user/getAll`, { params })
 }
 
 const deleteUser = (id) => {
-    return axios.delete(`/user/delete/${id}`)
+    return axios.delete(`/user/deletebyadmin/${id}`)
 }
 
 const changeStatusUser = (id) => {
